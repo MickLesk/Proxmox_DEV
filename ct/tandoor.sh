@@ -59,6 +59,7 @@ if [[ ! -d /opt/tandoor ]]; then
 	exit; 
 fi
 msg_info "Updating ${APP} LXC"
+cd /opt/tandoor
 if git pull | grep -q 'Already up to date'; then
     echo "The Git repository is already up to date. There are no updates available."
 else
