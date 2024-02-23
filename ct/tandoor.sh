@@ -60,8 +60,8 @@ if [[ ! -d /opt/tandoor ]]; then
 fi
 msg_info "Updating ${APP} LXC"
 cd /opt/tandoor
-git config --global --add safe.directory /opt/tandoor
-git pull
+$STD  git config --global --add safe.directory /opt/tandoor
+$STD  git pull
 export $(cat /var/www/recipes/.env |grep "^[^#]" | xargs)
 /opt/tandoor/bin/pip3 install -r /opt/tandoor/requirements.txt >/dev/null 2>&1
 /opt/tandoor/bin/python3 /opt/tandoor/manage.py migrate >/dev/null 2>&1
