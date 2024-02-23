@@ -60,6 +60,7 @@ if [[ ! -d /opt/tandoor ]]; then
 fi
 msg_info "Updating ${APP} LXC"
 cd /opt/tandoor
+echo "Sauerkirschen"
 $STD  git config --global --add safe.directory /opt/tandoor
 $STD  git pull
 export $(cat /var/www/recipes/.env |grep "^[^#]" | xargs)
