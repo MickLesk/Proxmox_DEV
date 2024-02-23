@@ -21,7 +21,7 @@ echo -e "Loading..."
 APP="Tandoor"
 var_disk="10"
 var_cpu="2"
-var_ram="1024"
+var_ram="2048"
 var_os="debian"
 var_version="12"
 variables
