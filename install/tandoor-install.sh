@@ -39,17 +39,17 @@ msg_info "Setup Tandoor (Patience)"
 sudo useradd tandoor
 cd /opt
 git clone https://github.com/vabene1111/recipes.git -b master >/dev/null 2>&1
-mv recipes tandoor >/dev/null 2>&1
+mv recipes tandoor
 chown -R tandoor:www-data /opt/tandoor 
 python3 -m venv /opt/tandoor >/dev/null 2>&1
 source /opt/tandoor/bin/activate >/dev/null 2>&1
-curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - 
+curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - >/dev/null 2>&1
 apt install -y nodejs >/dev/null 2>&1
 sudo npm install --global yarn  >/dev/null 2>&1
 /opt/tandoor/bin/pip3 install -r /opt/tandoor/requirements.txt  >/dev/null 2>&1
 cd /opt/tandoor/vue
-yarn install --silent >/dev/null 2>&1
-yarn build --silent >/dev/null 2>&1
+yarn install --silent 
+yarn build --silent
 cd /opt/tandoor
 sudo mkdir -p config api mediafiles staticfiles 
 msg_ok "Initial Setup complete"
