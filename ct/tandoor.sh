@@ -62,7 +62,7 @@ msg_info "Updating ${APP} LXC"
 echo "Sauerkirschen"
 cd /opt/tandoor && git pull
 echo "Sauerkirschen"
-export $(cat /var/www/recipes/.env |grep "^[^#]" | xargs)
+export $(cat /opt/tandoor/.env |grep "^[^#]" | xargs)
 /opt/tandoor/bin/pip3 install -r /opt/tandoor/requirements.txt >/dev/null 2>&1
 /opt/tandoor/bin/python3 /opt/tandoor/manage.py migrate >/dev/null 2>&1
 /opt/tandoor/bin/python3 /opt/tandoor/manage.py collectstatic --no-input >/dev/null 2>&1
