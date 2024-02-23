@@ -19,8 +19,8 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Tandoor"
-var_disk="5"
-var_cpu="1"
+var_disk="10"
+var_cpu="2"
 var_ram="1024"
 var_os="debian"
 var_version="12"
