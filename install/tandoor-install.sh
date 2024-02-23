@@ -46,10 +46,10 @@ source /opt/tandoor/bin/activate >/dev/null 2>&1
 curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - >/dev/null 2>&1
 apt install -y nodejs >/dev/null 2>&1
 sudo npm install --global yarn  >/dev/null 2>&1
-/opt/tandoor/bin/pip3 install -r /opt/tandoor/requirements.txt  >/dev/null 2>&1
+/opt/tandoor/bin/pip3 install -r /opt/tandoor/requirements.txt >/dev/null 2>&1
 cd /opt/tandoor/vue
-yarn install --silent 
-yarn build --silent
+yarn install --silent >/dev/null 2>&1
+yarn build --silent >/dev/null 2>&1
 cd /opt/tandoor
 sudo mkdir -p config api mediafiles staticfiles 
 msg_ok "Initial Setup complete"
