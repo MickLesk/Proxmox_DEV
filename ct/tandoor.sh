@@ -59,19 +59,19 @@ if [[ ! -d /opt/tandoor ]]; then
 	exit; 
 fi
 msg_info "Updating ${APP} LXC"
-echo "Sauerkirschen"
-cd /opt/tandoor && git pull
-echo "Sauerkirschen"
-export $(cat /opt/tandoor/.env |grep "^[^#]" | xargs)
-/opt/tandoor/bin/pip3 install -r /opt/tandoor/requirements.txt >/dev/null 2>&1
-/opt/tandoor/bin/python3 /opt/tandoor/manage.py migrate >/dev/null 2>&1
-/opt/tandoor/bin/python3 /opt/tandoor/manage.py collectstatic --no-input >/dev/null 2>&1
-/opt/tandoor/bin/python3 /opt/tandoor/manage.py collectstatic_js_reverse >/dev/null 2>&1
-cd /opt/tandoor/vue
-yarn install >/dev/null 2>&1
-yarn build  >/dev/null 2>&1
-sudo systemctl restart gunicorn_tandoor
-msg_ok "Updated Successfully"
+if git pull | grep -q 'Already up to date'; then
+    echo "The Git repository is already up to date. There are no updates available."
+else
+    export $(cat .env | grep "^[^#]" | xargs)
+    /opt/tandoor/bin/pip3 install -r requirements.txt >/dev/null 2>&1
+    /opt/tandoor/bin/python3 manage.py migrate >/dev/null 2>&1
+    /opt/tandoor/bin/python3 manage.py collectstatic --no-input >/dev/null 2>&1
+    /opt/tandoor/bin/python3 manage.py collectstatic_js_reverse >/dev/null 2>&1
+    cd /opt/tandoor/vue
+    yarn install >/dev/null 2>&1
+    yarn build >/dev/null 2>&1
+    sudo systemctl restart gunicorn_tandoor
+fi
 
 msg_error "There is currently no update path available."
 exit
