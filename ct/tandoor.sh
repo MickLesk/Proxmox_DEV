@@ -19,7 +19,7 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Tandoor"
-var_disk="8"
+var_disk="6"
 var_cpu="2"
 var_ram="2048"
 var_os="debian"
@@ -60,6 +60,7 @@ if [[ ! -d /opt/tandoor ]]; then
 fi
 msg_info "Updating ${APP} LXC"
 cd /opt/tandoor
+git config --global --add safe.directory /opt/tandoor
 git pull
 export $(cat /var/www/recipes/.env |grep "^[^#]" | xargs)
 /opt/tandoor/bin/pip3 install -r /opt/tandoor/requirements.txt >/dev/null 2>&1
