@@ -60,7 +60,7 @@ if [[ ! -d /opt/tandoor ]]; then
 fi
 msg_info "Updating ${APP} LXC"
 if cd /opt/tandoor && git pull | grep -q 'Already up to date'; then
-    echo "The Git repository is already up to date. There are no updates available."
+    msg_error "There is currently no update path available."
 else
     export $(cat /opt/tandoor/.env | grep "^[^#]" | xargs)
     /opt/tandoor/bin/pip3 install -r requirements.txt >/dev/null 2>&1
@@ -72,8 +72,6 @@ else
     yarn build >/dev/null 2>&1
     sudo systemctl restart gunicorn_tandoor
 fi
-
-msg_error "There is currently no update path available."
 exit
 }
 
