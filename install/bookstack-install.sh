@@ -24,11 +24,11 @@ $STD apt-get install -y --no-install-recommends \
   make \
   mc
 
-curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x
-sudo apt-get update
+curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x >/dev/null 2>&1
+sudo apt-get update >/dev/null 2>&1
 sudo systemctl restart apache2
-sudo apt-get autoremove --purge php7.4
-sudo apt-get autoremove --purge php7.4-common
+sudo apt-get autoremove --purge php7.4 >/dev/null 2>&1
+sudo apt-get autoremove --purge php7.4-common >/dev/null 2>&1
 
 $STD apt-get install -y --no-install-recommends \
   php8.2 \
