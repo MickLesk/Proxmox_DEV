@@ -58,19 +58,18 @@ echo -e "Bookstack Database Name: \e[32m$DB_NAME\e[0m" >>~/bookstack.creds
 msg_ok "Set up database"
 
 msg_info "Setup Bookstack (Patience)"
-EXPECTED_CHECKSUM="$(php -r 'copy("https://composer.github.io/installer.sig", "php://stdout");')"
-php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-ACTUAL_CHECKSUM="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
+EXPECTED_CHECKSUM="$(php -r 'copy("https://composer.github.io/installer.sig", "php://stdout");')" >/dev/null 2>&1
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" >/dev/null 2>&1
+ACTUAL_CHECKSUM="$(php -r "echo hash_file('sha384', 'composer-setup.php');")" >/dev/null 2>&1
 if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]
 then
-    >&2 echo 'ERROR: Invalid composer installer checksum'
+    >&2 echo 'ERROR: Invalid composer installer checksum' 
     rm composer-setup.php
     exit 1
 fi
-php composer-setup.php
-rm composer-setup.php
+php composer-setup.php >/dev/null 2>&1
+rm composer-setup.php 
 mv composer.phar /usr/local/bin/composer
-#sudo useradd tandoor
 cd /opt
 git clone https://github.com/BookStackApp/BookStack.git --branch release --single-branch bookstack >/dev/null 2>&1
 cd bookstack
@@ -79,12 +78,12 @@ sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/bookstack/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/bookstack/.env
 sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/bookstack/.env
 export COMPOSER_ALLOW_SUPERUSER=1
-php /usr/local/bin/composer install --no-dev --no-plugins
-php artisan key:generate --no-interaction --force
-php artisan migrate --no-interaction --force
-chown www-data:www-data -R bootstrap/cache public/uploads storage && chmod -R 755 bootstrap/cache public/uploads storage
-a2enmod rewrite
-a2enmod php8.2
+php /usr/local/bin/composer install --no-dev --no-plugins >/dev/null 2>&1
+php artisan key:generate --no-interaction --force >/dev/null 2>&1
+php artisan migrate --no-interaction --force >/dev/null 2>&1
+chown www-data:www-data -R bootstrap/cache public/uploads storage && chmod -R 755 bootstrap/cache public/uploads storage >/dev/null 2>&1
+a2enmod rewrite >/dev/null 2>&1
+a2enmod php8.2 >/dev/null 2>&1
 msg_ok "Initial Setup complete"
 
 msg_info "Set up web services"
@@ -116,8 +115,8 @@ cat <<EOF >/etc/apache2/sites-available/bookstack.conf
                 RewriteRule ^ index.php [L]
             </IfModule>
         </Directory>
-            ErrorLog ${APACHE_LOG_DIR}/error.log
-            CustomLog ${APACHE_LOG_DIR}/access.log combined
+		ErrorLog /var/log/apache2/error.log
+		CustomLog /var/log/apache2/access.log combined
     </VirtualHost>
 EOF
 
