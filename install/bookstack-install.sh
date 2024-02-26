@@ -124,7 +124,7 @@ $STD sudo systemctl restart apache2
 msg_ok "Created Services"
 
 msg_info "Set Path and File Permissions"
-sudo chown -R barry:www-data /opt/bookstack
+sudo chown -R bookstack:www-data /opt/bookstack
 sudo chmod -R 755 /opt/bookstack
 sudo chmod -R 775 /opt/bookstack/storage /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads
 sudo chmod -R 640 /opt/bookstack/.env
