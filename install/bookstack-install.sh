@@ -93,11 +93,18 @@ a2enmod rewrite >/dev/null 2>&1
 a2enmod php8.2 >/dev/null 2>&1
 msg_ok "Initial Setup complete"
 
+msg_info "Set Path and File Permissions"
+sudo chown -R root:www-data /opt/bookstack
+sudo chmod -R 755 /opt/bookstack
+sudo chmod -R 775 /opt/bookstack/storage /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads
+sudo chmod -R 640 /opt/bookstack/.env
+msg_ok "Permissions successfully set"
+
 msg_info "Set up web services"
 cat <<EOF >/etc/apache2/sites-available/bookstack.conf
     <VirtualHost *:80>
             # Set the 'ServerName' to a static IP address unless you have a DNS entry for the hostname already.
-            ServerName http://127.0.0.1
+            ServerName localhost
             ServerAdmin webmaster@localhost
             DocumentRoot /opt/bookstack/public/
         <Directory /opt/bookstack/public/>
@@ -130,14 +137,6 @@ EOF
 /usr/sbin/apachectl configtest
 $STD sudo systemctl restart apache2
 msg_ok "Created Services"
-
-msg_info "Set Path and File Permissions"
-sudo chown -R bookstack:www-data /opt/bookstack
-sudo chmod -R 755 /opt/bookstack
-sudo chmod -R 775 /opt/bookstack/storage /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads
-sudo chmod -R 640 /opt/bookstack/.env
-msg_ok "Permissions successfully set"
-
 
 motd_ssh
 customize
