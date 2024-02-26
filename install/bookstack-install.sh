@@ -43,14 +43,6 @@ $STD apt-get install -y --no-install-recommends \
   php8.2-mysql 
 msg_ok "Installed Dependencies"
 
-
-
-
-
-
-
-
-
 msg_info "Setting up Database"
 DB_NAME=bookstack
 DB_USER=bookstack
