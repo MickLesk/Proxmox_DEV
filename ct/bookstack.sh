@@ -8,20 +8,21 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox/main/misc/bu
 function header_info {
 clear
 cat <<"EOF"
-  ______                __                
- /_  __/___ _____  ____/ /___  ____  _____
-  / / / __ `/ __ \/ __  / __ \/ __ \/ ___/
- / / / /_/ / / / / /_/ / /_/ / /_/ / /    
-/_/  \__,_/_/ /_/\__,_/\____/\____/_/     
-                                        
+______             _        _             _    
+| ___ \           | |      | |           | |   
+| |_/ / ___   ___ | | _____| |_ __ _  ___| | __
+| ___ \/ _ \ / _ \| |/ / __| __/ _` |/ __| |/ /
+| |_/ / (_) | (_) |   <\__ \ || (_| | (__|   < 
+\____/ \___/ \___/|_|\_\___/\__\__,_|\___|_|\_\
+                                               
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="devtandoor"
-var_disk="5"
-var_cpu="2"
-var_ram="2024"
+APP="Bookstack"
+var_disk="4"
+var_cpu="1"
+var_ram="1024"
 var_os="debian"
 var_version="12"
 variables
@@ -83,4 +84,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:8002${CL} \n"
+         ${BL}http://${IP}:80${CL} \n"
