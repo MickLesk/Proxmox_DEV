@@ -84,6 +84,7 @@ cp .env.example .env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/bookstack/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/bookstack/.env
 sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/bookstack/.env
+sudo sed -i "s/APP_URL=.*/APP_URL=http://localhost/" /opt/bookstack/.env
 export COMPOSER_ALLOW_SUPERUSER=1
 php /usr/local/bin/composer install --no-dev --no-plugins >/dev/null 2>&1
 php artisan key:generate --no-interaction --force >/dev/null 2>&1
@@ -94,7 +95,7 @@ a2enmod php8.2 >/dev/null 2>&1
 msg_ok "Initial Setup complete"
 
 msg_info "Set Path and File Permissions"
-sudo chown -R root:www-data /opt/bookstack
+sudo chown -R bookstack:www-data /opt/bookstack
 sudo chmod -R 755 /opt/bookstack
 sudo chmod -R 775 /opt/bookstack/storage /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads
 sudo chmod -R 640 /opt/bookstack/.env
@@ -102,7 +103,7 @@ msg_ok "Permissions successfully set"
 
 msg_info "Set up web services"
 cat <<EOF >/etc/apache2/sites-available/bookstack.conf
-    <VirtualHost *:80>
+    <VirtualHost *:81>
             # Set the 'ServerName' to a static IP address unless you have a DNS entry for the hostname already.
             ServerName localhost
             ServerAdmin webmaster@localhost
