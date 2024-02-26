@@ -26,7 +26,7 @@ $STD apt-get install -y --no-install-recommends \
 
 curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x >/dev/null 2>&1
 sudo apt-get update >/dev/null 2>&1
-#sudo systemctl restart apache2
+$STD sudo systemctl restart apache2 2>&1
 sudo apt-get autoremove --purge php7.4 >/dev/null 2>&1
 sudo apt-get autoremove --purge php7.4-common >/dev/null 2>&1
 
@@ -48,9 +48,9 @@ msg_info "Setting up Database"
 DB_NAME=bookstack
 DB_USER=bookstack
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
-$STD sudo mysql -u root -p -e "CREATE DATABASE $DB_NAME;"
-$STD sudo mysql -u root -p -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_PASS';"
-$STD sudo mysql -u root -p -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUSH PRIVILEGES;"
+$STD sudo mysql -u root -e "CREATE DATABASE $DB_NAME;"
+$STD sudo mysql -u root -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED WITH mysql_native_password AS PASSWORD('$SERVER_PASS');"
+$STD sudo mysql -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUSH PRIVILEGES;"
 echo "" >>~/bookstack.creds
 echo -e "Bookstack Database User: \e[32m$DB_USER\e[0m" >>~/bookstack.creds
 echo -e "Bookstack Database Password: \e[32m$DB_PASS\e[0m" >>~/bookstack.creds
