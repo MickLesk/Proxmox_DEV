@@ -84,7 +84,7 @@ cp .env.example .env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/bookstack/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/bookstack/.env
 sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/bookstack/.env
-sudo sed -i 's/APP_URL=.*/APP_URL=http://localhost' /opt/bookstack/.env
+sudo sed -i 's%APP_URL=.*%APP_URL=http://localhost%' /opt/bookstack/.env
 export COMPOSER_ALLOW_SUPERUSER=1
 php /usr/local/bin/composer install --no-dev --no-plugins >/dev/null 2>&1
 php artisan key:generate --no-interaction --force >/dev/null 2>&1
