@@ -63,8 +63,8 @@ msg_info "Updating ${APP} LXC"
 cd /opt/bookstack
 git config --global --add safe.directory /opt/bookstack >/dev/null 2>&1
 git pull origin release >/dev/null 2>&1
-composer install --no-dev --no-interaction
-php artisan migrate --force
+composer install --no-interaction --no-dev >/dev/null 2>&1
+php artisan migrate --force >/dev/null 2>&1
 php artisan cache:clear
 php artisan config:clear
 php artisan view:clear
