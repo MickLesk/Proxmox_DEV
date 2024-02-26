@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
+source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
 # Author: MickLesk (Canbiz)
 # License: MIT
@@ -61,17 +61,16 @@ if [[ ! -d /opt/bookstack ]]; then
 fi
 msg_info "Updating ${APP} LXC"
 cd /opt/bookstack
-git config --global --add safe.directory /opt/bookstack
-git pull origin release
-composer install --no-dev
-php artisan migrate
+git config --global --add safe.directory /opt/bookstack >/dev/null 2>&1
+git pull origin release >/dev/null 2>&1
+composer install --no-dev --no-interaction
+php artisan migrate --force
 php artisan cache:clear
 php artisan config:clear
 php artisan view:clear
 msg_ok "Updated Successfully"
-
-msg_error "There is currently no update path available."
 exit
+msg_error "There is currently no update path available."
 }
 
 start
