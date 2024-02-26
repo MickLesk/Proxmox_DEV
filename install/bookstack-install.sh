@@ -52,16 +52,17 @@ $STD sudo mysql -u root -e "CREATE DATABASE $DB_NAME;"
 $STD sudo mysql -u root -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED WITH mysql_native_password AS PASSWORD('$DB_PASS');"
 $STD sudo mysql -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUSH PRIVILEGES;"
 echo "" >>~/bookstack.creds
-echo -e "Bookstack Database User: \e[32m$DB_USER\e[0m" >>~/bookstack.creds
-echo -e "Bookstack Database Password: \e[32m$DB_PASS\e[0m" >>~/bookstack.creds
-echo -e "Bookstack Database Name: \e[32m$DB_NAME\e[0m" >>~/bookstack.creds
+echo -e "Bookstack Database User: \e $DB_USER\e" >>~/bookstack.creds
+echo -e "Bookstack Database Password: \e$DB_PASS\e" >>~/bookstack.creds
+echo -e "Bookstack Database Name: \e$DB_NAME\e" >>~/bookstack.creds
 msg_ok "Set up database"
 
 msg_info "Setup Bookstack (Patience)"
 SERVER_USER=bookstack
+SERVER_IP="$(ip -o -4 addr show scope global | awk '{split($4,a,"/"); print a[1]}')"
 SERVER_PASS="$(openssl rand -base64 18 | cut -c1-13)"
-echo -e "Bookstack Server User: \e[32m$SERVER_USER\e[0m" >>~/bookstack.creds
-echo -e "Bookstack Server Password: \e[32m$SERVER_PASS\e[0m" >>~/bookstack.creds
+echo -e "Bookstack Server User: \e$SERVER_USER\e" >>~/bookstack.creds
+echo -e "Bookstack Server Password: \e$SERVER_PASS\e" >>~/bookstack.creds
 sudo useradd -m $SERVER_USER
 echo "$SERVER_USER:$SERVER_PASS" | sudo chpasswd
 
@@ -81,10 +82,10 @@ cd /opt
 git clone https://github.com/BookStackApp/BookStack.git --branch release --single-branch bookstack >/dev/null 2>&1
 cd bookstack
 cp .env.example .env
+sudo sed -i "s|APP_URL=.*|APP_URL=http://$SERVER_IP/|g" /opt/bookstack/.env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/bookstack/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/bookstack/.env
 sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/bookstack/.env
-sudo sed -i 's%APP_URL=.*%APP_URL=http://localhost%' /opt/bookstack/.env
 export COMPOSER_ALLOW_SUPERUSER=1
 php /usr/local/bin/composer install --no-dev --no-plugins >/dev/null 2>&1
 php artisan key:generate --no-interaction --force >/dev/null 2>&1
@@ -103,37 +104,45 @@ msg_ok "Permissions successfully set"
 
 msg_info "Set up web services"
 cat <<EOF >/etc/apache2/sites-available/bookstack.conf
-    <VirtualHost *:81>
-            # Set the 'ServerName' to a static IP address unless you have a DNS entry for the hostname already.
-            ServerName localhost
-            ServerAdmin webmaster@localhost
-            DocumentRoot /opt/bookstack/public/
-        <Directory /opt/bookstack/public/>
-            Options Indexes FollowSymLinks
-            AllowOverride None
-            Require all granted
-            <IfModule mod_rewrite.c>
-                <IfModule mod_negotiation.c>
-                    Options -MultiViews -Indexes
-                </IfModule>
-                RewriteEngine On
-                # Handle Authorization Header
-                RewriteCond %{HTTP:Authorization} .
-                RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-                # Redirect Trailing Slashes If Not A Folder...
-                RewriteCond %{REQUEST_FILENAME} !-d
-                RewriteCond %{REQUEST_URI} (.+)/$
-                RewriteRule ^ %1 [L,R=301]
-                # Handle Front Controller...
-                RewriteCond %{REQUEST_FILENAME} !-d
-                RewriteCond %{REQUEST_FILENAME} !-f
-                RewriteRule ^ index.php [L]
-            </IfModule>
-        </Directory>
-		ErrorLog /var/log/apache2/error.log
-		CustomLog /var/log/apache2/access.log combined
-    </VirtualHost>
+<VirtualHost *:80>
+  ServerName replaceme
+
+  ServerAdmin webmaster@localhost
+  DocumentRoot /var/www/bookstack/public/
+
+  <Directory /var/www/bookstack/public/>
+      Options -Indexes +FollowSymLinks
+      AllowOverride None
+      Require all granted
+      <IfModule mod_rewrite.c>
+          <IfModule mod_negotiation.c>
+              Options -MultiViews -Indexes
+          </IfModule>
+
+          RewriteEngine On
+
+          # Handle Authorization Header
+          RewriteCond %{HTTP:Authorization} .
+          RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+          # Redirect Trailing Slashes If Not A Folder...
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteCond %{REQUEST_URI} (.+)/$
+          RewriteRule ^ %1 [L,R=301]
+
+          # Handle Front Controller...
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteRule ^ index.php [L]
+      </IfModule>
+  </Directory>
+  
+  ErrorLog ${APACHE_LOG_DIR}/error.log
+  CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>
 EOF
+sudo sed -i "s/ServerName replaceme/ServerName $SERVER_IP/" /etc/apache2/sites-available/bookstack.conf
 /usr/sbin/a2ensite bookstack.conf
 /usr/sbin/apachectl configtest
 $STD sudo systemctl restart apache2
