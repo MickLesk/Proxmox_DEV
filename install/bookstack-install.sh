@@ -126,7 +126,8 @@ cat <<EOF >/etc/apache2/sites-available/bookstack.conf
 		CustomLog /var/log/apache2/access.log combined
     </VirtualHost>
 EOF
-
+/usr/sbin/a2ensite bookstack.conf
+/usr/sbin/apachectl configtest
 $STD sudo systemctl restart apache2
 msg_ok "Created Services"
 
