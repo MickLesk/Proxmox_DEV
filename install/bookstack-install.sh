@@ -108,9 +108,9 @@ cat <<EOF >/etc/apache2/sites-available/bookstack.conf
   ServerName replaceme
 
   ServerAdmin webmaster@localhost
-  DocumentRoot /var/www/bookstack/public/
+  DocumentRoot /opt/bookstack/public/
 
-  <Directory /var/www/bookstack/public/>
+  <Directory /opt/bookstack/public/>
       Options -Indexes +FollowSymLinks
       AllowOverride None
       Require all granted
@@ -143,9 +143,8 @@ cat <<EOF >/etc/apache2/sites-available/bookstack.conf
 </VirtualHost>
 EOF
 sudo sed -i "s/ServerName replaceme/ServerName $SERVER_IP/" /etc/apache2/sites-available/bookstack.conf
-/usr/sbin/a2ensite bookstack.conf
-/usr/sbin/apachectl configtest
-$STD sudo systemctl restart apache2
+/usr/sbin/a2ensite bookstack.conf >/dev/null 2>&1
+$STD sudo systemctl restart apache2 >/dev/null 2>&1
 msg_ok "Created Services"
 
 motd_ssh
