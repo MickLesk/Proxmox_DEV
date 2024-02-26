@@ -17,6 +17,7 @@ msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y --no-install-recommends \
   unzip \
   mariadb-server \
+  apache2 \
   curl \
   sudo \
   git \
