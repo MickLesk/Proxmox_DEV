@@ -49,7 +49,7 @@ DB_NAME=bookstack
 DB_USER=bookstack
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
 $STD sudo mysql -u root -e "CREATE DATABASE $DB_NAME;"
-$STD sudo mysql -u root -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED WITH mysql_native_password AS PASSWORD('$SERVER_PASS');"
+$STD sudo mysql -u root -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED WITH mysql_native_password AS PASSWORD('$DB_PASS');"
 $STD sudo mysql -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUSH PRIVILEGES;"
 echo "" >>~/bookstack.creds
 echo -e "Bookstack Database User: \e[32m$DB_USER\e[0m" >>~/bookstack.creds
