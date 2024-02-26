@@ -58,6 +58,13 @@ echo -e "Bookstack Database Name: \e[32m$DB_NAME\e[0m" >>~/bookstack.creds
 msg_ok "Set up database"
 
 msg_info "Setup Bookstack (Patience)"
+SERVER_USER=bookstack
+SERVER_PASS="$(openssl rand -base64 18 | cut -c1-13)"
+echo -e "Bookstack Server User: \e[32m$SERVER_USER\e[0m" >>~/bookstack.creds
+echo -e "Bookstack Server Password: \e[32m$SERVER_PASS\e[0m" >>~/bookstack.creds
+sudo useradd -m $SERVER_USER
+echo "$SERVER_USER:$SERVER_PASS" | sudo chpasswd
+
 EXPECTED_CHECKSUM="$(php -r 'copy("https://composer.github.io/installer.sig", "php://stdout");')" >/dev/null 2>&1
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" >/dev/null 2>&1
 ACTUAL_CHECKSUM="$(php -r "echo hash_file('sha384', 'composer-setup.php');")" >/dev/null 2>&1
