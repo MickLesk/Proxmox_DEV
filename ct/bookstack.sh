@@ -55,23 +55,19 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -d /opt/tandoor ]]; then 
+if [[ ! -d /opt/bookstack ]]; then 
 	msg_error "No ${APP} Installation Found!"; 
 	exit; 
 fi
 msg_info "Updating ${APP} LXC"
-cd /opt/tandoor
-git config --global --add safe.directory /opt/tandoor
-sudo git pull
-export $(cat /opt/tandoor/.env |grep "^[^#]" | xargs)
-/opt/tandoor/bin/pip3 install -r /opt/tandoor/requirements.txt >/dev/null 2>&1
-/opt/tandoor/bin/python3 /opt/tandoor/manage.py migrate >/dev/null 2>&1
-/opt/tandoor/bin/python3 /opt/tandoor/manage.py collectstatic --no-input >/dev/null 2>&1
-/opt/tandoor/bin/python3 /opt/tandoor/manage.py collectstatic_js_reverse >/dev/null 2>&1
-cd /opt/tandoor/vue
-yarn install >/dev/null 2>&1
-yarn build  >/dev/null 2>&1
-sudo systemctl restart gunicorn_tandoor
+cd /opt/bookstack
+git config --global --add safe.directory /opt/bookstack
+git pull origin release
+composer install --no-dev
+php artisan migrate
+php artisan cache:clear
+php artisan config:clear
+php artisan view:clear
 msg_ok "Updated Successfully"
 
 msg_error "There is currently no update path available."
