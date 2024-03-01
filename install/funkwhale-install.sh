@@ -49,33 +49,33 @@ msg_ok "Installed Dependencies"
 
 msg_info "Setup Funkwhale Dependencies (Patience)"
 export FUNKWHALE_VERSION=1.4.0
-sudo apt install -y --no-install-recommends $(curl https://dev.funkwhale.audio/funkwhale/funkwhale/-/raw/$FUNKWHALE_VERSION/deploy/requirements.apt)
-sudo useradd --system --shell /bin/bash --create-home --home-dir /opt/funkwhale funkwhale
+$STD sudo apt install -y --no-install-recommends $(curl https://dev.funkwhale.audio/funkwhale/funkwhale/-/raw/$FUNKWHALE_VERSION/deploy/requirements.apt)
+$STD sudo useradd --system --shell /bin/bash --create-home --home-dir /opt/funkwhale funkwhale
 cd /opt/funkwhale
-sudo mkdir -p config api data/static data/media data/music front
-sudo chown -R funkwhale:funkwhale data
+$STD sudo mkdir -p config api data/static data/media data/music front
+$STD sudo chown -R funkwhale:funkwhale data
 msg_ok "Initial Setup complete"
 
 msg_ok "Download Funkwhale API"
-sudo curl -L -o "api-$FUNKWHALE_VERSION.zip" "https://dev.funkwhale.audio/funkwhale/funkwhale/-/jobs/artifacts/$FUNKWHALE_VERSION/download?job=build_api"
-sudo unzip -q "api-$FUNKWHALE_VERSION.zip" -d extracted
-sudo mv extracted/api/* api/
-sudo rm -rf extracted api-$FUNKWHALE_VERSION.zip
+$STD sudo curl -L -o "api-$FUNKWHALE_VERSION.zip" "https://dev.funkwhale.audio/funkwhale/funkwhale/-/jobs/artifacts/$FUNKWHALE_VERSION/download?job=build_api"
+$STD sudo unzip -q "api-$FUNKWHALE_VERSION.zip" -d extracted
+$STD sudo mv extracted/api/* api/
+$STD sudo rm -rf extracted api-$FUNKWHALE_VERSION.zip
 msg_ok "Downloaded and extracted Funkwhale API"
 
 msg_info "Download Funkwhale Frontend"
-sudo curl -L -o "front-$FUNKWHALE_VERSION.zip" "https://dev.funkwhale.audio/funkwhale/funkwhale/-/jobs/artifacts/$FUNKWHALE_VERSION/download?job=build_front"
-sudo unzip -q "front-$FUNKWHALE_VERSION.zip" -d extracted
-sudo mv extracted/front .
-sudo rm -rf extracted front-$FUNKWHALE_VERSION.zip
+$STD sudo curl -L -o "front-$FUNKWHALE_VERSION.zip" "https://dev.funkwhale.audio/funkwhale/funkwhale/-/jobs/artifacts/$FUNKWHALE_VERSION/download?job=build_front"
+$STD sudo unzip -q "front-$FUNKWHALE_VERSION.zip" -d extracted
+$STD sudo mv extracted/front .
+$STD sudo rm -rf extracted front-$FUNKWHALE_VERSION.zip
 msg_ok "Downloaded and extracted Funkwhale Frontend"
 
 msg_info "Install Funkwhale API and DJANGO"
 cd /opt/funkwhale
-sudo python3 -m venv venv
-sudo venv/bin/pip install --upgrade pip wheel
-sudo venv/bin/pip install --editable ./api
-sudo curl -L -o /opt/funkwhale/config/.env "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/env.prod.sample"
+$STD sudo python3 -m venv venv
+$STD sudo venv/bin/pip install --upgrade pip wheel
+$STD sudo venv/bin/pip install --editable ./api
+$STD sudo curl -L -o /opt/funkwhale/config/.env "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/env.prod.sample"
 secret_key=$(openssl rand -base64 45 | sed 's/\//\\\//g')
 sudo sed -i "s/DJANGO_SECRET_KEY=.*/DJANGO_SECRET_KEY=$secret_key/" /opt/funkwhale/config/.env
 sudo sed -i 's/# CACHE_URL=redis:\/\/127.0.0.1:6379\/0/CACHE_URL=redis:\/\/127.0.0.1:6379\/0/' /opt/funkwhale/config/.env #Remove #Hashtag From Config for Debian
@@ -117,15 +117,15 @@ FUNKWHALE_PASS="$(openssl rand -base64 18 | cut -c1-13)"
 echo -e "Funkwhale Superuser: \e[32m$FUNKWHALE_USER\e[0m" >>~/funkwhale.creds
 echo -e "Funkwhale Mail: \e[32m$FUNKWHALE_MAIL\e[0m" >>~/funkwhale.creds
 echo -e "Funkwhale Superuser Password: \e[32m$FUNKWHALE_PASS\e[0m" >>~/funkwhale.creds
-sudo -u funkwhale venv/bin/funkwhale-manage fw users create --superuser --username $FUNKWHALE_USER --email $FUNKWHALE_MAIL --password $FUNKWHALE_PASS
-sudo venv/bin/funkwhale-manage collectstatic
-sudo curl -L -o "/etc/systemd/system/funkwhale.target" "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/funkwhale.target"
-sudo curl -L -o "/etc/systemd/system/funkwhale-server.service" "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/funkwhale-server.service"
-sudo curl -L -o "/etc/systemd/system/funkwhale-worker.service" "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/funkwhale-worker.service"
-sudo curl -L -o "/etc/systemd/system/funkwhale-beat.service" "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/funkwhale-beat.service"
-sudo systemctl daemon-reload
-sudo systemctl start funkwhale.target
-sudo systemctl enable --now funkwhale.target
+$STD sudo -u funkwhale venv/bin/funkwhale-manage fw users create --superuser --username $FUNKWHALE_USER --email $FUNKWHALE_MAIL --password $FUNKWHALE_PASS
+$STD sudo venv/bin/funkwhale-manage collectstatic
+$STD sudo curl -L -o "/etc/systemd/system/funkwhale.target" "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/funkwhale.target"
+$STD sudo curl -L -o "/etc/systemd/system/funkwhale-server.service" "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/funkwhale-server.service"
+$STD sudo curl -L -o "/etc/systemd/system/funkwhale-worker.service" "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/funkwhale-worker.service"
+$STD sudo curl -L -o "/etc/systemd/system/funkwhale-beat.service" "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/funkwhale-beat.service"
+$STD sudo systemctl daemon-reload
+$STD sudo systemctl start funkwhale.target
+$STD sudo systemctl enable --now funkwhale.target
 msg_ok "Funkwhale successfully set up"
 
 read -r -p "Would you like to Setup Reverse Proxy (Nginx)? <y/N> " prompt
@@ -133,14 +133,14 @@ if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
   msg_info "Installing NGINX"
   $STD apt install -y nginx
   sudo su
-  curl -L -o /etc/nginx/funkwhale_proxy.conf "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/funkwhale_proxy.conf"
-  curl -L -o /etc/nginx/sites-available/funkwhale.template "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/nginx.template"
-  set -a && source /opt/funkwhale/config/.env && set +a envsubst "`env | awk -F = '{printf \" $%s\", $$1}'`" \
+  $STD curl -L -o /etc/nginx/funkwhale_proxy.conf "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/funkwhale_proxy.conf"
+  $STD curl -L -o /etc/nginx/sites-available/funkwhale.template "https://dev.funkwhale.audio/funkwhale/funkwhale/raw/$FUNKWHALE_VERSION/deploy/nginx.template"
+  $STD set -a && source /opt/funkwhale/config/.env && set +a envsubst "`env | awk -F = '{printf \" $%s\", $$1}'`" \
    < /etc/nginx/sites-available/funkwhale.template \
    > /etc/nginx/sites-available/funkwhale.conf
-  grep '${' /etc/nginx/sites-available/funkwhale.conf
-  ln -s /etc/nginx/sites-available/funkwhale.conf /etc/nginx/sites-enabled/
-  systemctl reload nginx
+  $STD grep '${' /etc/nginx/sites-available/funkwhale.conf
+  $STD ln -s /etc/nginx/sites-available/funkwhale.conf /etc/nginx/sites-enabled/
+  $STD systemctl reload nginx
   msg_ok "Installed Nginx"
 fi
 
@@ -148,7 +148,7 @@ read -r -p "Would you like to Setup TLS (Certbot)? <y/N> " prompt
 if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
   msg_info "Installing Certbot"
   $STD apt install -y certbot python3-certbot-nginx
-  sudo certbot --nginx -d $FUNKWHALE_HOSTNAME
+  $STD sudo certbot --nginx -d $FUNKWHALE_HOSTNAME
   msg_ok "Installed Certbot"
 fi
 
