@@ -53,7 +53,7 @@ curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|gpg --dearmor -o /
 echo "deb https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" >/etc/apt/sources.list.d/pgdg.list
 $STD apt-get update
 $STD apt-get install -y postgresql-16
-$STD sudo -u postgres psql -c "CREATE USER $DB_USER WITH SUPERUSER CREATEDB CREATEROLE WITH LOGIN PASSWORD '$DB_PASS';"
+$STD sudo -u postgres psql -c "CREATE USER $DB_USER WITH LOGIN PASSWORD '$DB_PASS';"
 $STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER TEMPLATE template0;"
 $STD systemctl enable postgresql
 echo "" >>~/docspell.creds
