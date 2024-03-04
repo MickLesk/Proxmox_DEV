@@ -22,9 +22,9 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Docspell"
-var_disk="6"
-var_cpu="1"
-var_ram="1024"
+var_disk="5"
+var_cpu="4"
+var_ram="2048"
 var_os="debian"
 var_version="12"
 variables
@@ -78,6 +78,10 @@ msg_error "There is currently no update path available."
 start
 build_container
 description
+
+msg_info "Setting Container to Normal Resources"
+pct set $CTID -cores 2
+msg_ok "Set Container to Normal Resources"
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
