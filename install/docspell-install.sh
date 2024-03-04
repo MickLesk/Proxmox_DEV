@@ -68,22 +68,22 @@ DocspellDSC=$(wget -q https://github.com/docspell/dsc/releases/latest -O - | gre
 cd /opt
 $STD wget https://github.com/eikek/docspell/releases/download/v${Docspell}/docspell-joex_${Docspell}_all.deb
 $STD wget https://github.com/eikek/docspell/releases/download/v${Docspell}/docspell-restserver_${Docspell}_all.deb
-dpkg -i docspell*
+$STD dpkg -i docspell*
 $STD wget https://github.com/docspell/dsc/releases/download/v${DocspellDSC}/dsc_amd64-musl-${DocspellDSC}
-$STD mv dsc_amd* dsc
-$STD chmod +x dsc
-$STD mv dsc /usr/bin
-$STD ln -s /etc/docspell-joex /opt/docspell/docspell-joex
-$STD ln -s /etc/docspell-restserver /opt/docspell/docspell-restserver
-$STD ln -s /usr/bin/dsc /opt/docspell/dsc
-$STD sudo sed -i "s/user=.*/user=$DB_USER/" /opt/docspell/docspell-restserver/docspell-server.conf
-$STD sudo sed -i "s/password=.*/password=$DB_PASS/" /opt/docspell/docspell-restserver/docspell-server.conf
-$STD sudo sed -i "s/user=.*/user=$DB_USER/" /opt/docspell/docspell-joex/docspell-joex.conf
-$STD sudo sed -i "s/password=.*/password=$DB_PASS/" /opt/docspell/docspell-joex/docspell-joex.conf
-$STD systemctl start docspell-restserver
-$STD systemctl enable docspell-restserver
-$STD systemctl start docspell-joex
-$STD systemctl enable docspell-joex
+mv dsc_amd* dsc
+chmod +x dsc
+mv dsc /usr/bin
+ln -s /etc/docspell-joex /opt/docspell/docspell-joex
+ln -s /etc/docspell-restserver /opt/docspell/docspell-restserver
+ln -s /usr/bin/dsc /opt/docspell/dsc
+sudo sed -i "s/user=.*/user=$DB_USER/" /opt/docspell/docspell-restserver/docspell-server.conf
+sudo sed -i "s/password=.*/password=$DB_PASS/" /opt/docspell/docspell-restserver/docspell-server.conf
+sudo sed -i "s/user=.*/user=$DB_USER/" /opt/docspell/docspell-joex/docspell-joex.conf
+sudo sed -i "s/password=.*/password=$DB_PASS/" /opt/docspell/docspell-joex/docspell-joex.conf
+systemctl start docspell-restserver
+systemctl enable docspell-restserver
+systemctl start docspell-joex
+systemctl enable docspell-joex
 
 motd_ssh
 customize
