@@ -70,8 +70,8 @@ if [[ $git_output == *"Already up to date."* ]]; then
     exit 0
 else
     echo "Update found. Perform next steps..."
-	cd /opt/wastebin
-	cargo update
+    cd /opt/wastebin
+    cargo update
     nohup cargo run --release > /opt/wastebin/wastebin.log 2>&1 &
     msg_ok "Updated Successfully"
 fi
