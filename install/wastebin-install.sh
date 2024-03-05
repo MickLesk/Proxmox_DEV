@@ -39,11 +39,12 @@ msg_info "Install Wastebin"
 cd /opt
 $STD git clone https://github.com/matze/wastebin
 cd wastebin
-nohup cargo run --release 
+#nohup 
+cargo run --release 
 #cat /opt/wastebin/wastebin.log
-while ! grep -q "Finished release" /opt/wastebin/wastebin.log; do
-    sleep 10
-done
+#while ! grep -q "Finished release" /opt/wastebin/wastebin.log; do
+#    sleep 10
+#done
 msg_ok "Wastebin Installed successfully"
 
 
