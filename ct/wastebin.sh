@@ -64,13 +64,12 @@ if [[ ! -d /opt/wastebin ]]; then
 fi
 msg_info "Updating ${APP} LXC"
 cd /opt/wastebin
-$STD git_output=$(git pull)
+git_output=$(git pull)
 if [[ $git_output == *"Already up to date."* ]]; then
     msg_error "There is currently no update path available."
     exit 0
 else
     echo "Update found. Perform next steps..."
-    # Führe das Cargo-Programm aus und leite die Ausgabe in eine Log-Datei um
 	cd /opt/wastebin
 	cargo update
     nohup cargo run --release > /opt/wastebin/wastebin.log 2>&1 &
