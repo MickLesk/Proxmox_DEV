@@ -80,6 +80,8 @@ mv dsc /usr/bin
 ln -s /etc/docspell-joex /opt/docspell/docspell-joex && ln -s /etc/docspell-restserver /opt/docspell/docspell-restserver && ln -s /usr/bin/dsc /opt/docspell/dsc
 cd /opt && rm -R solr-$latest_version && rm -R docspell-joex_${Docspell}_all.deb  && rm -R docspell-restserver_${Docspell}_all.deb
 cd /opt/docspell && rm -R solr-$latest_version.tgz && rm -R solr-$latest_version
+sudo sed -i "s|url = \"jdbc:postgresql://localhost:5432/db\"|url = \"jdbc:postgresql://localhost:5432/$DB_NAME\"|" /opt/docspell/docspell-restserver/docspell-server.conf
+sudo sed -i "s|url = \"jdbc:postgresql://localhost:5432/db\"|url = \"jdbc:postgresql://localhost:5432/$DB_NAME\"|" /opt/docspell/docspell-joex/docspell-joex.conf
 sudo sed -i "s/user=.*/user=$DB_USER/" /opt/docspell/docspell-restserver/docspell-server.conf
 sudo sed -i "s/password=.*/password=$DB_PASS/" /opt/docspell/docspell-restserver/docspell-server.conf
 sudo sed -i "s/user=.*/user=$DB_USER/" /opt/docspell/docspell-joex/docspell-joex.conf
