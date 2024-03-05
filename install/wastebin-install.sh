@@ -27,8 +27,8 @@ $STD apt-get install -y --no-install-recommends \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Rust" 
-$STD curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
-$STD source "$HOME/.cargo/env"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
+source "$HOME/.cargo/env"
 msg_ok "Rust installed successfully" 
 
 msg_info "Install Wastebin" 
