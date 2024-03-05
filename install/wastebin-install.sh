@@ -27,18 +27,19 @@ $STD apt-get install -y --no-install-recommends \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Rust" 
-$STD curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y &
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y &
 RUST_INSTALL_PID=$!
 while kill -0 $RUST_INSTALL_PID 2> /dev/null; do
     sleep 10
 done
 if [ $? -eq 0 ]; then
-    $STD source "$HOME/.cargo/env"
+    source "$HOME/.cargo/env"
     msg_ok "Rust installed successfully" 
 else
     msg_error "Error while installing Rust"
     exit 1
 fi
+
 
 msg_info "Install Wastebin" 
 cd /opt
