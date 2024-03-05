@@ -27,25 +27,19 @@ $STD apt-get install -y --no-install-recommends \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Rust" 
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y &
-RUST_INSTALL_PID=$!
-while kill -0 $RUST_INSTALL_PID 2> /dev/null; do
-    echo "Warte auf die Installation von Rust..."
-    sleep 5
+rust_install_log="/opt/rust_install.log"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y > "$rust_install_log" 2>&1 &
+while ! grep -q "Rust is installed now. Great!" "$rust_install_log"; do
+    sleep 10
 done
-if [ $? -eq 0 ]; then
-    $STD source "$HOME/.cargo/env"
-    msg_ok "Rust installed successfully" 
-else
-    msg_error "Error while installing Rust"
-    exit 1
-fi
+$STD source "$HOME/.cargo/env"
+msg_ok "Rust installed successfully" 
 
 msg_info "Install Wastebin" 
 cd /opt
 $STD git clone https://github.com/matze/wastebin
 cd wastebin
-$STD cargo run --release > /opt/wastebin/wastebin.log 2>&1 &
+cargo run --release > /opt/wastebin/wastebin.log 2>&1 &
 while ! grep -q "Finished release" /opt/wastebin/wastebin.log; do
     sleep 10
 done
