@@ -44,8 +44,13 @@ fi
 msg_info "Install Wastebin" 
 cd /opt
 $STD git clone https://github.com/matze/wastebin
-cd wastebin && cargo run --release 
-msg_ok "Wastebin Installed successfully" 
+cd wastebin
+$STD cargo run --release > /opt/wastebin/wastebin.log 2>&1 &
+while ! grep -q "Finished release" /opt/wastebin/wastebin.log; do
+    sleep 10
+done
+msg_ok "Wastebin Installed successfully"
+
 
 msg_info "Set up service"
 cat <<EOF >/etc/systemd/system/wastebin.service
