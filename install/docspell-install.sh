@@ -37,12 +37,16 @@ $STD apt-get install -y --no-install-recommends \
   make \
   mc
 
-$STD cd /root/
-$STD wget https://downloads.apache.org/lucene/solr/8.11.3/solr-8.11.3.tgz
-$STD tar xzf solr-8.11.3.tgz
-$STD bash solr-8.11.3/bin/install_solr_service.sh solr-8.11.3.tgz
+mkdir -p /opt/docspell && cd /opt/docspell
+SOLR_DOWNLOAD_URL="https://downloads.apache.org/lucene/solr/"
+latest_version=$(curl -s "$SOLR_DOWNLOAD_URL" | grep -oP '(?<=<a href=")[^"]+(?=/">[0-9])' | head -n 1)
+download_url="${SOLR_DOWNLOAD_URL}${latest_version}/solr-${latest_version}.tgz"
+$STD  wget "$download_url"
+tar xzf "solr-$latest_version.tgz"
+$STD  bash "/opt/docspell/solr-$latest_version/bin/install_solr_service.sh" "solr-$latest_version.tgz"
+mv /opt/solr /opt/docspell/solr
 $STD systemctl start solr
-$STD su solr -c '/opt/solr-8.11.3/bin/solr create -c docspell'
+$STD su solr -c '/opt/docspell/solr/bin/solr create -c docspell'
 msg_ok "Installed Dependencies"
 
 msg_info "Install/Set up PostgreSQL Database"
@@ -57,9 +61,9 @@ $STD sudo -u postgres psql -c "CREATE USER $DB_USER WITH LOGIN PASSWORD '$DB_PAS
 $STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER TEMPLATE template0;"
 $STD systemctl enable postgresql
 echo "" >>~/docspell.creds
-echo -e "Docspell Database Name: \e[32m$DB_NAME\e[0m" >>~/docspell.creds
-echo -e "Docspell Database User: \e[32m$DB_USER\e[0m" >>~/docspell.creds
-echo -e "Docspell Database Password: \e[32m$DB_PASS\e[0m" >>~/docspell.creds
+echo -e "Docspell Database Name: $DB_NAME" >>~/docspell.creds
+echo -e "Docspell Database User: $DB_USER" >>~/docspell.creds
+echo -e "Docspell Database Password: $DB_PASS" >>~/docspell.creds
 msg_ok "Set up PostgreSQL Database"
 
 msg_info "Setup Docspell (Patience)"
@@ -68,14 +72,14 @@ DocspellDSC=$(wget -q https://github.com/docspell/dsc/releases/latest -O - | gre
 cd /opt
 $STD wget https://github.com/eikek/docspell/releases/download/v${Docspell}/docspell-joex_${Docspell}_all.deb
 $STD wget https://github.com/eikek/docspell/releases/download/v${Docspell}/docspell-restserver_${Docspell}_all.deb
-$STD dpkg -i docspell*
+$STD dpkg -i docspell-*
 $STD wget https://github.com/docspell/dsc/releases/download/v${DocspellDSC}/dsc_amd64-musl-${DocspellDSC}
 mv dsc_amd* dsc
 chmod +x dsc
 mv dsc /usr/bin
-ln -s /etc/docspell-joex /opt/docspell/docspell-joex
-ln -s /etc/docspell-restserver /opt/docspell/docspell-restserver
-ln -s /usr/bin/dsc /opt/docspell/dsc
+ln -s /etc/docspell-joex /opt/docspell/docspell-joex && ln -s /etc/docspell-restserver /opt/docspell/docspell-restserver && ln -s /usr/bin/dsc /opt/docspell/dsc
+cd /opt && rm -R solr-$latest_version && rm -R docspell-joex_${Docspell}_all.deb  && rm -R docspell-restserver_${Docspell}_all.deb
+cd /opt/docspell && rm -R solr-$latest_version.tgz && rm -R solr-$latest_version
 sudo sed -i "s/user=.*/user=$DB_USER/" /opt/docspell/docspell-restserver/docspell-server.conf
 sudo sed -i "s/password=.*/password=$DB_PASS/" /opt/docspell/docspell-restserver/docspell-server.conf
 sudo sed -i "s/user=.*/user=$DB_USER/" /opt/docspell/docspell-joex/docspell-joex.conf
