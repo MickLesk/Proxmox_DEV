@@ -63,8 +63,7 @@ if [[ ! -d /opt/wastebin ]]; then
 	exit; 
 fi
 msg_info "Updating ${APP} LXC"
-cd /opt/wastebin
-git_output=$(git pull)
+cd /opt/wastebin && git_output=$(git pull)
 if [[ $git_output == *"Already up to date."* ]]; then
     msg_error "There is currently no update available."
     exit 0
