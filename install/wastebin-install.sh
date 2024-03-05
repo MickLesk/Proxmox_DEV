@@ -39,7 +39,8 @@ msg_info "Install Wastebin"
 cd /opt
 $STD git clone https://github.com/matze/wastebin
 cd wastebin
-nohup cargo run --release 2>&1 | tee /opt/wastebin/wastebin.log &
+nohup cargo run --release > /opt/wastebin/wastebin.log 2>&1 &
+cat /opt/wastebin/wastebin.log
 while ! grep -q "Finished release" /opt/wastebin/wastebin.log; do
     sleep 10
 done
