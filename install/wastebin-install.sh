@@ -27,8 +27,28 @@ $STD apt-get install -y --no-install-recommends \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Rust" 
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
-source "$HOME/.cargo/env"
+# Führe den Installationsprozess im Hintergrund aus, um auf mögliche Benutzereingaben zu reagieren
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y &
+# Warte auf das Ende des Prozesses und speichere die PID (Prozess-ID)
+RUST_INSTALL_PID=$!
+
+# Überwache den Installationsprozess
+while kill -0 $RUST_INSTALL_PID 2> /dev/null; do
+    echo "Warte auf die Installation von Rust..."
+    sleep 5
+done
+
+# Überprüfe, ob die Installation erfolgreich war
+if [ $? -eq 0 ]; then
+    # Wenn die Installation erfolgreich war, aktivieren Sie die Umgebung
+    source "$HOME/.cargo/env"
+    msg_ok "Rust installed successfully" 
+else
+    # Wenn ein Fehler aufgetreten ist, geben Sie eine Fehlermeldung aus
+    msg_error "Fehler beim Installieren von Rust"
+    exit 1
+fi
+
 msg_ok "Rust installed successfully" 
 
 msg_info "Install Wastebin" 
@@ -51,6 +71,8 @@ ExecStart=/root/.cargo/bin/cargo run --release > /opt/wastebin/wastebin.log 2>&1
 [Install]
 WantedBy=multi-user.target
 EOF
+$STD sudo systemctl daemon-reload
+$STD sudo systemctl start wastebin
 msg_ok "Created Services"
 
 motd_ssh
