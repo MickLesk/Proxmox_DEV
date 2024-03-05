@@ -44,7 +44,7 @@ fi
 msg_info "Install Wastebin" 
 cd /opt
 $STD git clone https://github.com/matze/wastebin
-$STD cd wastebin && nohup cargo run --release > /opt/wastebin/wastebin.log 2>&1 &
+cd wastebin && cargo run --release 
 msg_ok "Wastebin Installed successfully" 
 
 msg_info "Set up service"
