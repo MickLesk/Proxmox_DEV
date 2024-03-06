@@ -41,7 +41,7 @@ mv wastebin-$Wastebin wastebin
 rm -R $Wastebin.zip 
 cd /opt/wastebin
 $STD export CARGO_BUILD_MESSAGE_FORMAT=json
-$STD cargo run --release --quiet
+cargo run --release --quiet
 msg_ok "Installed Wastebin"
 
 msg_info "Creating Service"
