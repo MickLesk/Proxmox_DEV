@@ -64,7 +64,7 @@ msg_info "Starting Service (Patience)"
 systemctl enable -q --now wastebin.service
 while true; do
 	sleep 15
-    systemctl status wastebin
+    $STD systemctl status wastebin
 	if ! systemd-cgtop | grep -q 'cargo run --release --quiet'; then
         break
     fi
