@@ -26,22 +26,21 @@ $STD apt-get install -y --no-install-recommends \
   mc
 msg_ok "Installed Dependencies"
 
-msg_info "Installing Rust" 
-rust_install_log="/opt/rust_install.log"
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y > "$rust_install_log" 2>&1 &
-while ! grep -q "Rust is installed now. Great!" "$rust_install_log"; do
-    sleep 10
-done
+msg_info "Installing Rust (Patience)" 
+$STD curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y 
 $STD source "$HOME/.cargo/env"
-msg_ok "Rust installed successfully" 
+msg_ok "Installed Rust" 
 
-msg_info "Install Wastebin" 
+msg_info "Installing Wastebin (Patience)" 
+Wastebin=$(wget -q https://github.com/matze/wastebin/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 cd /opt
-$STD git clone https://github.com/matze/wastebin
-cd wastebin
-$STD cargo run --release  
-msg_ok "Wastebin Installed successfully"
-
+$STD wget https://github.com/matze/wastebin/archive/refs/tags/${Wastebin}.zip
+$STD unzip ${Wastebin}.zip 
+mv wastebin-${Wastebin} wastebin 
+rm -R ${Wastebin}.zip 
+cd /opt/wastebin
+$STD cargo run --release -q
+msg_ok "Installed Wastebin"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/wastebin.service
@@ -52,7 +51,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/opt/wastebin
-ExecStart=/root/.cargo/bin/cargo run --release > /opt/wastebin/wastebin.log 2>&1
+ExecStart=/root/.cargo/bin/cargo run --release
 
 [Install]
 WantedBy=multi-user.target
