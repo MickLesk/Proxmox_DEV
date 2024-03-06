@@ -40,8 +40,9 @@ $STD unzip $Wastebin.zip
 mv wastebin-$Wastebin wastebin 
 rm -R $Wastebin.zip 
 cd /opt/wastebin
-$STD export CARGO_BUILD_MESSAGE_FORMAT=json
+RUST_LOG=cargo=warn 
 cargo run --release --quiet
+
 msg_ok "Installed Wastebin"
 
 msg_info "Creating Service"
@@ -53,7 +54,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/opt/wastebin
-ExecStart=/root/.cargo/bin/cargo run --release
+ExecStart=/root/.cargo/bin/cargo run --release --quiet
 
 [Install]
 WantedBy=multi-user.target

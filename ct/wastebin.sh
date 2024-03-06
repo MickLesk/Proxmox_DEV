@@ -56,27 +56,45 @@ function default_settings() {
 }
 
 function update_script() {
+header_info
 if [[ ! -d /opt/wastebin ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
   read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
   [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
-msg_info "Updating ${APP} LXC"
+Wastebin=$(wget -q https://github.com/matze/wastebin/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
+msg_info "Stopping Wastebin"
+systemctl stop wastebin
+msg_ok "Wastebin Stopped"
 
-cd /opt/wastebin && git_output=$(git pull)
-if [[ $git_output == *"Already up to date."* ]]; then
-    msg_error "There is currently no update available."
-    exit 0
-else
-	systemctl stop wastebin
-    cd /opt/wastebin
-    cargo update
-    cargo run --release
-	systemctl start wastebin
-    msg_ok "Updated Successfully"
+
+cd /opt
+$STD wget https://github.com/matze/wastebin/archive/refs/tags/$Wastebin.zip
+
+
+msg_info "Updating Wastebin"
+cd /opt
+wget https://github.com/matze/wastebin/archive/refs/tags/$Wastebin.zip &>/dev/null
+if [ -d wastebin_bak ]; then
+  rm -rf wastebin_bak
 fi
-exit
+mv wastebin wastebin_bak
+unzip $Wastebin.zip &>/dev/null
+mv wastebin-$Wastebin wastebin 
+rm -R $Wastebin.zip 
+cd /opt/wastebin
+cargo run --release --quiet
+msg_ok "Updated AdguardHome"
 
+msg_info "Starting AdguardHome"
+systemctl start AdGuardHome
+msg_ok "Started AdguardHome"
+
+msg_info "Cleaning Up"
+rm -rf AdGuardHome_linux_amd64.tar.gz AdGuardHome adguard-backup
+msg_ok "Cleaned"
+msg_ok "Updated Successfully"
+exit
 }
 
 start
