@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
+source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
 # Author: tteck
 # Co-Author: MickLesk (Canbiz)
@@ -11,13 +11,12 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 function header_info {
 clear
 cat <<"EOF"
- _    _           _       _     _       
-| |  | |         | |     | |   (_)      
-| |  | | __ _ ___| |_ ___| |__  _ _ __  
-| |/\| |/ _` / __| __/ _ \ '_ \| | '_ \ 
-\  /\  / (_| \__ \ ||  __/ |_) | | | | |
- \/  \/ \__,_|___/\__\___|_.__/|_|_| |_|
-                                               
+ _       __           __       __    _     
+| |     / /___ ______/ /____  / /_  (_)___ 
+| | /| / / __ `/ ___/ __/ _ \/ __ \/ / __ \
+| |/ |/ / /_/ (__  ) /_/  __/ /_/ / / / / /
+|__/|__/\__,_/____/\__/\___/_.___/_/_/ /_/ 
+                                            
 EOF
 }
 header_info
@@ -57,24 +56,27 @@ function default_settings() {
 }
 
 function update_script() {
-header_info
-if [[ ! -d /opt/wastebin ]]; then 
-	msg_error "No ${APP} Installation Found!"; 
-	exit; 
+if [[ ! -d /opt/wastebin ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
+  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
+  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
 msg_info "Updating ${APP} LXC"
+
 cd /opt/wastebin && git_output=$(git pull)
 if [[ $git_output == *"Already up to date."* ]]; then
     msg_error "There is currently no update available."
     exit 0
 else
-    echo "Update found. Perform next steps..."
+	systemctl stop wastebin
     cd /opt/wastebin
     cargo update
-    nohup cargo run --release > /opt/wastebin/wastebin.log 2>&1 &
+    cargo run --release
+	systemctl start wastebin
     msg_ok "Updated Successfully"
 fi
 exit
+
 }
 
 start

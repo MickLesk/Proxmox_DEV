@@ -39,15 +39,11 @@ msg_info "Install Wastebin"
 cd /opt
 $STD git clone https://github.com/matze/wastebin
 cd wastebin
-cargo run --release  > /opt/wastebin/wastebin.log 2>&1 &
-
-while ! grep -q "Finished release" /opt/wastebin/wastebin.log; do
-    sleep 10
-done
+$STD cargo run --release  
 msg_ok "Wastebin Installed successfully"
 
 
-msg_info "Set up service"
+msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/wastebin.service
 [Unit]
 Description=Start Wastebin Service
@@ -61,9 +57,9 @@ ExecStart=/root/.cargo/bin/cargo run --release > /opt/wastebin/wastebin.log 2>&1
 [Install]
 WantedBy=multi-user.target
 EOF
-$STD sudo systemctl daemon-reload
-$STD sudo systemctl start wastebin
-msg_ok "Created Services"
+systemctl daemon-reload
+systemctl enable -q --now wastebin.service
+msg_ok "Created Service"
 
 motd_ssh
 customize
