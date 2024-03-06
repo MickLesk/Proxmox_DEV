@@ -30,6 +30,7 @@ msg_info "Installing Rust (Patience)"
 $STD curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup_installer.sh
 $STD sh rustup_installer.sh -q -y
 $STD source "$HOME/.cargo/env"
+RUST_LOG=warn 
 msg_ok "Installed Rust" 
 
 msg_info "Installing Wastebin (Patience)" 
@@ -39,9 +40,6 @@ $STD wget https://github.com/matze/wastebin/archive/refs/tags/$Wastebin.zip
 $STD unzip $Wastebin.zip 
 mv wastebin-$Wastebin wastebin 
 rm -R $Wastebin.zip 
-cd /opt/wastebin
-RUST_LOG=cargo=warn 
-cargo run --release --quiet
 
 msg_ok "Installed Wastebin"
 
@@ -60,8 +58,18 @@ ExecStart=/root/.cargo/bin/cargo run --release --quiet
 WantedBy=multi-user.target
 EOF
 systemctl daemon-reload
-systemctl enable -q --now wastebin.service
 msg_ok "Created Service"
+
+msg_info "Starting Service (Patience)"
+systemctl enable -q --now wastebin.service
+while true; do
+    systemctl status wastebin
+	if ! systemd-cgtop | grep -q 'cargo run --release --quiet'; then
+        break
+    fi
+    sleep 20
+done
+msg_ok "Service started successfully"
 
 motd_ssh
 customize
