@@ -27,21 +27,23 @@ $STD apt-get install -y --no-install-recommends \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Rust (Patience)" 
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup_installer.sh
-sh rustup_installer.sh -q -y
-
+$STD curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup_installer.sh
+$STD sh rustup_installer.sh -q -y
 $STD source "$HOME/.cargo/env"
 msg_ok "Installed Rust" 
 
 msg_info "Installing Wastebin (Patience)" 
 Wastebin=$(wget -q https://github.com/matze/wastebin/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 cd /opt
-$STD wget https://github.com/matze/wastebin/archive/refs/tags/${Wastebin}.zip
-$STD unzip ${Wastebin}.zip 
-mv wastebin-${Wastebin} wastebin 
-rm -R ${Wastebin}.zip 
+$STD wget https://github.com/matze/wastebin/archive/refs/tags/$Wastebin.zip
+$STD unzip $Wastebin.zip 
+mv wastebin-$Wastebin wastebin 
+rm -R $Wastebin.zip 
 cd /opt/wastebin
-$STD cargo run --release -q
+$STD cargo run --release  > /opt/wastebin/wastebin_install.log 2>&1 &
+while ! grep -q "Finished release" /opt/wastebin/wastebin_install.log; do
+    sleep 10
+done
 msg_ok "Installed Wastebin"
 
 msg_info "Creating Service"
