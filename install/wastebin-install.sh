@@ -40,10 +40,8 @@ $STD unzip $Wastebin.zip
 mv wastebin-$Wastebin wastebin 
 rm -R $Wastebin.zip 
 cd /opt/wastebin
-$STD cargo run --release  > /opt/wastebin/wastebin_install.log 2>&1 &
-while ! grep -q "Finished release" /opt/wastebin/wastebin_install.log; do
-    sleep 10
-done
+$STD export CARGO_BUILD_MESSAGE_FORMAT=json
+$STD cargo run --release --quiet
 msg_ok "Installed Wastebin"
 
 msg_info "Creating Service"
