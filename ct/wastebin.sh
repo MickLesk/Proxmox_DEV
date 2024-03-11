@@ -62,7 +62,6 @@ if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
   read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
   [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
-Wastebin=$(wget -q https://github.com/matze/wastebin/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 msg_info "Stopping Wastebin"
 systemctl stop wastebin
 msg_ok "Wastebin Stopped"
