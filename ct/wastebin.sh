@@ -89,6 +89,7 @@ msg_ok "Started Wastebin"
 msg_info "Cleaning Up"
 cd /opt
 rm -R ${RELEASE}.zip 
+rm -R wastebin_bak 
 msg_ok "Cleaned"
 msg_ok "Updated Successfully"
 exit
