@@ -5,7 +5,7 @@
 # Co-Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
-# Source: https://github.com/matze/wastebin
+# Source: https://github.com/hudikhq/hoodik
 
 source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
 color
@@ -31,15 +31,23 @@ $STD bash <(curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs) -y
 $STD source ~/.cargo/env
 msg_ok "Installed Rust" 
 
+msg_info "Installing Hoodik (Patience)" 
 RELEASE=$(curl -s https://api.github.com/repos/hudikhq/hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 $STD wget -q "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
 $STD unzip -q ${RELEASE}.zip
 CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
-mv "hoodik-${CLEAN_RELEASE}" hoodik
+mv "hoodik-${CLEAN_RELEASE}" /opt/hoodik
 rm -R ${RELEASE}.zip 
 cd /opt/hoodik
 $STD cargo build -q --release
 msg_ok "Installed hoodik"
+
+$STD wget -q "https://github.com/matze/wastebin/archive/refs/tags/${RELEASE}.zip"
+$STD unzip -q ${RELEASE}.zip
+mv wastebin-${RELEASE} /opt/wastebin
+rm -R ${RELEASE}.zip 
+cd /opt/wastebin
+$STD cargo build -q --release
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/hoodik.service
