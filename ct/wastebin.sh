@@ -76,7 +76,6 @@ mv wastebin wastebin_bak
 wget -q "https://github.com/matze/wastebin/archive/refs/tags/${RELEASE}.zip"
 unzip -q ${RELEASE}.zip &>/dev/null
 mv wastebin-${RELEASE} /opt/wastebin
-rm -R ${RELEASE}.zip 
 cd /opt/wastebin
 cargo update -q 
 cargo build -q --release
