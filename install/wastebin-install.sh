@@ -27,20 +27,18 @@ $STD apt-get install -y --no-install-recommends \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Rust (Patience)" 
-$STD curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup_installer.sh
-$STD sh rustup_installer.sh -q -y
-$STD source "$HOME/.cargo/env"
-RUST_LOG=warn 
+$STD bash <(curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs) -y
+#$STD sh rustup_installer.sh -q -y
+$STD source ~/.cargo/env
 msg_ok "Installed Rust" 
 
-msg_info "Installing Wastebin (Patience)" 
-Wastebin=$(wget -q https://github.com/matze/wastebin/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
-cd /opt
-$STD wget https://github.com/matze/wastebin/archive/refs/tags/$Wastebin.zip
-$STD unzip $Wastebin.zip 
-mv wastebin-$Wastebin wastebin 
-rm -R $Wastebin.zip 
-
+RELEASE=$(curl -s https://api.github.com/repos/matze/wastebin/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+$STD wget -q "https://github.com/matze/wastebin/archive/refs/tags/${RELEASE}.zip"
+$STD unzip -q ${RELEASE}.zip
+mv wastebin-${RELEASE} /opt/wastebin
+rm -R ${RELEASE}.zip 
+cd /opt/wastebin
+$STD cargo build -q --release
 msg_ok "Installed Wastebin"
 
 msg_info "Creating Service"
@@ -58,19 +56,8 @@ ExecStart=/root/.cargo/bin/cargo run --release --quiet
 WantedBy=multi-user.target
 EOF
 systemctl daemon-reload
-msg_ok "Created Service"
-
-msg_info "Starting Service (Patience)"
 systemctl enable -q --now wastebin.service
-while true; do
-	sleep 15
-    $STD systemctl status wastebin
-	if ! systemd-cgtop | grep -q 'cargo run --release --quiet'; then
-        break
-    fi
-    sleep 20
-done
-msg_ok "Service started successfully"
+msg_ok "Created Service"
 
 motd_ssh
 customize
