@@ -67,31 +67,22 @@ msg_info "Stopping Wastebin"
 systemctl stop wastebin
 msg_ok "Wastebin Stopped"
 
-
-cd /opt
-$STD wget https://github.com/matze/wastebin/archive/refs/tags/$Wastebin.zip
-
-
 msg_info "Updating Wastebin"
-cd /opt
-wget https://github.com/matze/wastebin/archive/refs/tags/$Wastebin.zip &>/dev/null
-if [ -d wastebin_bak ]; then
-  rm -rf wastebin_bak
-fi
-mv wastebin wastebin_bak
-unzip $Wastebin.zip &>/dev/null
-mv wastebin-$Wastebin wastebin 
-rm -R $Wastebin.zip 
+RELEASE=$(curl -s https://api.github.com/repos/matze/wastebin/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }') &>/dev/null
+wget -q "https://github.com/matze/wastebin/archive/refs/tags/${RELEASE}.zip"
+unzip -q ${RELEASE}.zip &>/dev/null
+mv wastebin-${RELEASE} /opt/wastebin
+rm -R ${RELEASE}.zip 
 cd /opt/wastebin
-cargo run --release --quiet
-msg_ok "Updated AdguardHome"
+cargo build -q --release
+msg_ok "Updated Wastebin"
 
-msg_info "Starting AdguardHome"
-systemctl start AdGuardHome
-msg_ok "Started AdguardHome"
+msg_info "Starting Wastebin"
+systemctl start wastebin
+msg_ok "Started Wastebin"
 
 msg_info "Cleaning Up"
-rm -rf AdGuardHome_linux_amd64.tar.gz AdGuardHome adguard-backup
+rm -R ${RELEASE}.zip 
 msg_ok "Cleaned"
 msg_ok "Updated Successfully"
 exit
