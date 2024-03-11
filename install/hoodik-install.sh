@@ -31,10 +31,11 @@ $STD bash <(curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs) -y
 $STD source ~/.cargo/env
 msg_ok "Installed Rust" 
 
-RELEASE=$(curl -s https://api.github.com/repos/Hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-$STD wget -q "https://github.com/Hoodik/archive/refs/tags/${RELEASE}.zip"
+RELEASE=$(curl -s https://api.github.com/repos/hudikhq/hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+$STD wget -q "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
 $STD unzip -q ${RELEASE}.zip
-mv hoodik-${RELEASE} /opt/hoodik
+CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
+mv "hoodik-${CLEAN_RELEASE}" hoodik
 rm -R ${RELEASE}.zip 
 cd /opt/hoodik
 $STD cargo build -q --release
