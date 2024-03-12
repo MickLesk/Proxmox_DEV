@@ -28,26 +28,20 @@ msg_ok "Installed Dependencies"
 
 msg_info "Installing Rust (Patience)" 
 $STD bash <(curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs) -y
-$STD source ~/.cargo/env
+source ~/.cargo/env
 msg_ok "Installed Rust" 
 
 msg_info "Installing Hoodik (Patience)" 
+cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hudikhq/hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 $STD wget -q "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
 $STD unzip -q ${RELEASE}.zip
 CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
-mv "hoodik-${CLEAN_RELEASE}" /opt/hoodik
+mv "hoodik-${CLEAN_RELEASE}" hoodik
 rm -R ${RELEASE}.zip 
-cd /opt/hoodik
+cd hoodik
 $STD cargo build -q --release
 msg_ok "Installed hoodik"
-
-$STD wget -q "https://github.com/matze/wastebin/archive/refs/tags/${RELEASE}.zip"
-$STD unzip -q ${RELEASE}.zip
-mv wastebin-${RELEASE} /opt/wastebin
-rm -R ${RELEASE}.zip 
-cd /opt/wastebin
-$STD cargo build -q --release
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/hoodik.service
@@ -63,7 +57,6 @@ ExecStart=/root/.cargo/bin/cargo run -q --release
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl daemon-reload
 systemctl enable -q --now hoodik.service
 msg_ok "Created Service"
 
