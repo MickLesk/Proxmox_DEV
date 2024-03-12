@@ -22,7 +22,7 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Hoodik"
-var_disk="4"
+var_disk="7"
 var_cpu="4"
 var_ram="2048"
 var_os="debian"
