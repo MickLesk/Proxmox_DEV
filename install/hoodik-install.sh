@@ -20,11 +20,11 @@ $STD apt-get install -y --no-install-recommends \
   unzip \
   pkg-config \
   libssl-dev \
-  libpq-dev \ 
-  clang \ 
-  llvm \
-  nettle-dev \ 
   libc6-dev \
+  libpq-dev \
+  clang \
+  llvm \
+  nettle-dev \
   build-essential \
   curl \
   sudo \
