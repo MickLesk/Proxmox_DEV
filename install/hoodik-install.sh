@@ -34,7 +34,7 @@ msg_ok "Installed Rust"
 msg_info "Installing Hoodik (Patience)" 
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hudikhq/hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-$STD wget -q "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
+$STD wget -q --no-check-certificate "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
 $STD unzip -q ${RELEASE}.zip
 CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
 mv "hoodik-${CLEAN_RELEASE}" hoodik
