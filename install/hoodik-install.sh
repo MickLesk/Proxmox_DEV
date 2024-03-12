@@ -42,7 +42,7 @@ CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
 mv "hoodik-${CLEAN_RELEASE}" hoodik
 rm -R ${RELEASE}.zip 
 cd hoodik
-$STD cargo build -q --release
+cargo build -q --release
 msg_ok "Installed hoodik"
 
 msg_info "Creating Service"
