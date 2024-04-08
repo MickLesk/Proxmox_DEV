@@ -15,100 +15,192 @@ update_os
 
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y --no-install-recommends \
-  unzip \
+  mariadb-server \
+  # webserver: 
   apache2 \
+  lighttpd \
+  # daemon für Zeitplanung
   cron \
+  # Audio Codec / Audio Tools
   flac \
-  gosu \
-  inotify-tools \
+  vorbis-tools \
   lame \
   ffmpeg \ 
-  lighttpd \
+  # Simple Go Based Setup
+  gosu \
+  #Kommandozeilenprogramme für eine einfache Schnittstelle zu inotify
+  inotify-tools \
+  libavcodec-extra libev-libevent-dev libfaac-dev libmp3lame-dev libtheora-dev libvorbis-dev libvpx-dev \
+  php php-curl php-gd php-json php-ldap php-mysql php-xml php-zip \
   nginx \
-  wget \
-  zip \
-  curl \
+  wget curl git \
+  zip unzip \
   sudo \
-  git \
   make \
   mc 
  msg_ok "Installed Dependencies"
+sudo a2enmod rewrite
  
  
-msg_info "Installing Php 8.3 (Patience)"
+msg_info "Installing Ampache(Patience)"
+wget https://getcomposer.org/download/latest-stable/composer.phar
+mv composer.phar /usr/local/bin/composer
+sudo chmod +x /usr/local/bin/composer
+sudo su - www-data -s /bin/bash
+cd /opt
 AMPACHE_VERSION=$(wget -q https://github.com/ampache/ampache/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 $STD wget https://github.com/ampache/ampache/releases/download/${AMPACHE_VERSION}/ampache-${AMPACHE_VERSION}_all_php8.3.zip
 unzip -q ampache-${AMPACHE_VERSION}_all_php8.3.zip -d ampache
-wget https://getcomposer.org/download/latest-stable/composer.phar
-sudo mv composer.phar /usr/local/bin/composer
-sudo chmod +x /usr/local/bin/composer
-sudo su - www-data -s /bin/bash
-git clone -b release6 https://github.com/ampache/ampache.git ampache
 rm -rf /var/www/html
 ln -s /var/www/ampache/public /var/www/html
 cd ampache
 composer install
+msg_ok "Installed Ampache"
 
+msg_info "Set up web services"
+cat <<EOF >/etc/nginx/conf.d/ampache.conf
+server {
 
+    # listen to
+    listen  [::]:used_port; #ssl; ipv6 optional with ssl enabled
+    listen       used_port; #ssl; ipv4 optional with ssl enabled
 
-apt install apt-transport-https
-$STD curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
-$STD sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ bookworm main" > /etc/apt/sources.list.d/php.list'
-$STD apt update
-$STD apt-get install -y --no-install-recommends \
-  php8.3 \
-  php8.3-cli \
-  php8.3-{bz2,curl,mbstring,intl,PDO,simplexml,gd,ldap,zip}
+    server_name my_ampache_server;
+    charset utf-8;
 
-mkdir -p /opt/docspell && cd /opt/docspell
-SOLR_DOWNLOAD_URL="https://downloads.apache.org/lucene/solr/"
-latest_version=$(curl -s "$SOLR_DOWNLOAD_URL" | grep -oP '(?<=<a href=")[^"]+(?=/">[0-9])' | head -n 1)
-download_url="${SOLR_DOWNLOAD_URL}${latest_version}/solr-${latest_version}.tgz"
-$STD  wget "$download_url"
-tar xzf "solr-$latest_version.tgz"
-$STD  bash "/opt/docspell/solr-$latest_version/bin/install_solr_service.sh" "solr-$latest_version.tgz"
-mv /opt/solr /opt/docspell/solr
-$STD systemctl start solr
-$STD su solr -c '/opt/docspell/solr/bin/solr create -c docspell'
-msg_ok "Installed Dependencies"
+    # Logging, error_log mode [notice] is necessary for rewrite_log on,
+    # (very usefull if rewrite rules do not work as expected)
+    error_log       /var/log/ampache/error.log; # notice;
+    # access_log      /var/log/ampache/access.log;
+    # rewrite_log     on;
 
-msg_info "Install/Set up PostgreSQL Database"
-DB_NAME=docspelldb
-DB_USER=docspell
-DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
-curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
-echo "deb https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" >/etc/apt/sources.list.d/pgdg.list
-$STD apt-get update
-$STD apt-get install -y postgresql-16
-$STD sudo -u postgres psql -c "CREATE USER $DB_USER WITH LOGIN PASSWORD '$DB_PASS';"
-$STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER TEMPLATE template0;"
-$STD systemctl enable postgresql
-echo "" >>~/docspell.creds
-echo -e "Docspell Database Name: $DB_NAME" >>~/docspell.creds
-echo -e "Docspell Database User: $DB_USER" >>~/docspell.creds
-echo -e "Docspell Database Password: $DB_PASS" >>~/docspell.creds
-msg_ok "Set up PostgreSQL Database"
+    # ssl_protocols TLSv1.3 TLSv1.2;
+    # ssl_certificate         /path/to/fullchain.pem;
+    # ssl_certificate_key     /path/to/privkey.pem;
+    # ssl_trusted_certificate /path/to/chain.pem;
 
-msg_info "Setup Docspell (Patience)"
-Docspell=$(wget -q https://github.com/eikek/docspell/releases/latest -O - | grep "title>Release" | cut -d " " -f 5)
-DocspellDSC=$(wget -q https://github.com/docspell/dsc/releases/latest -O - | grep "title>Release" | cut -d " " -f 4 | sed 's/^v//')
-cd /opt
-$STD wget https://github.com/eikek/docspell/releases/download/v${Docspell}/docspell-joex_${Docspell}_all.deb
-$STD wget https://github.com/eikek/docspell/releases/download/v${Docspell}/docspell-restserver_${Docspell}_all.deb
-$STD dpkg -i docspell-*
-$STD wget https://github.com/docspell/dsc/releases/download/v${DocspellDSC}/dsc_amd64-musl-${DocspellDSC}
-mv dsc_amd* dsc
-chmod +x dsc
-mv dsc /usr/bin
-ln -s /etc/docspell-joex /opt/docspell/docspell-joex && ln -s /etc/docspell-restserver /opt/docspell/docspell-restserver && ln -s /usr/bin/dsc /opt/docspell/dsc
-cd /opt && rm -R solr-$latest_version && rm -R docspell-joex_${Docspell}_all.deb  && rm -R docspell-restserver_${Docspell}_all.deb
-cd /opt/docspell && rm -R solr-$latest_version.tgz && rm -R solr-$latest_version
-sudo sed -i "s|url = \"jdbc:postgresql://localhost:5432/db\"|url = \"jdbc:postgresql://localhost:5432/$DB_NAME\"|" /opt/docspell/docspell-restserver/docspell-server.conf
-sudo sed -i "s|url = \"jdbc:postgresql://localhost:5432/db\"|url = \"jdbc:postgresql://localhost:5432/$DB_NAME\"|" /opt/docspell/docspell-joex/docspell-joex.conf
-sudo sed -i "s/user=.*/user=$DB_USER/" /opt/docspell/docspell-restserver/docspell-server.conf
-sudo sed -i "s/password=.*/password=$DB_PASS/" /opt/docspell/docspell-restserver/docspell-server.conf
-sudo sed -i "s/user=.*/user=$DB_USER/" /opt/docspell/docspell-joex/docspell-joex.conf
-sudo sed -i "s/password=.*/password=$DB_PASS/" /opt/docspell/docspell-joex/docspell-joex.conf
+    # Use secure SSL/TLS settings, see https://mozilla.github.io/server-side-tls/ssl-config-generator/
+    # Medium Security:
+    # ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256';
+    # Strong Security:
+    # ssl_ciphers 'TLS-CHACHA20-POLY1305-SHA256:TLS-AES-256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384';
+    # ssl_ecdh_curve X448:secp521r1:secp384r1;
+    # ssl_stapling on;
+    # ssl_stapling_verify on;
+    # ssl_prefer_server_ciphers on;
+    # add_header Strict-Transport-Security max-age=15768000;
+    # etc.
+
+    # Use secure headers to avoid XSS and many other things
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Robots-Tag none;
+    add_header X-Download-Options noopen;
+    add_header X-Permitted-Cross-Domain-Policies none;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "no-referrer";
+    add_header Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval'; frame-src 'self'; object-src 'self'";
+
+    # Avoid information leak
+    server_tokens off;
+    fastcgi_hide_header X-Powered-By;
+
+    root /opt/ampache;
+    index index.php;
+
+    # Somebody said this helps, in my setup it doesn't prevent temporary saving in files
+    proxy_max_temp_file_size 0;
+
+    # Rewrite rule for Subsonic backend
+    if ( !-d $request_filename ) {
+        rewrite ^/rest/(.*).view$ /rest/index.php?action=$1 last;
+        rewrite ^/rest/fake/(.+)$ /play/$1 last;
+    }
+
+    # Rewrite rule for Channels
+    if (!-d $request_filename){
+      rewrite ^/channel/([0-9]+)/(.*)$ /channel/index.php?channel=$1&target=$2 last;
+    }
+
+    # Beautiful URL Rewriting
+    rewrite ^/play/ssid/(\w+)/type/(\w+)/oid/([0-9]+)/uid/([0-9]+)/name/(.*)$ /play/index.php?ssid=$1&type=$2&oid=$3&uid=$4&name=$5 last;
+    rewrite ^/play/ssid/(\w+)/type/(\w+)/oid/([0-9]+)/uid/([0-9]+)/client/(\w+)/name/(.*)$ /play/index.php?ssid=$1&type=$2&oid=$3&uid=$4&client=$5&name=$6 last;
+    rewrite ^/play/ssid/(\w+)/type/(\w+)/oid/([0-9]+)/uid/([0-9]+)/client/(\w+)/player/(.*)/name/(.*)$ /play/index.php?ssid=$1&type=$2&oid=$3&uid=$4&client=$5&player=$6&name=$7 last;
+    rewrite ^/play/ssid/(\w+)/type/(\w+)/oid/([0-9]+)/uid/([0-9]+)/client/(\w+)/bitrate/([0-9]+)/player/(.*)/name/(.*)$ /play/index.php?ssid=$1&type=$2&oid=$3&uid=$4&client=$5&bitrate=$6&player=$7&name=$8 last;
+    rewrite ^/play/ssid/(\w+)/type/(\w+)/oid/([0-9]+)/uid/([0-9]+)/client/(\w+)/transcode_to/(\w+)/bitrate/([0-9]+)/player/(.*)/name/(.*)$ /play/index.php?ssid=$1&type=$2&oid=$3&uid=$4&client=$5&transcode_to=$6&bitrate=$7&player=$8&name=$9 last;
+    rewrite ^/play/ssid/(\w+)/type/(\w+)/oid/([0-9]+)/uid/([0-9]+)/client/(\w+)/noscrobble/([0-1])/name/(.*)$ /play/index.php?ssid=$1&type=$2&oid=$3&uid=$4&client=$5&noscrobble=$6&name=$7 last;
+    rewrite ^/play/ssid/(\w+)/type/(\w+)/oid/([0-9]+)/uid/([0-9]+)/client/(\w+)/noscrobble/([0-1])/player/(.*)/name/(.*)$ /play/index.php?ssid=$1&type=$2&oid=$3&uid=$4&client=$5&noscrobble=$6&player=$7&name=$8 last;
+    rewrite ^/play/ssid/(\w+)/type/(\w+)/oid/([0-9]+)/uid/([0-9]+)/client/(\w+)/noscrobble/([0-1])/bitrate/([0-9]+)/player/(.*)/name/(.*)$ /play/index.php?ssid=$1&type=$2&oid=$3&uid=$4&client=$5&noscrobble=$6&bitrate=$7&player=$8&name=$9 last;
+    rewrite ^/play/ssid/(\w+)/type/(\w+)/oid/([0-9]+)/uid/([0-9]+)/client/(\w+)/noscrobble/([0-1])/transcode_to/(\w+)/bitrate/([0-9]+)/player/(.*)/name/(.*)$ /play/index.php?ssid=$1&type=$2&oid=$3&uid=$4&client=$5&noscrobble=$6&transcode_to=$7&bitrate=$8&player=$9&name=$10 last;
+
+    # the following line was needed for me to get downloads of single songs to work
+    rewrite ^/play/ssid/(.*)/type/(.*)/oid/([0-9]+)/uid/([0-9]+)/action/(.*)/name/(.*)$ /play/index.php?ssid=$1&type=$2&oid=$3&uid=$4action=$5&name=$6 last;
+    location /play {
+        if (!-e $request_filename) {
+            rewrite ^/play/art/([^/]+)/([^/]+)/([0-9]+)/thumb([0-9]*)\.([a-z]+)$ /image.php?object_type=$2&object_id=$3&auth=$1 last;
+        }
+
+        rewrite ^/([^/]+)/([^/]+)(/.*)?$ /play/$3?$1=$2;
+        rewrite ^/(/[^/]+|[^/]+/|/?)$ /play/index.php last;
+        break;
+    }
+
+   location /rest {
+      limit_except GET POST {
+         deny all;
+      }
+   }
+
+   location ^~ /bin/ {
+      deny all;
+      return 403;
+   }
+
+   location ^~ /config/ {
+      deny all;
+      return 403;
+   }
+
+   location / {
+      limit_except GET POST HEAD{
+         deny all;
+      }
+   }
+
+   location ~ ^/.*.php {
+        fastcgi_index index.php;
+
+        # sets the timeout for requests in [s] , 60s are normally enough
+        fastcgi_read_timeout 600s;
+
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+        # Mitigate HTTPOXY https://httpoxy.org/
+        fastcgi_param HTTP_PROXY "";
+
+        # has to be set to on if encryption (https) is used:
+        # fastcgi_param HTTPS on;
+
+        fastcgi_split_path_info ^(.+?\.php)(/.*)$;
+
+        # chose as your php-fpm is configured to listen on
+        fastcgi_pass unix:/var/run/php-fpm.sock;
+        # fastcgi_pass 127.0.0.1:8000/;
+   }
+
+   # Rewrite rule for WebSocket
+   location /ws {
+        rewrite ^/ws/(.*) /$1 break;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_pass http://127.0.0.1:8100/;
+   }
+}
+EOF
+
 systemctl start docspell-restserver
 systemctl enable docspell-restserver
 systemctl start docspell-joex

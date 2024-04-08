@@ -21,7 +21,7 @@ EOF
 }
 header_info
 echo -e "Loading..."
-APP="Docspell"
+APP="Ampache"
 var_disk="5"
 var_cpu="4"
 var_ram="2048"
@@ -57,7 +57,7 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -d /opt/docspell ]]; then 
+if [[ ! -d /opt/ampache ]]; then 
 	msg_error "No ${APP} Installation Found!"; 
 	exit; 
 fi
@@ -85,4 +85,4 @@ msg_ok "Set Container to Normal Resources"
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:7880${CL} \n"
+         ${BL}http://${IP}/install.php${CL} \n"
