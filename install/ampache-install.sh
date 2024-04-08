@@ -21,16 +21,30 @@ $STD apt-get install -y --no-install-recommends \
   flac \
   vorbis-tools \
   lame \
-  ffmpeg \ 
-  # Simple Go Based Setup
+  ffmpeg \
   gosu \
-  #Kommandozeilenprogramme für eine einfache Schnittstelle zu inotify
   inotify-tools \
-  libavcodec-extra libev-libevent-dev libfaac-dev libmp3lame-dev libtheora-dev libvorbis-dev libvpx-dev \
-  php php-curl php-gd php-json php-ldap php-mysql php-xml php-zip \
+  libavcodec-extra \
+  libev-libevent-dev \
+  libfaac-dev \
+  libmp3lame-dev \
+  libtheora-dev \
+  libvorbis-dev \
+  libvpx-dev \
+  php \
+  php-curl \
+  php-gd \
+  php-json \
+  php-ldap \
+  php-mysql \
+  php-xml \
+  php-zip \
   nginx \
-  wget curl git \
-  zip unzip \
+  wget \
+  curl \
+  git \
+  zip \
+  unzip \
   sudo \
   make \
   mc 
