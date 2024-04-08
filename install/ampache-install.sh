@@ -16,12 +16,8 @@ update_os
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y --no-install-recommends \
   mariadb-server \
-  # webserver: 
-  apache2 \
   lighttpd \
-  # daemon für Zeitplanung
   cron \
-  # Audio Codec / Audio Tools
   flac \
   vorbis-tools \
   lame \
