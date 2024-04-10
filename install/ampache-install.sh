@@ -26,7 +26,6 @@ apt-get install -y --no-install-recommends \
   inotify-tools \
   libavcodec-extra \
   libev-libevent-dev \
-  libfaac-dev \
   libmp3lame-dev \
   libtheora-dev \
   libvorbis-dev \
