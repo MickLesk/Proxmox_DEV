@@ -28,6 +28,7 @@ $STD apt-get install -y --no-install-recommends \
   python3-venv \
   build-essential \
   curl \
+  unzip \
   sudo \
   cmake \
   git \
