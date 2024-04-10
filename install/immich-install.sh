@@ -36,7 +36,7 @@ $STD apt-get install -y --no-install-recommends \
 msg_ok "Installed Dependencies"
 
 msg_info "Setup Immich User (Patience)"
-sudo adduser \
+$STD sudo adduser \
   --home /opt/immich \
   --shell /usr/sbin/nologin \
   --no-create-home \
@@ -44,9 +44,9 @@ sudo adduser \
   --disabled-login \
   --gecos "" \
   immich
-sudo mkdir -p /opt/immich
-sudo chown immich:immich /opt/immich
-sudo chmod 700 /opt/immich
+$STD sudo mkdir -p /opt/immich
+$STD sudo chown immich:immich /opt/immich
+$STD sudo chmod 700 /opt/immich
 msg_ok "User Setup successfully" 
 
 msg_info "Setting up Database"
@@ -64,7 +64,6 @@ echo -e "Immich Database Name: \e[32m$DB_NAME\e[0m" >>~/immich.creds
 msg_ok "Set up PostgreSQL database"
 
 msg_info "Setting up Env"
-cd /opt/immich
 cat <<EOF >/opt/immich/env
 # You can find documentation for all the supported env variables at https://immich.app/docs/install/environment-variables
 
@@ -96,15 +95,15 @@ sudo chown immich:immich /opt/immich/env
 msg_ok "Env successfully set up"
 
 msg_info "Setup Immich Dependencies (NodeJS, Redis...)"
-curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-apt install -y nodejs 
+$STD curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+$STD apt install -y nodejs 
 cd /tmp
 git clone --branch v0.6.2 https://github.com/pgvector/pgvector.git
 cd pgvector
 make
 make install
 rm -R /tmp/pgvector
-$STD sudo -u postgres psql -c "CREATE EXTENSION vector;"
+sudo -u postgres psql -c "CREATE EXTENSION vector;"
 msg_ok "Dependencies Setup successfully" 
 
 msg_info "Setup Immich" 
