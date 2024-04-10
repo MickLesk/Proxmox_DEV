@@ -76,7 +76,7 @@ NODE_ENV=production
 
 DB_USERNAME=immich
 DB_DATABASE_NAME=immich
-DB_VECTOR_EXTENSION=pgvector
+DB_VECTOR_EXTENSION=vector
 
 # The location where your uploaded files are stored
 UPLOAD_LOCATION=./library
@@ -98,25 +98,19 @@ msg_info "Setup Immich Dependencies (NodeJS, Redis...)"
 $STD curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
 $STD apt install -y nodejs 
 cd /tmp
-git clone --branch v0.6.2 https://github.com/pgvector/pgvector.git
-cd pgvector
-make
-make install
+git clone --branch v0.6.2 https://github.com/pgvector/pgvector.git && cd pgvector
+make && make install
 rm -R /tmp/pgvector
-sudo -u postgres psql -c "CREATE EXTENSION pgvector;"
+sudo -u postgres psql -c "CREATE EXTENSION vector"
 msg_ok "Dependencies Setup successfully" 
 
 msg_info "Setup Immich" 
 IMMICH_PATH=/opt/immich
-APP=$IMMICH_PATH/app
-mkdir -p $IMMICH_PATH
-chown immich:immich $IMMICH_PATH
-mkdir -p /var/log/immich
-chown immich:immich /var/log/immich
-rm -rf $APP
-mkdir -p $APP
-rm -rf $IMMICH_PATH/home
-mkdir -p $IMMICH_PATH/home
+IMMICH_LOG_PATH=/opt/immich_logs
+IMMICH_APP_PATH=/opt/immich/app
+IMMICH_HOME_PATH=/opt/immich/home
+mkdir -p $IMMICH_LOG_PATH $IMMICH_HOME_PATH $IMMICH_APP_PATH
+chown immich:immich $IMMICH_PATH $IMMICH_LOG_PATH
 TMP=/tmp/immich-$(uuidgen)
 git clone https://github.com/immich-app/immich $TMP
 cd $TMP
@@ -126,17 +120,17 @@ npm ci
 npm run build
 npm prune --omit=dev --omit=optional
 cd -
-
+# typescript-sdk
 cd open-api/typescript-sdk
 npm ci
 npm run build
 cd -
-
+# web dependencies
 cd web
 npm ci
 npm run build
 cd -
-
+# copy all from temp to $APP
 cp -a server/node_modules server/dist server/bin $APP/
 cp -a web/build $APP/www
 cp -a server/resources server/package.json server/package-lock.json $APP/
@@ -296,8 +290,8 @@ WantedBy=multi-user.target
 EOF
 
 
-$STD sudo systemctl enable --now gunicorn_tandoor
-$STD sudo systemctl reload nginx
+#$STD sudo systemctl enable --now gunicorn_tandoor
+#$STD sudo systemctl reload nginx
 msg_ok "Created Services"
 
 motd_ssh
