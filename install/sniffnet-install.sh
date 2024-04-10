@@ -18,6 +18,8 @@ update_os
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y --no-install-recommends \
   libpcap-dev \
+  dnsutils \
+  iputils-ping \
   libasound2-dev \
   libfontconfig1-dev \
   libgtk-3-dev \
