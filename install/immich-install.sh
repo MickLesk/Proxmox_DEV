@@ -224,12 +224,12 @@ EOF
 # Cleanup
 rm -rf $TMP
 
-sudo cp immich*.service /etc/systemd/system/
+#sudo cp immich*.service /etc/systemd/system/
 sudo systemctl daemon-reload
-for i in immich*.service; do
-  sudo systemctl enable $i
-  sudo systemctl start $i
-done
+#for i in immich*.service; do
+#  sudo systemctl enable $i
+#  sudo systemctl start $i
+#done
 
 msg_info "Set up web services"
 cat <<EOF >/etc/systemd/system/immich-machine-learning.service
@@ -306,7 +306,10 @@ WantedBy=multi-user.target
 EOF
 
 
-#$STD sudo systemctl enable --now gunicorn_tandoor
+sudo systemctl enable --now immich.service
+sudo systemctl enable --now immich-microservices.service
+sudo systemctl enable --now immich-machine-learning.service
+sudo systemctl daemon-reload
 #$STD sudo systemctl reload nginx
 msg_ok "Created Services"
 
