@@ -14,7 +14,7 @@ network_check
 update_os
 
 msg_info "Installing Dependencies (Patience)"
-$STD apt-get install -y --no-install-recommends \
+apt-get install -y --no-install-recommends \
   mariadb-server \
   lighttpd \
   cron \
@@ -50,7 +50,6 @@ $STD apt-get install -y --no-install-recommends \
   mc 
  msg_ok "Installed Dependencies"
 sudo a2enmod rewrite
- 
  
 msg_info "Installing Ampache(Patience)"
 wget https://getcomposer.org/download/latest-stable/composer.phar
