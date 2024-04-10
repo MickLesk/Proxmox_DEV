@@ -99,8 +99,8 @@ msg_info "Setup Immich Dependencies (NodeJS, Redis...)"
 $STD curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
 $STD apt install -y nodejs 
 cd /tmp
-git clone --branch v0.6.2 https://github.com/pgvector/pgvector.git && cd pgvector
-make && make install
+$STD git clone --branch v0.6.2 https://github.com/pgvector/pgvector.git && cd pgvector
+$STD make && make install
 rm -R /tmp/pgvector
 #sudo -u postgres psql -c "CREATE EXTENSION vector;"
 msg_ok "Dependencies Setup successfully" 
