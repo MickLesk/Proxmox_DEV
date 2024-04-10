@@ -113,9 +113,10 @@ TMP=/tmp
 IMMICH_TMP=/opt/immich_tmp
 mkdir -p $IMMICH_LOG_PATH $IMMICH_HOME_PATH $IMMICH_APP_PATH $IMMICH_TMP
 chown immich:immich $IMMICH_PATH $IMMICH_LOG_PATH
-#RELEASE=$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print $2}' | sed 's/[^0-9.]//g')
-RELEASE=$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+RELEASE=v$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print $2}' | sed 's/[^0-9.]//g')
+#RELEASE=v$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
+echo "Test" 
 wget -q --no-check-certificate -P "${TMP}" "https://github.com/immich-app/immich/archive/refs/tags/${RELEASE}.zip"
 cd $TMP && unzip -q "${RELEASE}.zip" -d "${TMP}"
 mv /$TMP/immich-"${CLEAN_RELEASE}"/* "${IMMICH_TMP}"
