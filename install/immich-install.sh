@@ -116,8 +116,8 @@ chown immich:immich $IMMICH_PATH $IMMICH_LOG_PATH
 #RELEASE=$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print $2}' | sed 's/[^0-9.]//g')
 RELEASE=$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
-$STD wget -q --no-check-certificate -P "${TMP}" "https://github.com/immich-app/immich/archive/refs/tags/${RELEASE}.zip"
-$STD cd $TMP && unzip -q "${RELEASE}.zip" -d "${TMP}"
+wget -q --no-check-certificate -P "${TMP}" "https://github.com/immich-app/immich/archive/refs/tags/${RELEASE}.zip"
+cd $TMP && unzip -q "${RELEASE}.zip" -d "${TMP}"
 mv /$TMP/immich-"${CLEAN_RELEASE}"/* "${IMMICH_TMP}"
 
 ##SPÄTER:
