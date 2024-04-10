@@ -117,7 +117,6 @@ chown immich:immich $IMMICH_PATH $IMMICH_LOG_PATH
 RELEASE=v$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print $2}' | sed 's/[^0-9.]//g')
 #RELEASE=v$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
-echo "Test" 
 wget -q --no-check-certificate -P "${TMP}" "https://github.com/immich-app/immich/archive/refs/tags/${RELEASE}.zip"
 cd $TMP && unzip -q "${RELEASE}.zip" -d "${TMP}"
 mv /$TMP/immich-"${CLEAN_RELEASE}"/* "${IMMICH_TMP}"
@@ -128,28 +127,30 @@ mv /$TMP/immich-"${CLEAN_RELEASE}"/* "${IMMICH_TMP}"
 cd $IMMICH_TMP
 # immich-server
 cd server
-npm ci
-npm run build
-npm prune --omit=dev --omit=optional
+echo "Test" 
+echo $(npm -v)
+sudo npm ci
+sudo npm run build
+sudo npm prune --omit=dev --omit=optional
 cd -
 # typescript-sdk
 cd open-api/typescript-sdk
-npm ci
-npm run build
+sudo npm ci
+sudo npm run build
 cd -
 # web dependencies
 cd web
-npm ci
-npm run build
+sudo npm ci
+sudo npm run build
 cd -
 # copy all from temp to $APP
-cp -a server/node_modules server/dist server/bin $IMMICH_APP_PATH/
-cp -a web/build $IMMICH_APP_PATH/www
-cp -a server/resources server/package.json server/package-lock.json $IMMICH_APP_PATH/
-cp -a server/start*.sh $IMMICH_APP_PATH/
-cp -a LICENSE $IMMICH_APP_PATH/
+sudo cp -a server/node_modules server/dist server/bin $IMMICH_APP_PATH/
+sudo cp -a web/build $IMMICH_APP_PATH/www
+sudo cp -a server/resources server/package.json server/package-lock.json $IMMICH_APP_PATH/
+sudo cp -a server/start*.sh $IMMICH_APP_PATH/
+sudo cp -a LICENSE $IMMICH_APP_PATH/
 cd $IMMICH_APP_PATH
-npm cache clean --force
+sudo npm cache clean --force
 cd -
 
 # immich-machine-learning
