@@ -42,6 +42,7 @@ sudo adduser \
   --no-create-home \
   --disabled-password \
   --disabled-login \
+  --gecos "" \
   immich
 sudo mkdir -p /opt/immich
 sudo chown immich:immich /opt/immich
