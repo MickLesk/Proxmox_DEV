@@ -90,7 +90,7 @@ MACHINE_LEARNING_HOST=127.0.0.1
 IMMICH_MACHINE_LEARNING_URL=http://127.0.0.1:3003
 REDIS_HOSTNAME=127.0.0.1
 EOF
-sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/immich/env
+sudo sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/' /opt/immich/env
 sudo chown immich:immich /opt/immich/env
 msg_ok "Env successfully set up"
 
