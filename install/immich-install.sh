@@ -90,7 +90,7 @@ MACHINE_LEARNING_HOST=127.0.0.1
 IMMICH_MACHINE_LEARNING_URL=http://127.0.0.1:3003
 REDIS_HOSTNAME=127.0.0.1
 EOF
-sudo sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/' /opt/immich/env
+sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/immich/env
 sudo chown immich:immich /opt/immich/env
 msg_ok "Env successfully set up"
 
@@ -101,7 +101,7 @@ cd /tmp
 git clone --branch v0.6.2 https://github.com/pgvector/pgvector.git && cd pgvector
 make && make install
 rm -R /tmp/pgvector
-#sudo -u postgres psql -c "CREATE EXTENSION vector"
+#sudo -u postgres psql -c "CREATE EXTENSION vector;"
 msg_ok "Dependencies Setup successfully" 
 
 msg_info "Setup Immich" 
@@ -109,11 +109,21 @@ IMMICH_PATH=/opt/immich
 IMMICH_LOG_PATH=/opt/immich_logs
 IMMICH_APP_PATH=/opt/immich/app
 IMMICH_HOME_PATH=/opt/immich/home
-mkdir -p $IMMICH_LOG_PATH $IMMICH_HOME_PATH $IMMICH_APP_PATH
+TMP=/tmp
+IMMICH_TMP=/opt/immich_tmp
+mkdir -p $IMMICH_LOG_PATH $IMMICH_HOME_PATH $IMMICH_APP_PATH $IMMICH_TMP
 chown immich:immich $IMMICH_PATH $IMMICH_LOG_PATH
-TMP=/tmp/immich-$(uuidgen)
-git clone https://github.com/immich-app/immich $TMP
-cd $TMP
+#RELEASE=$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print $2}' | sed 's/[^0-9.]//g')
+RELEASE=$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
+$STD wget -q --no-check-certificate -P "${TMP}" "https://github.com/immich-app/immich/archive/refs/tags/${RELEASE}.zip"
+$STD cd $TMP && unzip -q "${RELEASE}.zip" -d "${TMP}"
+mv /$TMP/immich-"${CLEAN_RELEASE}"/* "${IMMICH_TMP}"
+
+##SPÄTER:
+#rm -R * in tmp
+
+cd $IMMICH_TMP
 # immich-server
 cd server
 npm ci
@@ -131,64 +141,64 @@ npm ci
 npm run build
 cd -
 # copy all from temp to $APP
-cp -a server/node_modules server/dist server/bin $APP/
-cp -a web/build $APP/www
-cp -a server/resources server/package.json server/package-lock.json $APP/
-cp -a server/start*.sh $APP/
-cp -a LICENSE $APP/
-cd $APP
+cp -a server/node_modules server/dist server/bin $IMMICH_APP_PATH/
+cp -a web/build $IMMICH_APP_PATH/www
+cp -a server/resources server/package.json server/package-lock.json $IMMICH_APP_PATH/
+cp -a server/start*.sh $IMMICH_APP_PATH/
+cp -a LICENSE $IMMICH_APP_PATH/
+cd $IMMICH_APP_PATH
 npm cache clean --force
 cd -
 
 # immich-machine-learning
-mkdir -p $APP/machine-learning
-python3 -m venv $APP/machine-learning/venv
+mkdir -p $IMMICH_APP_PATH/machine-learning
+python3 -m venv $IMMICH_APP_PATH/machine-learning/venv
 (
   # Initiate subshell to setup venv
-  . $APP/machine-learning/venv/bin/activate
+  . $IMMICH_APP_PATH/machine-learning/venv/bin/activate
   pip3 install poetry
   cd machine-learning
   # pip install poetry
   poetry install --no-root --with dev --with cpu
   cd ..
 )
-cp -a machine-learning/ann machine-learning/start.sh machine-learning/app $APP/machine-learning/
+cp -a machine-learning/ann machine-learning/start.sh machine-learning/app $IMMICH_APP_PATH/machine-learning/
 # Replace /usr/src
-cd $APP
+cd $IMMICH_APP_PATH
 grep -Rl /usr/src | xargs -n1 sed -i -e "s@/usr/src@$IMMICH_PATH@g"
 ln -sf $IMMICH_PATH/app/resources $IMMICH_PATH/
 mkdir -p $IMMICH_PATH/cache
-sed -i -e "s@\"/cache\"@\"$IMMICH_PATH/cache\"@g" $APP/machine-learning/app/config.py
+sed -i -e "s@\"/cache\"@\"$IMMICH_PATH/cache\"@g" $IMMICH_APP_PATH/machine-learning/app/config.py
 
 # Install sharp
-cd $APP
+cd $IMMICH_APP_PATH
 npm install sharp
 
 # Setup upload directory
 mkdir -p $IMMICH_PATH/upload
-ln -s $IMMICH_PATH/upload $APP/
-ln -s $IMMICH_PATH/upload $APP/machine-learning/
+ln -s $IMMICH_PATH/upload $IMMICH_APP_PATH/
+ln -s $IMMICH_PATH/upload $IMMICH_APP_PATH/machine-learning/
 # Use 127.0.0.1
-sed -i -e "s@app.listen(port)@app.listen(port, '127.0.0.1')@g" $APP/dist/main.js
-cat <<EOF > $APP/start.sh
+sudo sed -i -e "s@app.listen(port)@app.listen(port, '127.0.0.1')@g" $IMMICH_APP_PATH/dist/main.js
+cat <<EOF > $IMMICH_APP_PATH/start.sh
 #!/bin/bash
 
 set -a
 . $IMMICH_PATH/env
 set +a
 
-cd $APP
-exec node $APP/dist/main "\$@"
+cd $IMMICH_APP_PATH
+exec node $IMMICH_APP_PATH/dist/main "\$@"
 EOF
 
-cat <<EOF > $APP/machine-learning/start.sh
+cat <<EOF > $IMMICH_APP_PATH/machine-learning/start.sh
 #!/bin/bash
 
 set -a
 . $IMMICH_PATH/env
 set +a
 
-cd $APP/machine-learning
+cd $IMMICH_APP_PATH/machine-learning
 . venv/bin/activate
 
 : "\${MACHINE_LEARNING_HOST:=127.0.0.1}"
