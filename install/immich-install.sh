@@ -96,8 +96,11 @@ sudo chown immich:immich /opt/immich/env
 msg_ok "Env successfully set up"
 
 msg_info "Setup Immich Dependencies (NodeJS, Redis...)"
-$STD curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+$STD curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 $STD apt install -y nodejs 
+echo "Test" 
+echo $(npm -v)
+echo $(node -v)
 cd /tmp
 $STD git clone --branch v0.6.2 https://github.com/pgvector/pgvector.git && cd pgvector
 $STD make && make install
@@ -112,6 +115,7 @@ IMMICH_APP_PATH=/opt/immich/app
 IMMICH_HOME_PATH=/opt/immich/home
 TMP=/tmp
 IMMICH_TMP=/opt/immich_tmp
+BASEDIR=$(dirname "$0")
 mkdir -p $IMMICH_LOG_PATH $IMMICH_HOME_PATH $IMMICH_APP_PATH $IMMICH_TMP
 chown immich:immich $IMMICH_PATH $IMMICH_LOG_PATH
 RELEASE=v$(curl -s https://api.github.com/repos/immich-app/immich/releases/latest | grep "tag_name" | awk '{print $2}' | sed 's/[^0-9.]//g')
