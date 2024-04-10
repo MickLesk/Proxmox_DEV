@@ -103,7 +103,7 @@ cd pgvector
 make
 make install
 rm -R /tmp/pgvector
-sudo -u postgres psql -c "CREATE EXTENSION vector;"
+sudo -u postgres psql -c "CREATE EXTENSION pgvector;"
 msg_ok "Dependencies Setup successfully" 
 
 msg_info "Setup Immich" 
