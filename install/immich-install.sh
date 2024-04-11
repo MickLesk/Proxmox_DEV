@@ -54,11 +54,12 @@ msg_info "Setting up Database"
 sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 sudo apt-get update
-sudo apt-get install -y \
+sudo apt-get install -y --no-install-recommends \
     postgresql-16 \
     postgresql-contrib-16 \
     postgresql-server-dev-all \
     postgresql-16-pgvector
+echo "DB Done" 
 DB_NAME=immich
 DB_USER=immich
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
