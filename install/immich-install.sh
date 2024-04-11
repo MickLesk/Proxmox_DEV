@@ -53,7 +53,8 @@ msg_ok "User Setup successfully"
 msg_info "Setting up Database"
 sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-$STD apt-get install -y postgresql-16 \
+$STD apt-get install -y \
+	postgresql-16 \
 	postgresql-contrib-16 \
 	postgresql-server-dev-all \
 	postgresql-16-pgvector
