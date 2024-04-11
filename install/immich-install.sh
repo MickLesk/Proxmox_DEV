@@ -67,7 +67,7 @@ $STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
 $STD sudo -u postgres psql -c "CREATE USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASS';"
 $STD sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" 
 $STD sudo -u postgres psql -c "ALTER USER $DB_USER WITH SUPERUSER;"
-$STD sudo -u postgres psql -c "CREATE EXTENSION pgvector;"
+#$STD sudo -u postgres psql -c "CREATE EXTENSION pgvector;"
 echo "" >>~/immich.creds
 echo -e "Immich Database User: \e[32m$DB_USER\e[0m" >>~/immich.creds
 echo -e "Immich Database Password: \e[32m$DB_PASS\e[0m" >>~/immich.creds
