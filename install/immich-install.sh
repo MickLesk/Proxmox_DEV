@@ -51,9 +51,9 @@ $STD sudo chmod 700 /opt/immich
 msg_ok "User Setup successfully" 
 
 msg_info "Setting up Database"
-sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-wget -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key adv --fetch-keys -
-sudo apt-get update && sudo apt-get upgrade
+sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo apt-get update
 $STD apt-get install -y \
     postgresql-16 \
     postgresql-contrib-16 \
