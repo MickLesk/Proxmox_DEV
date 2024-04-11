@@ -16,9 +16,9 @@ update_os
 
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y --no-install-recommends \
-  postgresql \
-  postgresql-contrib \
-  postgresql-server-dev-all \
+  apt-transport-https \
+  gnupg \
+  lsb-release \
   redis-server \
   python3 \
   python3-dev \
@@ -51,6 +51,12 @@ $STD sudo chmod 700 /opt/immich
 msg_ok "User Setup successfully" 
 
 msg_info "Setting up Database"
+sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+$STD apt-get install -y postgresql-16 \
+	postgresql-contrib-16 \
+	postgresql-server-dev-all \
+	postgresql-16-pgvector
 DB_NAME=immich
 DB_USER=immich
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
@@ -58,6 +64,7 @@ $STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
 $STD sudo -u postgres psql -c "CREATE USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASS';"
 $STD sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" 
 $STD sudo -u postgres psql -c "ALTER USER $DB_USER WITH SUPERUSER;"
+$STD sudo -u postgres psql -c "CREATE EXTENSION pgvector;"
 echo "" >>~/immich.creds
 echo -e "Immich Database User: \e[32m$DB_USER\e[0m" >>~/immich.creds
 echo -e "Immich Database Password: \e[32m$DB_PASS\e[0m" >>~/immich.creds
@@ -77,7 +84,7 @@ NODE_ENV=production
 
 DB_USERNAME=immich
 DB_DATABASE_NAME=immich
-DB_VECTOR_EXTENSION=vector
+DB_VECTOR_EXTENSION=pgvector
 
 # The location where your uploaded files are stored
 UPLOAD_LOCATION=./library
@@ -101,11 +108,11 @@ apt install -y nodejs
 echo "Test" 
 echo $(npm -v)
 echo $(node -v)
-cd /tmp
-$STD git clone --branch v0.6.2 https://github.com/pgvector/pgvector.git && cd pgvector
-$STD make && make install
-rm -R /tmp/pgvector
-#sudo -u postgres psql -c "CREATE EXTENSION vector;"
+#cd /tmp
+#$STD git clone --branch v0.6.2 https://github.com/pgvector/pgvector.git && cd pgvector
+#$STD make && make install
+#rm -R /tmp/pgvector
+#sudo -u postgres psql -c "CREATE EXTENSION pgvector;"
 msg_ok "Dependencies Setup successfully" 
 
 msg_info "Setup Immich" 
@@ -124,7 +131,7 @@ wget -q --no-check-certificate -P "${TMP}" "https://github.com/immich-app/immich
 cd $TMP && unzip -q "${RELEASE}.zip" -d "${TMP}"
 mv /$TMP/immich-"${CLEAN_RELEASE}"/* "${IMMICH_TMP}"
 
-##SPÃ„TER:
+##SPÄTER:
 #rm -R * in tmp
 
 cd $IMMICH_TMP
