@@ -68,7 +68,6 @@ msg_ok "Stopped ErsatzTV"
 msg_info "Updating ErsatzTV"
 RELEASE=$(curl -s https://api.github.com/repos/ErsatzTV/ErsatzTV/releases | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 LATEST_RELEASE=$(echo $RELEASE | awk '{print $1}')
-echo $LATEST_RELEASE
 cd /opt
 if [ -d ErsatzTV_bak ]; then
   rm -rf ErsatzTV_bak
@@ -86,7 +85,7 @@ msg_ok "Started ErsatzTV"
 
 msg_info "Cleaning Up"
 cd /opt
-rm -R ${RELEASE} 
+rm -R ErsatzTV-${LATEST_RELEASE}-linux-x64.tar.gz
 rm -R ErsatzTV_bak 
 msg_ok "Cleaned"
 msg_ok "Updated Successfully"
