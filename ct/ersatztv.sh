@@ -5,18 +5,18 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # Co-Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
-# Source: https://github.com/matze/wastebin
+# Source: https://github.com/ErsatzTV/ErsatzTV/
 
 
 function header_info {
 clear
 cat <<"EOF"
-   _____       _ ________           __ 
-  / ___/____  (_) __/ __/___  ___  / /_
-  \__ \/ __ \/ / /_/ /_/ __ \/ _ \/ __/
- ___/ / / / / / __/ __/ / / /  __/ /_  
-/____/_/ /_/_/_/ /_/ /_/ /_/\___/\__/  
-                                                                
+    ______                __      _______    __
+   / ____/_____________ _/ /_____/_  __/ |  / /
+  / __/ / ___/ ___/ __ `/ __/_  / / /  | | / / 
+ / /___/ /  (__  ) /_/ / /_  / /_/ /   | |/ /  
+/_____/_/  /____/\__,_/\__/ /___/_/    |___/   
+                                                         
 EOF
 }
 header_info
