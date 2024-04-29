@@ -23,9 +23,9 @@ $STD apt-get install -y --no-install-recommends \
   python3 \
   python3-dev \
   python3-setuptools \
+  python3-venv \
   uuid-runtime \
   ffmpeg \
-  python3-venv \
   build-essential \
   curl \
   unzip \
@@ -54,7 +54,7 @@ msg_info "Setting up Database"
 sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 sudo apt-get update
-sudo apt-get install -y --no-install-recommends \
+sudo apt-get install -y \
     postgresql-16 \
     postgresql-contrib-16 \
     postgresql-server-dev-all \
@@ -67,7 +67,7 @@ $STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
 $STD sudo -u postgres psql -c "CREATE USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASS';"
 $STD sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" 
 $STD sudo -u postgres psql -c "ALTER USER $DB_USER WITH SUPERUSER;"
-#$STD sudo -u postgres psql -c "CREATE EXTENSION pgvector;"
+#$STD sudo -u postgres psql -c "CREATE EXTENSION vectors;"
 echo "" >>~/immich.creds
 echo -e "Immich Database User: \e[32m$DB_USER\e[0m" >>~/immich.creds
 echo -e "Immich Database Password: \e[32m$DB_PASS\e[0m" >>~/immich.creds

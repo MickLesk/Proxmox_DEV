@@ -16,32 +16,44 @@ update_os
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y --no-install-recommends \
   unzip \
+  build-essential \
   mariadb-server \
   apache2 \
   curl \
   sudo \
+lsb-release \
   git \
   make \
   mc
 
-curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x >/dev/null 2>&1
-sudo apt-get update >/dev/null 2>&1
-$STD sudo systemctl restart apache2 2>&1
-sudo apt-get autoremove --purge php7.4 >/dev/null 2>&1
-sudo apt-get autoremove --purge php7.4-common >/dev/null 2>&1
+apt-get install -y --no-install-recommends \
+  unzip \
+  debian-keyring \
+  debian-archive-keyring \
+  apt-transport-https \
+  pkg-config \
+  gnupg \
+  
+  
+sudo dpkg -l | grep php | tee packages.txt
+sudo apt install apt-transport-https
+sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+sudo apt update
+sudo apt install php8.3 php8.3-{cli,zip,gd,fpm,common,bz2,zip,xml,bcmath,imap,ldap,curl,mbstring,intl}
+sudo apt install php8.3-fpm
+sudo a2enconf php8.3-fpm
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+apt-get install nodejs -y
+node --experimental-global-install --location=~/.local/share pnpm
+corepack use pnpm@8
+npm install -g pnpm@8
+git clone
+cd inbox
+nvm install
+ cp .env.local.example .env.local
 
-$STD apt-get install -y --no-install-recommends \
-  php8.2 \
-  php8.2-xml \
-  libapache2-mod-php8.2 \
-  php8.2-fpm \
-  php8.2-curl \
-  php8.2-mbstring \
-  php8.2-ldap \
-  php8.2-tidy \
-  php8.2-zip \
-  php8.2-gd \
-  php8.2-mysql 
+
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Database"
