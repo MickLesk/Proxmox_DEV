@@ -76,7 +76,6 @@ mv ErsatzTV ErsatzTV_bak
 wget -q --no-check-certificate "https://github.com/ErsatzTV/ErsatzTV/releases/download/${LATEST_RELEASE}/ErsatzTV-${LATEST_RELEASE}-linux-x64.tar.gz"
 tar -xf ErsatzTV-${LATEST_RELEASE}-linux-x64.tar.gz 
 mv ErsatzTV-${LATEST_RELEASE}-linux-x64 ErsatzTV
-rm -R ErsatzTV-${LATEST_RELEASE}-linux-x64.tar.gz 
 msg_ok "Updated ErsatzTV"
 
 msg_info "Starting ErsatzTV"
