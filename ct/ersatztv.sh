@@ -70,7 +70,6 @@ RELEASE=$(curl -s https://api.github.com/repos/ErsatzTV/ErsatzTV/releases | grep
 LATEST_RELEASE=$(echo $RELEASE | awk '{print $1}')
 cd /opt
 wget -q --no-check-certificate "https://github.com/ErsatzTV/ErsatzTV/releases/download/${LATEST_RELEASE}/ErsatzTV-${LATEST_RELEASE}-linux-x64.tar.gz"
-ls
 tar -xf ErsatzTV-${LATEST_RELEASE}-linux-x64.tar.gz 
 mv ErsatzTV-${LATEST_RELEASE}-linux-x64 ErsatzTV
 msg_ok "Updated ErsatzTV"
