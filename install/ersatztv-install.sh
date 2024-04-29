@@ -42,6 +42,7 @@ Description=ErsatzTV Service
 After=multi-user.target
 
 [Service]
+Type=simple
 User=root
 WorkingDirectory=/opt/ErsatzTV 
 ExecStart=/opt/ErsatzTV/ErsatzTV  
@@ -51,7 +52,6 @@ RestartSec=30
 [Install]
 WantedBy=multi-user.target
 EOF
-sudo systemctl daemon-reload
 systemctl -q --now enable ersatzTV.service
 msg_ok "Created Service"
 
