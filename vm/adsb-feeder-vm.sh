@@ -256,31 +256,24 @@ nfs | dir)
   DISK_IMPORT="-format qcow2"
   THIN=""
   ;;
-btrfs)
-  DISK_EXT=".raw"
+btrfs | zfspool)
+  DISK_EXT=""
   DISK_REF="$VMID/"
+  DISK_FORMAT="subvol"
   DISK_IMPORT="-format raw"
-  FORMAT=",efitype=4m"
-  THIN=""
   ;;
 esac
-for i in {0,1}; do
-  disk="DISK$i"
-  eval DISK${i}=vm-${VMID}-disk-${i}${DISK_EXT:-}
-  eval DISK${i}_REF=${STORAGE}:${DISK_REF:-}${!disk}
-done
 
 DISK_VAR="vm-${VMID}-disk-0${DISK_EXT:-}"
 DISK_REF="${STORAGE}:${DISK_VAR:-}"
 
 msg_ok "Extracted ADSB Feeder Disk Image"
-msg_info "Creating ADSB Feeder VM (Patience ...)"
+msg_info "Creating ADSB Feeder VM (Patience)"
 qm create $VMID -tablet 0 -localtime 1 -cores $CORE_COUNT -memory $RAM_SIZE -name $HN \
   -tags proxmox-helper-scripts -net0 virtio,bridge=$BRG,macaddr=$MAC$VLAN$MTU \
   -onboot 1 -ostype l26 -scsihw virtio-scsi-pci
 qm importdisk $VMID ${IMAGE} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 qm set $VMID \
-  -efidisk0 ${DISK0_REF}${FORMAT} \
   -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=2G \
   -boot order=scsi0 \
   -description "<div align='center'><a href='https://Helper-Scripts.com'><img src='https://raw.githubusercontent.com/tteck/Proxmox/main/misc/images/logo-81x112.png'/></a>
