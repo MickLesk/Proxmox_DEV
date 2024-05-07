@@ -252,13 +252,11 @@ case $STORAGE_TYPE in
 nfs | dir)
   DISK_EXT=".qcow2"
   DISK_REF="$VMID/"
-  DISK_IMPORT="-format qcow2"
   ;;
 btrfs | zfspool)
   DISK_EXT=""
   DISK_REF="$VMID/"
   DISK_FORMAT="subvol"
-  DISK_IMPORT="-format raw"
   ;;
 esac
 
@@ -270,7 +268,7 @@ msg_info "Creating ADSB Feeder VM"
 qm create $VMID -tablet 0 -localtime 1 -cores $CORE_COUNT -memory $RAM_SIZE -name $HN \
   -tags proxmox-helper-scripts -net0 virtio,bridge=$BRG,macaddr=$MAC$VLAN$MTU \
   -onboot 1 -ostype l26 -scsihw virtio-scsi-pci
-qm importdisk $VMID ${FILE%.*} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
+qm importdisk $VMID ${FILE%.*} $STORAGE 1>&/dev/null
 qm set $VMID \
   -scsi0 "$DISK_REF" \
   -boot order=scsi0 \
