@@ -248,6 +248,7 @@ msg_ok "Downloaded ${CL}${BL}$FILE${CL}"
 msg_info "Extracting ADSB Feeder Disk Image"
 tar -xf $FILE
 STORAGE_TYPE=$(pvesm status -storage $STORAGE | awk 'NR>1 {print $2}')
+echo "Storage-Type: $STORAGE_TYPE" 
 case $STORAGE_TYPE in
 nfs | dir)
   DISK_EXT=".qcow2"
@@ -261,7 +262,9 @@ btrfs | zfspool)
 esac
 
 DISK_VAR="vm-${VMID}-disk-0${DISK_EXT:-}"
+echo "DISK_VAR: $DISK_VAR" 
 DISK_REF="${STORAGE}:${DISK_VAR:-}"
+echo "DISK_REF: $DISK_REF" 
 
 msg_ok "Extracted ADSB Feeder Disk Image"
 msg_info "Creating ADSB Feeder VM"
