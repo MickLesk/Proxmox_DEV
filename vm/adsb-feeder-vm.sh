@@ -268,7 +268,7 @@ msg_info "Creating ADSB Feeder VM"
 qm create $VMID -tablet 0 -localtime 1 -cores $CORE_COUNT -memory $RAM_SIZE -name $HN \
   -tags proxmox-helper-scripts -net0 virtio,bridge=$BRG,macaddr=$MAC$VLAN$MTU \
   -onboot 1 -ostype l26 -scsihw virtio-scsi-pci
-qm importdisk $VMID ${FILE%.*} $STORAGE 1>&/dev/null
+qm importdisk $VMID ${FILE%.*} $STORAGE
 qm set $VMID \
   -scsi0 "$DISK_REF" \
   -boot order=scsi0 \
