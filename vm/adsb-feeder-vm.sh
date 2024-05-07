@@ -238,44 +238,50 @@ msg_info "Getting URL for ADSB Feeder Disk Image"
 
 RELEASE=$(curl -s https://api.github.com/repos/dirkhh/adsb-feeder-image/releases/latest | grep -oP '"tag_name": "\K[^"]+')
 URL=https://github.com/dirkhh/adsb-feeder-image/releases/download/${RELEASE}/adsb-im-x86-64-vm-${RELEASE}-proxmox.tar.xz
-
 sleep 2
 msg_ok "${CL}${BL}${URL}${CL}"
 wget -q --show-progress $URL
 echo -en "\e[1A\e[0K"
 FILE=$(basename $URL)
 msg_ok "Downloaded ${CL}${BL}$FILE${CL}"
+
 msg_info "Extracting ADSB Feeder Disk Image"
 tar -xf $FILE
 IMAGE=$(ls adsb-*.qcow2)
 STORAGE_TYPE=$(pvesm status -storage $STORAGE | awk 'NR>1 {print $2}')
-echo "Storage-Type: $STORAGE_TYPE" 
-echo "Image: $IMAGE"
 case $STORAGE_TYPE in
 nfs | dir)
   DISK_EXT=".qcow2"
   DISK_REF="$VMID/"
+  DISK_IMPORT="-format qcow2"
+  THIN=""
   ;;
-btrfs | zfspool)
-  DISK_EXT=""
+btrfs)
+  DISK_EXT=".raw"
   DISK_REF="$VMID/"
-  DISK_FORMAT="subvol"
+  DISK_IMPORT="-format raw"
+  FORMAT=",efitype=4m"
+  THIN=""
   ;;
 esac
+for i in {0,1}; do
+  disk="DISK$i"
+  eval DISK${i}=vm-${VMID}-disk-${i}${DISK_EXT:-}
+  eval DISK${i}_REF=${STORAGE}:${DISK_REF:-}${!disk}
+done
 
 DISK_VAR="vm-${VMID}-disk-0${DISK_EXT:-}"
-echo "DISK_VAR: $DISK_VAR" 
 DISK_REF="${STORAGE}:${DISK_VAR:-}"
-echo "DISK_REF: $DISK_REF" 
 
 msg_ok "Extracted ADSB Feeder Disk Image"
-msg_info "Creating ADSB Feeder VM"
+msg_info "Creating ADSB Feeder VM (Patience ...)"
 qm create $VMID -tablet 0 -localtime 1 -cores $CORE_COUNT -memory $RAM_SIZE -name $HN \
   -tags proxmox-helper-scripts -net0 virtio,bridge=$BRG,macaddr=$MAC$VLAN$MTU \
   -onboot 1 -ostype l26 -scsihw virtio-scsi-pci
-qm importdisk $VMID $IMAGE $STORAGE
+qm importdisk $VMID ${IMAGE} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 qm set $VMID \
-  -scsi0 "$DISK_REF" \
+  -efidisk0 ${DISK0_REF}${FORMAT} \
+  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=2G \
   -boot order=scsi0 \
   -description "<div align='center'><a href='https://Helper-Scripts.com'><img src='https://raw.githubusercontent.com/tteck/Proxmox/main/misc/images/logo-81x112.png'/></a>
 
