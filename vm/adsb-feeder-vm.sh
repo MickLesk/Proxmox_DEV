@@ -250,6 +250,7 @@ tar -xf $FILE
 IMAGE=$(ls adsb-*.qcow2)
 STORAGE_TYPE=$(pvesm status -storage $STORAGE | awk 'NR>1 {print $2}')
 echo "Storage-Type: $STORAGE_TYPE" 
+echo "Image: $IMAGE"
 case $STORAGE_TYPE in
 nfs | dir)
   DISK_EXT=".qcow2"
