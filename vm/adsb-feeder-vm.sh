@@ -90,22 +90,22 @@ function msg_ok() {
 function default_settings() {
   echo -e "${DGN}Using Virtual Machine ID: ${BGN}$NEXTID${CL}"
   VMID=$NEXTID
-  echo -e "${DGN}Using Hostname: ${BGN}adsb-feeder${CL}"
   HN=adsb-feeder
-  echo -e "${DGN}Allocated Cores: ${BGN}1${CL}"
-  CORE_COUNT="2"
-  echo -e "${DGN}Allocated RAM: ${BGN}1024${CL}"
-  RAM_SIZE="512"
-  echo -e "${DGN}Using Bridge: ${BGN}vmbr0${CL}"
+  CORE_COUNT="1"
+  RAM_SIZE="1024"
   BRG="vmbr0"
-  echo -e "${DGN}Using MAC Address: ${BGN}$GEN_MAC${CL}"
   MAC=$GEN_MAC
-  echo -e "${DGN}Using VLAN: ${BGN}Default${CL}"
   VLAN=""
-  echo -e "${DGN}Using Interface MTU Size: ${BGN}Default${CL}"
   MTU=""
+  START_VM="yes"
+  echo -e "${DGN}Using Hostname: ${BGN}adsb-feeder${CL}"
+  echo -e "${DGN}Allocated Cores: ${BGN}1${CL}"
+  echo -e "${DGN}Allocated RAM: ${BGN}1024${CL}"
+  echo -e "${DGN}Using Bridge: ${BGN}vmbr0${CL}"
+  echo -e "${DGN}Using MAC Address: ${BGN}$GEN_MAC${CL}"
+  echo -e "${DGN}Using VLAN: ${BGN}Default${CL}"
+  echo -e "${DGN}Using Interface MTU Size: ${BGN}Default${CL}"
   echo -e "${DGN}Start VM when completed: ${BGN}no${CL}"
-  START_VM="no"
   echo -e "${BL}Creating a ADSB Feeder VM using the above default settings${CL}"
 }
 function advanced_settings() {
@@ -268,7 +268,7 @@ DISK_VAR="vm-${VMID}-disk-0${DISK_EXT:-}"
 DISK_REF="${STORAGE}:${DISK_VAR:-}"
 
 msg_ok "Extracted ADSB Feeder Disk Image"
-msg_info "Creating ADSB Feeder VM (Patience)"
+msg_info "Creating ADSB Feeder VM (Patience) "
 qm create $VMID -tablet 0 -localtime 1 -cores $CORE_COUNT -memory $RAM_SIZE -name $HN \
   -tags proxmox-helper-scripts -net0 virtio,bridge=$BRG,macaddr=$MAC$VLAN$MTU \
   -onboot 1 -ostype l26 -scsihw virtio-scsi-pci
