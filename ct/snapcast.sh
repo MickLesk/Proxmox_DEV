@@ -67,22 +67,10 @@ systemctl stop snapcast
 msg_ok "Stopped Snapcast"
 
 msg_info "Updating Snapcast"
-RELEASE=$(curl -s https://api.github.com/repos/hudikhq/hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }') &>/dev/null
-cd /opt
-if [ -d hoodik_bak ]; then
-  rm -rf hoodik_bak
-fi
-mv hoodik hoodik_bak
-wget -q "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
-unzip -q ${RELEASE}.zip &>/dev/null
-mv hoodik-${RELEASE} /opt/hoodik
-cd /opt/hoodik
-cargo update -q 
-cargo build -q --release
 msg_ok "Updated Hoodik"
 
 msg_info "Starting Hoodik"
-systemctl start hoodik
+systemctl start snapcast
 msg_ok "Started Hoodik"
 
 msg_info "Cleaning Up"
