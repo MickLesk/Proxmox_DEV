@@ -54,10 +54,12 @@ msg_info "Setting up PHP & NodeJS"
 sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
 $STD sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
 $STD sudo apt update
+echo "DB done"
 $STD sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip,pgsql}
-
+echo "PhP done"
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 $STD apt-get install nodejs -y
+echo "NodeJS done"
 $STD sudo npm install --global yarn 
 msg_ok "PHP & NodeJS successfully setup" 
 
