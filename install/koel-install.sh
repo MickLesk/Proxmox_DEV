@@ -71,8 +71,8 @@ KOEL_VERSION=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep 
 wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${KOEL_VERSION}.zip
 unzip -q koel-${KOEL_VERSION}.zip
 cd koel
-$STD composer update -q
-$STD composer install -q
+composer update
+composer install
 sudo sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" /opt/koel/.env
 sudo sed -i "s/DB_HOST=.*/DB_HOST=localhost/" /opt/koel/.env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/koel/.env
