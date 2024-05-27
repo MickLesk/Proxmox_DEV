@@ -31,8 +31,8 @@ $STD apt-get install -y --no-install-recommends \
  msg_ok "Installed Dependencies"
 
 msg_info "Setting up Database"
-sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+$STD sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+$STD wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 $STD sudo apt-get update
 $STD sudo apt-get install -y postgresql-16 
 
@@ -52,18 +52,18 @@ msg_ok "Set up PostgreSQL database"
 
 msg_info "Setting up PHP & NodeJS"
 sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
-sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+$STD sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
 $STD sudo apt update
 $STD sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip,pgsql}
 
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+$STD curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 $STD apt-get install nodejs -y
 $STD sudo npm install --global yarn 
 msg_ok "PHP & NodeJS successfully setup" 
 
 msg_info "Installing Koel(Patience)"
-wget -O composer-setup.php https://getcomposer.org/installer
-php composer-setup.php --install-dir=/usr/local/bin --filename=composer --quiet
+$STD wget -O composer-setup.php https://getcomposer.org/installer
+$STD php composer-setup.php --install-dir=/usr/local/bin --filename=composer --quiet
 cd /opt
 KOEL_VERSION=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${KOEL_VERSION}.zip
