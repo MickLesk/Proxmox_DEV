@@ -32,7 +32,7 @@ $STD apt-get install -y --no-install-recommends \
 
 msg_info "Setting up Database"
 $STD sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-$STD wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 $STD sudo apt-get update
 $STD sudo apt-get install -y postgresql-16 
 
