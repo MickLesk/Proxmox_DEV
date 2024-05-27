@@ -82,4 +82,4 @@ msg_ok "Set Container to Normal Resources"
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:8080${CL} \n"
+         ${BL}http://${IP}:6767${CL} \n"
