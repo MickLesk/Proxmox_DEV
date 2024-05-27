@@ -56,7 +56,7 @@ $STD sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] 
 $STD sudo apt update
 $STD sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip,pgsql}
 
-$STD curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 $STD apt-get install nodejs -y
 $STD sudo npm install --global yarn 
 msg_ok "PHP & NodeJS successfully setup" 
