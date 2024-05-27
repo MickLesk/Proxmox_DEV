@@ -17,6 +17,7 @@ msg_info "Installing Dependencies (Patience)"
 apt-get install -y --no-install-recommends \
   apache2 \
   lighttpd \
+  apt-transport-https \
   gnupg2 \
   lsb-release \
   flac \
@@ -36,8 +37,8 @@ sudo a2enmod rewrite
 msg_info "Setting up Database"
 sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-sudo apt-get update
-sudo apt-get install -y \
+$STD sudo apt-get update
+$STD sudo apt-get install -y \
     postgresql-16 \
     postgresql-contrib-16 \
     postgresql-server-dev-all 
@@ -57,16 +58,14 @@ echo "Koel Database Name: $DB_NAME" >>~/koel.creds
 msg_ok "Set up PostgreSQL database"
 
 msg_info "Setting up PHP & NodeJS"
-sudo dpkg -l | grep php | tee packages.txt
-sudo apt install apt-transport-https
 sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
 sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
-sudo apt update
-sudo apt install php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip}
-sudo a2enconf php8.3-fpm
+$STD sudo apt update
+$STD sudo apt install php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip}
+$STD sudo a2enconf php8.3-fpm
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-apt-get install nodejs -y
-sudo npm install --global yarn 
+$STD apt-get install nodejs -y
+$STD sudo npm install --global yarn 
 msg_ok "PHP & NodeJS successfully setup" 
 
 msg_info "Installing Koel(Patience)"
