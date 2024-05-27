@@ -80,7 +80,7 @@ sudo sed -i "s/DB_PORT=.*/DB_PORT=5432/" /opt/koel/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/koel/.env
 sudo sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" /opt/koel/.env
 sudo sed -i 's|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|' /opt/koel/.env
-$STD php artisan koel:init -q
+php artisan koel:init 
 msg_ok "Installed Koel"
 
 msg_info "Set up web services"
