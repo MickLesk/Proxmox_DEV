@@ -14,15 +14,12 @@ network_check
 update_os
 
 msg_info "Installing Dependencies (Patience)"
-apt-get install -y --no-install-recommends \
+$STD apt-get install -y --no-install-recommends \
   apache2 \
   lighttpd \
   apt-transport-https \
   gnupg2 \
   lsb-release \
-  flac \
-  lame \
-  ffmpeg \
   wget \
   curl \
   git \
