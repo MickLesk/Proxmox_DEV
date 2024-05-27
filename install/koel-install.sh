@@ -55,9 +55,6 @@ sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.o
 sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
 $STD sudo apt update
 $STD sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip,pgsql}
-sudo a2enconf php8.3-fpm
-sudo a2enmod proxy_fcgi setenvif
-sudo systemctl restart apache2
 
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 $STD apt-get install nodejs -y
