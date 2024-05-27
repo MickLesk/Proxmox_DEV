@@ -15,11 +15,11 @@ update_os
 
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y --no-install-recommends \
-  apache2 \
-  lighttpd \
+  nginx \
   apt-transport-https \
   gnupg2 \
   lsb-release \
+  ffmpeg \
   wget \
   curl \
   git \
@@ -29,7 +29,6 @@ $STD apt-get install -y --no-install-recommends \
   make \
   mc 
  msg_ok "Installed Dependencies"
-sudo a2enmod rewrite
 
 msg_info "Setting up Database"
 sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
@@ -55,8 +54,11 @@ msg_info "Setting up PHP & NodeJS"
 sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
 sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
 $STD sudo apt update
-$STD sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip}
+$STD sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip,pgsql}
 sudo a2enconf php8.3-fpm
+sudo a2enmod proxy_fcgi setenvif
+sudo systemctl restart apache2
+
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 $STD apt-get install nodejs -y
 $STD sudo npm install --global yarn 
@@ -70,8 +72,8 @@ KOEL_VERSION=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep 
 wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${KOEL_VERSION}.zip
 unzip -q koel-${KOEL_VERSION}.zip
 cd koel
-composer update -q
-composer install -q
+$STD composer update -q
+$STD composer install -q
 sudo sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" /opt/koel/.env
 sudo sed -i "s/DB_HOST=.*/DB_HOST=localhost/" /opt/koel/.env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/koel/.env
@@ -79,15 +81,47 @@ sudo sed -i "s/DB_PORT=.*/DB_PORT=5432/" /opt/koel/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/koel/.env
 sudo sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" /opt/koel/.env
 sudo sed -i 's|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|' /opt/koel/.env
-
+$STD php artisan koel:init -q
 msg_ok "Installed Koel"
 
-#msg_info "Set up web services"
-#cat <<EOF >/etc/nginx/conf.d/ampache.conf
-#Sauerkirschen
-#EOF
+msg_info "Set up web services"
+cat <<EOF >/etc/nginx/conf.d/koel.conf
+server {
+    listen          6767;
+    server_name     koel.local;
+    root            /opt/koel/public;
+    index           index.php;
 
-#systemctl enable docspell-restserver
+    gzip            on;
+    gzip_types      text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript application/json;
+    gzip_comp_level 9;
+
+    send_timeout    3600;
+    client_max_body_size 50M;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location /media/ {
+        internal;
+        alias /opt/koel_media;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+}
+EOF
+
+systemctl reload nginx
+msg_ok "Created Services"
 
 motd_ssh
 customize
