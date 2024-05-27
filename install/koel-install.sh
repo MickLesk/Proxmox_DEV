@@ -70,6 +70,7 @@ cd /opt
 KOEL_VERSION=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${KOEL_VERSION}.zip
 unzip -q koel-${KOEL_VERSION}.zip
+mdkir koel_media
 cd koel
 composer update
 composer install
