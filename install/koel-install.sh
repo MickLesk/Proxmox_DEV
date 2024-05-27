@@ -15,20 +15,7 @@ update_os
 
 msg_info "Installing Dependencies (Patience)"
 apt-get install -y --no-install-recommends \
-  mariadb-server \
   apache2 \
-  php \
-  php-curl \
-  php-bcmath \
-  php-json \
-  php-mysql \
-  php-mbstring \
-  php-xml \
-  php-tokenizer \
-  php-zip \
-  php-gd \
-  php-pdo-sqlite \
-  php8.3-sqlite3 \
   lighttpd \
   gnupg2 \
   lsb-release \
@@ -75,7 +62,7 @@ sudo apt install apt-transport-https
 sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
 sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
 sudo apt update
-sudo apt install php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,json,mbstring,mysql,pdo-sqlite,sqlite3,tokenizer,xml,zip}
+sudo apt install php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip}
 sudo a2enconf php8.3-fpm
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 apt-get install nodejs -y
