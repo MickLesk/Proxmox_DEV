@@ -35,10 +35,7 @@ msg_info "Setting up Database"
 sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 $STD sudo apt-get update
-$STD sudo apt-get install -y \
-    postgresql-16 \
-    postgresql-contrib-16 \
-    postgresql-server-dev-all 
+$STD sudo apt-get install -y postgresql-16 
 
 DB_NAME=koel
 DB_USER=koel
@@ -66,9 +63,11 @@ $STD sudo npm install --global yarn
 msg_ok "PHP & NodeJS successfully setup" 
 
 msg_info "Installing Koel(Patience)"
-wget https://getcomposer.org/download/latest-stable/composer.phar
-mv composer.phar /usr/local/bin/composer
-sudo chmod +x /usr/local/bin/composer
+#wget https://getcomposer.org/download/latest-stable/composer.phar
+#mv composer.phar /usr/local/bin/composer
+#sudo chmod +x /usr/local/bin/composer
+wget -O composer-setup.php https://getcomposer.org/installer
+php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 cd /opt
 KOEL_VERSION=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${KOEL_VERSION}.zip
