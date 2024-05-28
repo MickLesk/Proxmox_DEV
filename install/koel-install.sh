@@ -61,13 +61,7 @@ sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.o
 $STD sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
 $STD sudo apt update
 $STD sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip,pgsql}
-echo "PhP done"
-
-curl -fsSL https://deb.nodesource.com/setup_lts.x | $STD sudo -E bash -
-$STD apt-get install nodejs -y
-echo "NodeJS done"
-$STD sudo npm install --global yarn 
-msg_ok "PHP & NodeJS successfully setup" 
+msg_ok "PHP successfully setup" 
 
 msg_info "Installing Koel(Patience)"
 $STD wget -O composer-setup.php https://getcomposer.org/installer
@@ -81,8 +75,8 @@ cd koel
 COMPOSER_ALLOW_SUPERUSER=1
 sudo chown -R $USER:www-data storage
 sudo chown -R $USER:www-data bootstrap/cache
-composer update --no-interaction
-composer install --no-interaction
+$STD composer update --no-interaction
+$STD composer install --no-interaction
 sudo sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" /opt/koel/.env
 sudo sed -i "s/DB_HOST=.*/DB_HOST=localhost/" /opt/koel/.env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/koel/.env
