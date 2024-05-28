@@ -104,17 +104,23 @@ function update_script() {
     exit
   fi
   if [ "$UPD" == "2" ]; then
-	SPOTIFY_VALUES=$(whiptail --inputbox "Bitte geben Sie Ihre Spotify-Client-ID und Ihr Spotify-Client-Secret ein:" 10 80 "Spotify-Client-ID" "Spotify-Secret" 3>&1 1>&2 2>&3)
-
+	SPOTIFY_CLIENT_ID=$(whiptail --inputbox "Bitte geben Sie Ihre Spotify-Client-ID ein:" 8 80 "" --title "Spotify-Client-ID" 3>&1 1>&2 2>&3)
 	if [ $? -ne 0 ]; then
 		echo "Abgebrochen. Das Script wird beendet."
 		exit 1
 	fi
-	SPOTIFY_CLIENT_ID=$(echo "$SPOTIFY_VALUES" | cut -d "|" -f 1)
-	SPOTIFY_CLIENT_SECRET=$(echo "$SPOTIFY_VALUES" | cut -d "|" -f 2)
+
+	SPOTIFY_CLIENT_SECRET=$(whiptail --inputbox "Bitte geben Sie Ihr Spotify-Client-Secret ein:" 8 80 "" --title "Spotify-Client-Secret" 3>&1 1>&2 2>&3)
+	if [ $? -ne 0 ]; then
+		echo "Abgebrochen. Das Script wird beendet."
+		exit 1
+	fi
+	# Spotify-Client-ID und Spotify-Client-Secret in die Datei /opt/koel/.env schreiben
 	sudo sed -i "s|SPOTIFY_CLIENT_ID=.*|SPOTIFY_CLIENT_ID=$SPOTIFY_CLIENT_ID|" /opt/koel/.env
 	sudo sed -i "s|SPOTIFY_CLIENT_SECRET=.*|SPOTIFY_CLIENT_SECRET=$SPOTIFY_CLIENT_SECRET|" /opt/koel/.env
+	# Erfolgsmeldung anzeigen
 	whiptail --msgbox "Die Spotify Credentials wurden erfolgreich hinzugefügt." 8 60
+
   fi
 }
 
