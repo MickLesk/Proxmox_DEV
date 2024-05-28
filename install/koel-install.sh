@@ -15,6 +15,7 @@ update_os
 
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y --no-install-recommends \
+  postgresql \
   nginx \
   apt-transport-https \
   gnupg2 \
@@ -30,12 +31,7 @@ $STD apt-get install -y --no-install-recommends \
   mc 
  msg_ok "Installed Dependencies"
 
-msg_info "Setting up Database"
-$STD sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-$STD sudo apt-get update
-$STD sudo apt-get install -y postgresql-16 
-
+msg_info "Setting up PSql Database"
 DB_NAME=koel
 DB_USER=koel
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
@@ -50,14 +46,24 @@ echo "Koel Database Password: $DB_PASS" >>~/koel.creds
 echo "Koel Database Name: $DB_NAME" >>~/koel.creds
 msg_ok "Set up PostgreSQL database"
 
-msg_info "Setting up PHP & NodeJS"
+msg_info "Setting up Node.js/Yarn"
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
+$STD apt-get update
+$STD apt-get install -y nodejs
+$STD npm install -g npm@latest
+$STD npm install -g yarn
+msg_ok "Installed Node.js/Yarn"
+
+msg_info "Setting up PHP"
 sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
 $STD sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
 $STD sudo apt update
-echo "DB done"
 $STD sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip,pgsql}
 echo "PhP done"
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+
+curl -fsSL https://deb.nodesource.com/setup_lts.x | $STD sudo -E bash -
 $STD apt-get install nodejs -y
 echo "NodeJS done"
 $STD sudo npm install --global yarn 
@@ -70,7 +76,8 @@ cd /opt
 KOEL_VERSION=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${KOEL_VERSION}.zip
 unzip -q koel-${KOEL_VERSION}.zip
-mkdir /opt/koel_media
+rm -R koel-${KOEL_VERSION}.zip
+mkdir -p /opt/koel_media
 cd koel
 composer update
 composer install
