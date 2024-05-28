@@ -141,7 +141,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-rm -R "/opt/koel-${KOEL_VERSION}.zip"
+rm -R "/opt/koel-${KOEL_VERSION}.zip" 
 $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"
