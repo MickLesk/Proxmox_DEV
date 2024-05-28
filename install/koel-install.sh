@@ -88,7 +88,7 @@ $STD php artisan koel:init --no-interaction
 msg_ok "Installed Koel"
 
 msg_info "Set up web services"
-cat <<EOF >/etc/nginx/conf.d/koel.conf
+cat <<EOF >/etc/nginx/sites-available/koel
 server {
     listen          6767;
     server_name     koel.local;
@@ -122,7 +122,7 @@ server {
     }
 }
 EOF
-
+sudo ln -s /etc/nginx/sites-available/koel /etc/nginx/sites-enabled/koel
 systemctl reload nginx
 msg_ok "Created Services"
 
