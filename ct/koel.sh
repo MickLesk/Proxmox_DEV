@@ -57,20 +57,17 @@ function update_script() {
     msg_error "No ${APP} Installation Found!"
     exit
   fi
+  RELEASE=$(curl -s https://api.github.com/repos/koel/koel/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 
-	show_task_selection() {
-		local RELEASE=$(curl -s https://api.github.com/repos/koel/koel/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-
-		# Whiptail-Dialog anzeigen
-		UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "SUPPORT" --radiolist --cancel-button Exit-Script "Spacebar = Select" 14 58 6 \
-			"1" "Update Koel to $RELEASE" ON \
-			"2" "Add Spotify Credentials" OFF \
-			"3" "Add LastFM Credentials" OFF \
-			"4" "Add YouTube Credentials" OFF \
-			"5" "Add CDN Credentials" OFF \
-			"6" "Add Amazon S3 Credentials" OFF \
-			3>&1 1>&2 2>&3)
-	}
+  UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "SUPPORT" --radiolist --cancel-button Exit-Script "Spacebar = Select" 11 58 2 \
+    "1" "Update Koel to $RELEASE" ON \
+    "2" "Add Spotify Credentials" OFF \
+	"3" "Add LastFM Credentials" OFF \
+	"4" "Add YouTube Credentials" OFF \
+	"5" "Add CDN" OFF \
+	"6" "Add Amazon S3 Credentials" OFF \
+    3>&1 1>&2 2>&3)
+  header_info
   if [ "$UPD" == "1" ]; then
     if [[ "${RELEASE}" != "$(cat /opt/koel/.version)" ]] || [[ ! -f /opt/koel/.version ]]; then
       msg_info "Stopping Koel NGINX Service"
@@ -107,21 +104,8 @@ function update_script() {
     exit
   fi
   if [ "$UPD" == "2" ]; then
-	SPOTIFY_CLIENT_ID=$(whiptail --inputbox "Bitte geben Sie Ihre Spotify-Client-ID ein:" 8 80 "" --title "Spotify-Client-ID" 3>&1 1>&2 2>&3)
-	if [ $? -ne 0 ]; then
-		echo "Abgebrochen. Das Script wird beendet."
-		exit 1
-	fi
-	SPOTIFY_CLIENT_SECRET=$(whiptail --inputbox "Bitte geben Sie Ihr Spotify-Client-Secret ein:" 8 80 "" --title "Spotify-Client-Secret" 3>&1 1>&2 2>&3)
-	if [ $? -ne 0 ]; then
-		echo "Abgebrochen. Das Script wird beendet."
-		exit 1
-	fi
-	sudo sed -i "s|SPOTIFY_CLIENT_ID=.*|SPOTIFY_CLIENT_ID=$SPOTIFY_CLIENT_ID|" /opt/koel/.env
-	sudo sed -i "s|SPOTIFY_CLIENT_SECRET=.*|SPOTIFY_CLIENT_SECRET=$SPOTIFY_CLIENT_SECRET|" /opt/koel/.env
-	whiptail --msgbox "Die Spotify Credentials wurden erfolgreich hinzugefügt." 8 60
+    exit
   fi
-  
 }
 
 start
