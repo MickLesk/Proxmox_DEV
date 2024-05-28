@@ -74,13 +74,16 @@ $STD wget -O composer-setup.php https://getcomposer.org/installer
 $STD php composer-setup.php --install-dir=/usr/local/bin --filename=composer --quiet
 cd /opt
 KOEL_VERSION=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
-wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${KOEL_VERSION}.zip
+$STD wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${KOEL_VERSION}.zip
 unzip -q koel-${KOEL_VERSION}.zip
 rm -R koel-${KOEL_VERSION}.zip
 mkdir -p /opt/koel_media
 cd koel
-composer update
-composer install
+COMPOSER_ALLOW_SUPERUSER=1
+sudo chown -R $USER:www-data storage
+sudo chown -R $USER:www-data bootstrap/cache
+composer update --no-interaction
+composer install --no-interaction
 sudo sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" /opt/koel/.env
 sudo sed -i "s/DB_HOST=.*/DB_HOST=localhost/" /opt/koel/.env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/koel/.env
@@ -88,7 +91,7 @@ sudo sed -i "s/DB_PORT=.*/DB_PORT=5432/" /opt/koel/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/koel/.env
 sudo sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" /opt/koel/.env
 sudo sed -i 's|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|' /opt/koel/.env
-php artisan koel:init 
+php artisan koel:init --no-interaction
 msg_ok "Installed Koel"
 
 msg_info "Set up web services"
