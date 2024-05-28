@@ -73,8 +73,7 @@ unzip -q koel-${KOEL_VERSION}.zip
 mkdir -p /opt/koel_media
 cd koel
 COMPOSER_ALLOW_SUPERUSER=1
-sudo chown -R $USER:www-data storage
-sudo chown -R $USER:www-data bootstrap/cache
+sudo chown -R www-data:www-data .
 $STD composer update --no-interaction
 $STD composer install --no-interaction
 sudo sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" /opt/koel/.env
@@ -123,7 +122,8 @@ server {
 }
 EOF
 sudo ln -s /etc/nginx/sites-available/koel /etc/nginx/sites-enabled/koel
-systemctl reload nginx
+sudo systemctl restart php8.3-fpm
+sudo systemctl restart nginx
 msg_ok "Created Services"
 
 msg_info "Adding Cronjob (Daily Midnight)"
