@@ -57,7 +57,7 @@ function update_script() {
     msg_error "No ${APP} Installation Found!"
     exit
   fi
-  RELEASE=$(curl -s https://api.github.com/repos/paperless-ngx/paperless-ngx/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+  RELEASE=$(curl -s https://api.github.com/repos/koel/koel/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 
   UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "SUPPORT" --radiolist --cancel-button Exit-Script "Spacebar = Select" 11 58 2 \
     "1" "Update Koel to $RELEASE" ON \
@@ -69,32 +69,34 @@ function update_script() {
     3>&1 1>&2 2>&3)
   header_info
   if [ "$UPD" == "1" ]; then
-    if [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]] || [[ ! -f /opt/${APP}_version.txt ]]; then
-      msg_info "Stopping all Paperless-ngx Services"
-      systemctl stop paperless-consumer paperless-webserver paperless-scheduler paperless-task-queue.service
-      msg_ok "Stopped all Paperless-ngx Services"
+    if [[ "${RELEASE}" != "$(cat /opt/koel/.version)" ]] || [[ ! -f /opt/koel/.version ]]; then
+      msg_info "Stopping Koel NGINX Service"
+      systemctl stop nginx
+      msg_ok "Stopped NGINX Service"
 
       msg_info "Updating to ${RELEASE}"
+		cd /opt
+		wget https://github.com/koel/koel/releases/download/${RELEASE}/koel-${RELEASE}.zip >/dev/null 2>&1
+		unzip -q koel-${RELEASE}.zip >/dev/null 2>&1
 		cd /opt/koel
-		git config --global --add safe.directory /opt/koel >/dev/null 2>&1
-		git pull origin release >/dev/null 2>&1
-		composer install --no-interaction --no-dev >/dev/null 2>&1
+		composer update --no-interaction >/dev/null 2>&1
+		composer install --no-interaction >/dev/null 2>&1
 		php artisan migrate --force >/dev/null 2>&1
-		php artisan cache:clear
-		php artisan config:clear
-		php artisan view:clear
+		php artisan cache:clear >/dev/null 2>&1
+		php artisan config:clear >/dev/null 2>&1
+		php artisan view:clear >/dev/null 2>&1
+		php artisan koel:init --no-interaction >/dev/null 2>&1
       msg_ok "Updated to ${RELEASE}"
 
       msg_info "Cleaning up"
       cd ~
-      rm paperless-ngx-$RELEASE.tar.xz
-      rm -rf paperless-ngx
+      rm /opt/koel-${RELEASE}.zip
       msg_ok "Cleaned"
 
-      msg_info "Starting all Paperless-ngx Services"
-      systemctl start paperless-consumer paperless-webserver paperless-scheduler paperless-task-queue.service
+      msg_info "Starting NGINX Service"
+      systemctl start nginx
       sleep 1
-      msg_ok "Started all Paperless-ngx Services"
+      msg_ok "Started NGINX Service"
       msg_ok "Updated Successfully!\n"
     else
       msg_ok "No update required. ${APP} is already at ${RELEASE}"
@@ -102,8 +104,17 @@ function update_script() {
     exit
   fi
   if [ "$UPD" == "2" ]; then
-    cat paperless.creds
-    exit
+	SPOTIFY_VALUES=$(whiptail --inputbox "Bitte geben Sie Ihre Spotify-Client-ID und Ihr Spotify-Client-Secret ein:" 10 80 "Spotify-Client-ID" "Spotify-Secret" 3>&1 1>&2 2>&3)
+
+	if [ $? -ne 0 ]; then
+		echo "Abgebrochen. Das Script wird beendet."
+		exit 1
+	fi
+	SPOTIFY_CLIENT_ID=$(echo "$SPOTIFY_VALUES" | cut -d "|" -f 1)
+	SPOTIFY_CLIENT_SECRET=$(echo "$SPOTIFY_VALUES" | cut -d "|" -f 2)
+	sudo sed -i "s|SPOTIFY_CLIENT_ID=.*|SPOTIFY_CLIENT_ID=$SPOTIFY_CLIENT_ID|" /opt/koel/.env
+	sudo sed -i "s|SPOTIFY_CLIENT_SECRET=.*|SPOTIFY_CLIENT_SECRET=$SPOTIFY_CLIENT_SECRET|" /opt/koel/.env
+	whiptail --msgbox "Die Spotify Credentials wurden erfolgreich hinzugefügt." 8 60
   fi
 }
 

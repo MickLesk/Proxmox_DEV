@@ -84,7 +84,7 @@ sudo sed -i "s/DB_PORT=.*/DB_PORT=5432/" /opt/koel/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/koel/.env
 sudo sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" /opt/koel/.env
 sudo sed -i 's|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|' /opt/koel/.env
-php artisan koel:init --no-interaction
+$STD php artisan koel:init --no-interaction
 msg_ok "Installed Koel"
 
 msg_info "Set up web services"
@@ -123,13 +123,16 @@ server {
 }
 EOF
 
-msg_info "Adding Cronjob"
-CRON_JOB="0 0 * * * cd /opt/koel/ && /usr/bin/php artisan koel:sync >/dev/null 2>&1"
-(crontab -l 2>/dev/null | grep -F "$CRON_JOB") || (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
-msg_ok "Cronjob successfully added"
-
 systemctl reload nginx
 msg_ok "Created Services"
+
+msg_info "Adding Cronjob (Daily Midnight)"
+mkdir -p /opt/koel_sync_logs
+cat <<EOF >/opt/koel/koel.cron
+0 0 * * * cd /opt/koel/ && /usr/bin/php artisan koel:sync >/opt/koel_sync_logs/koel.sync.log 2>&1
+EOF
+crontab /opt/koel/koel.cron
+msg_ok "Cronjob successfully added"
 
 motd_ssh
 customize
