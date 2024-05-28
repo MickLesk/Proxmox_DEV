@@ -76,7 +76,6 @@ cd /opt
 KOEL_VERSION=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 $STD wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${KOEL_VERSION}.zip
 unzip -q koel-${KOEL_VERSION}.zip
-rm -R koel-${KOEL_VERSION}.zip
 mkdir -p /opt/koel_media
 cd koel
 COMPOSER_ALLOW_SUPERUSER=1
@@ -130,6 +129,11 @@ server {
 }
 EOF
 
+msg_info "Adding Cronjob"
+CRON_JOB="0 0 * * * cd /opt/koel/ && /usr/bin/php artisan koel:sync >/dev/null 2>&1"
+(crontab -l 2>/dev/null | grep -F "$CRON_JOB") || (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+msg_ok "Cronjob successfully added"
+
 systemctl reload nginx
 msg_ok "Created Services"
 
@@ -137,6 +141,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
+rm -R "/opt/koel-${KOEL_VERSION}.zip"
 $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"
