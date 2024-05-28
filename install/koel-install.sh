@@ -72,7 +72,6 @@ $STD wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${
 unzip -q koel-${KOEL_VERSION}.zip
 mkdir -p /opt/koel_media
 cd koel
-COMPOSER_ALLOW_SUPERUSER=1
 sudo chown -R www-data:www-data .
 $STD composer update --no-interaction
 $STD composer install --no-interaction
@@ -83,6 +82,7 @@ sudo sed -i "s/DB_PORT=.*/DB_PORT=5432/" /opt/koel/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/koel/.env
 sudo sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" /opt/koel/.env
 sudo sed -i 's|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|' /opt/koel/.env
+sudo sed -i 's|FFMPEG_PATH=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|' /opt/koel/.env
 $STD php artisan koel:init --no-interaction
 msg_ok "Installed Koel"
 
