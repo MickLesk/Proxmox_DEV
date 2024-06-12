@@ -58,7 +58,7 @@ $STD pipenv install
 msg_ok "Installed MeTube"
 
 msg_info "Settung up .env and Start MeTube"
-mkdir -p /opt/metube_downloads /opt/metube_downloads/.metube
+mkdir -p /opt/metube_downloads /opt/metube_downloads/.metube /opt/metube_downloads/music /opt/metube_downloads/videos 
 cat <<EOF >/opt/metube/.env
 DOWNLOAD_DIR = /opt/metube_downloads
 STATE_DIR = /opt/metube_downloads/.metube
