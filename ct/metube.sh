@@ -74,15 +74,14 @@ if [ -d metube_bak ]; then
 fi
 mv metube metube_bak
 
-git clone https://github.com/alexta69/metube /opt/metube  >/dev/null 2>&1
+git clone https://github.com/alexta69/metube /opt/metube  
 cd /opt/metube/ui
-npm install >/dev/null 2>&1
-node_modules/.bin/ng build >/dev/null 2>&1
+npm install
+node_modules/.bin/ng build
 cd /opt/metube
 cp /opt/metube_bak/.env /opt/metube/
-pip3 install pipenv >/dev/null 2>&1
-pipenv install >/dev/null 2>&1
-pipenv run python3 app/main.py >/dev/null 2>&1
+pip3 install pipenv 
+pipenv install
 
 if [ -d "/opt/metube_bak" ]; then
 rm -rf /opt/metube_bak
