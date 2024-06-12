@@ -55,14 +55,13 @@ function default_settings() {
 function update_script() {
 header_info
 if [[ ! -d /opt/metube ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-
 	msg_info "Stopping ${APP} Service"
 	systemctl stop metube
 	msg_ok "Stopped ${APP} Service"
 
 	msg_info "Updating ${APP} to latest Git"
 	if [ -d "/opt/metube" ]; then
-    mv /opt/metube /opt/metube_bak
+		mv /opt/metube /opt/metube_bak
 	fi
 	git clone https://github.com/alexta69/metube /opt/metube  >/dev/null 2>&1
 	cd cd /opt/metube/ui
@@ -74,7 +73,7 @@ if [[ ! -d /opt/metube ]]; then msg_error "No ${APP} Installation Found!"; exit;
 	pipenv run python3 app/main.py >/dev/null 2>&1
 
 	if [ -d "/opt/metube_bak" ]; then
-    rm -rf /opt/metube_bak
+		rm -rf /opt/metube_bak
 	fi
   msg_ok "Updated ${APP} to latest Git"
 
@@ -83,8 +82,6 @@ if [[ ! -d /opt/metube ]]; then msg_error "No ${APP} Installation Found!"; exit;
   sleep 1
   msg_ok "Started ${APP} Service"
   msg_ok "Updated Successfully!\n"
-else
-  msg_ok "No update required. ${APP} is already at ${RELEASE}"
 fi
 exit
 }
