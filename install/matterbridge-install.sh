@@ -23,6 +23,10 @@ $STD apt-get install -y --no-install-recommends \
   sudo \
   git \
   make \
+  gnupg \
+  ca-certificates \
+  gcc \
+  g++ \
   mc
 msg_ok "Installed Dependencies"
 
