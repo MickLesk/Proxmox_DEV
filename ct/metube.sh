@@ -19,7 +19,7 @@ EOF
 header_info
 echo -e "Loading..."
 APP="MeTube"
-var_disk="6"
+var_disk="5"
 var_cpu="1"
 var_ram="1024"
 var_os="debian"
