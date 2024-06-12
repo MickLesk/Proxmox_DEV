@@ -33,8 +33,8 @@ msg_ok "Installed NodeJS / NPM"
 
 msg_info "Install Matterbridge" 
 RELEASE=$(curl -s https://api.github.com/repos/Luligu/matterbridge/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-$STD wget -q "https://github.com/Luligu/matterbridge/archive/refs/tags/${RELEASE}.zip"
-$STD unzip -q ${RELEASE}.zip
+wget -q "https://github.com/Luligu/matterbridge/archive/refs/tags/${RELEASE}.zip"
+unzip -q ${RELEASE}.zip
 mv matterbridge-${RELEASE} /opt/matterbridge
 rm -R ${RELEASE}.zip 
 msg_ok "Installed Matterbridge"
