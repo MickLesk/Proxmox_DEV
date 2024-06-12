@@ -68,9 +68,12 @@ systemctl stop metube
 msg_ok "Stopped ${APP} Service"
 
 msg_info "Updating ${APP} to latest Git"
-if [ -d "/opt/metube" ]; then
-mv /opt/metube /opt/metube_bak
+cd /opt
+if [ -d metube_bak ]; then
+  rm -rf metube_bak
 fi
+mv metube metube_bak
+
 git clone https://github.com/alexta69/metube /opt/metube  >/dev/null 2>&1
 cd /opt/metube/ui
 npm install >/dev/null 2>&1
