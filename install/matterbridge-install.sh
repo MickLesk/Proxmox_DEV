@@ -39,6 +39,7 @@ mv matterbridge-${RELEASE} /opt/matterbridge
 rm -R ${RELEASE}.zip 
 cd /opt/matterbridge
 $STD npm install
+$STD npm run build
 msg_ok "Installed Matterbridge"
 
 msg_info "Creating Service"
