@@ -54,35 +54,42 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -d /opt/metube ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-	msg_info "Stopping ${APP} Service"
-	systemctl stop metube
-	msg_ok "Stopped ${APP} Service"
-
-	msg_info "Updating ${APP} to latest Git"
-	if [ -d "/opt/metube" ]; then
-		mv /opt/metube /opt/metube_bak
-	fi
-	git clone https://github.com/alexta69/metube /opt/metube  >/dev/null 2>&1
-	cd cd /opt/metube/ui
-	npm install >/dev/null 2>&1
-	node_modules/.bin/ng build >/dev/null 2>&1
-	cd /opt/metube
-	pip3 install pipenv >/dev/null 2>&1
-	pipenv install >/dev/null 2>&1
-	pipenv run python3 app/main.py >/dev/null 2>&1
-
-	if [ -d "/opt/metube_bak" ]; then
-		rm -rf /opt/metube_bak
-	fi
-  msg_ok "Updated ${APP} to latest Git"
-
-  msg_info "Starting ${APP} Service"
-  systemctl start metube
-  sleep 1
-  msg_ok "Started ${APP} Service"
-  msg_ok "Updated Successfully!\n"
+if 
+	[[ ! -d /opt/metube ]]; 
+then 
+	msg_error "No ${APP} Installation Found!"; 
+exit; fi
+if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
+  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
+  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
+msg_info "Stopping ${APP} Service"
+systemctl stop metube
+msg_ok "Stopped ${APP} Service"
+
+msg_info "Updating ${APP} to latest Git"
+if [ -d "/opt/metube" ]; then
+mv /opt/metube /opt/metube_bak
+fi
+git clone https://github.com/alexta69/metube /opt/metube  >/dev/null 2>&1
+cd cd /opt/metube/ui
+npm install >/dev/null 2>&1
+node_modules/.bin/ng build >/dev/null 2>&1
+cd /opt/metube
+pip3 install pipenv >/dev/null 2>&1
+pipenv install >/dev/null 2>&1
+pipenv run python3 app/main.py >/dev/null 2>&1
+
+if [ -d "/opt/metube_bak" ]; then
+rm -rf /opt/metube_bak
+fi
+msg_ok "Updated ${APP} to latest Git"
+
+msg_info "Starting ${APP} Service"
+systemctl start metube
+sleep 1
+msg_ok "Started ${APP} Service"
+msg_ok "Updated Successfully!\n"
 exit
 }
 
