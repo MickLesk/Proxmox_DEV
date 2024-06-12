@@ -20,6 +20,7 @@ $STD apt-get install -y --no-install-recommends \
   build-essential \
   curl \
   sudo \
+  ffmpeg \
   git \
   make \
   gnupg \
@@ -54,8 +55,17 @@ $STD node_modules/.bin/ng build
 cd /opt/metube
 $STD pip3 install pipenv
 $STD pipenv install
-$STD pipenv run python3 app/main.py
 msg_ok "Installed MeTube"
+
+msg_info "Settung up .env and Start MeTube"
+mkdir -p /opt/metube_downloads /opt/metube_downloads/.metube
+cat <<EOF >/opt/metube/.env
+DOWNLOAD_DIR = /opt/metube_downloads
+STATE_DIR = /opt/metube_downloads/.metube
+TEMP_DIR = /opt/metube_downloads
+EOF
+$STD pipenv run python3 app/main.py
+msg_ok "Started MeTube"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/metube.service
