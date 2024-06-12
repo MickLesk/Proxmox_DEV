@@ -25,8 +25,6 @@ $STD apt-get install -y --no-install-recommends \
   make \
   gnupg \
   ca-certificates \
-  gcc \
-  g++ \
   mc
 msg_ok "Installed Dependencies"
 
