@@ -55,17 +55,13 @@ $STD node_modules/.bin/ng build
 cd /opt/metube
 $STD pip3 install pipenv
 $STD pipenv install
-msg_ok "Installed MeTube"
-
-msg_info "Settung up .env and Start MeTube"
 mkdir -p /opt/metube_downloads /opt/metube_downloads/.metube /opt/metube_downloads/music /opt/metube_downloads/videos 
 cat <<EOF >/opt/metube/.env
-DOWNLOAD_DIR = /opt/metube_downloads
-STATE_DIR = /opt/metube_downloads/.metube
-TEMP_DIR = /opt/metube_downloads
+DOWNLOAD_DIR=/opt/metube_downloads
+STATE_DIR=/opt/metube_downloads/.metube
+TEMP_DIR=/opt/metube_downloads
 EOF
-$STD pipenv run python3 app/main.py
-msg_ok "Started MeTube"
+msg_ok "Installed MeTube"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/metube.service
@@ -76,7 +72,8 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/opt/metube
-ExecStart=/usr/bin/pipenv run python3 app/main.py
+EnvironmentFile=/opt/metube/.env
+ExecStart=/usr/local/bin/pipenv run python3 app/main.py
 Restart=always
 User=root
 
