@@ -37,8 +37,6 @@ $STD wget -q "https://github.com/Luligu/matterbridge/archive/refs/tags/${RELEASE
 $STD unzip -q ${RELEASE}.zip
 mv matterbridge-${RELEASE} /opt/matterbridge
 rm -R ${RELEASE}.zip 
-cd /opt/matterbridge
-$STD npm run build
 msg_ok "Installed Matterbridge"
 
 msg_info "Creating Service"
