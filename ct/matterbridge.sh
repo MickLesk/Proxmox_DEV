@@ -62,7 +62,7 @@ LATEST_VERSION=$(grep -oP '## \[\d+\.\d+\.\d+\]' /opt/matterbridge/CHANGELOG.md 
 RELEASE=$(curl -s https://api.github.com/repos/Luligu/matterbridge/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 
 header_info
-if [[ "${RELEASE}" != "${RELEASE_FROM_CHANGELOG}" ]]; then
+if [[ "${RELEASE}" != "${LATEST_VERSION}" ]]; then
     msg_info "Stopping Matterbridge Service"
     systemctl stop matterbridge
     msg_ok "Stopped Matterbridge Service"
@@ -73,7 +73,8 @@ if [[ "${RELEASE}" != "${RELEASE_FROM_CHANGELOG}" ]]; then
     unzip -q ${RELEASE}.zip
     mv matterbridge-${RELEASE} /opt/matterbridge
     cd /opt/matterbridge
-    npm run build
+    npm install >/dev/null 2>&1
+    npm run build >/dev/null 2>&1
     
     msg_info "Cleaning up"
     rm /opt/${RELEASE}.zip 
