@@ -19,6 +19,7 @@ msg_info "Installing Dependencies"
 $STD apt-get install -y --no-install-recommends \
   build-essential \
   curl \
+  unzip \
   sudo \
   jq \
   git \
