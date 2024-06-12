@@ -72,10 +72,11 @@ if [ -d "/opt/metube" ]; then
 mv /opt/metube /opt/metube_bak
 fi
 git clone https://github.com/alexta69/metube /opt/metube  >/dev/null 2>&1
-cd cd /opt/metube/ui
+cd /opt/metube/ui
 npm install >/dev/null 2>&1
 node_modules/.bin/ng build >/dev/null 2>&1
 cd /opt/metube
+cp /opt/metube_bak/.env /opt/metube/
 pip3 install pipenv >/dev/null 2>&1
 pipenv install >/dev/null 2>&1
 pipenv run python3 app/main.py >/dev/null 2>&1
