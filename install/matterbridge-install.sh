@@ -27,7 +27,7 @@ $STD apt-get install -y --no-install-recommends \
 msg_ok "Installed Dependencies"
 
 msg_info "Install NodeJS / NPM"
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+$STD curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 $STD apt install -y nodejs 
 msg_ok "Installed NodeJS / NPM"
 
@@ -38,7 +38,7 @@ $STD unzip -q ${RELEASE}.zip
 mv matterbridge-${RELEASE} /opt/matterbridge
 rm -R ${RELEASE}.zip 
 cd /opt/matterbridge
-npm run build
+$STD npm run build
 msg_ok "Installed Matterbridge"
 
 msg_info "Creating Service"
