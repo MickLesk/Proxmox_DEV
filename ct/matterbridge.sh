@@ -51,7 +51,39 @@ function default_settings() {
   VERB="no"
   echo_default
 }
+# Hauptprogramm
 header_info
+echo -e "Loading...\n"
+
+# Auswahl der Aktionen
+ACTION=$(whiptail --backtitle "Matterbridge Actions" --title "Matterbridge Actions" --menu \
+    "Please choose an action for Matterbridge:" 15 60 4 \
+    "1" "Update Matterbridge to $RELEASE and start Matterbridge Service" \
+    "2" "Start Matterbridge - Bridge (stops Childbridge if active)" \
+    "3" "Start Matterbridge - Childbridge (stops Bridge if active)" \
+    "4" "Cancel" 3>&1 1>&2 2>&3)
+
+case $ACTION in
+    1)
+        update_script
+        ;;
+    2)
+        systemctl stop matterbridge_child.service >/dev/null 2>&1
+        systemctl start matterbridge.service
+        msg_ok "Started Matterbridge - Bridge"
+        ;;
+    3)
+        systemctl stop matterbridge.service >/dev/null 2>&1
+        systemctl start matterbridge_child.service
+        msg_ok "Started Matterbridge - Childbridge"
+        ;;
+    4)
+        msg_info "Action canceled."
+        ;;
+    *)
+        msg_error "Invalid selection."
+        ;;
+es
 function update_script() {
     if [[ ! -d /opt/matterbridge ]]; then
         msg_error "No Matterbridge Installation Found!"
@@ -96,41 +128,6 @@ function update_script() {
         msg_ok "No update required. Matterbridge is already at ${RELEASE}" >&2
     fi
 }
-
-# Hauptprogramm
-header_info
-echo -e "Loading...\n"
-
-# Auswahl der Aktionen
-ACTION=$(whiptail --backtitle "Matterbridge Actions" --title "Matterbridge Actions" --menu \
-    "Please choose an action for Matterbridge:" 15 60 4 \
-    "1" "Update Matterbridge to $RELEASE and start Matterbridge Service" \
-    "2" "Start Matterbridge - Bridge (stops Childbridge if active)" \
-    "3" "Start Matterbridge - Childbridge (stops Bridge if active)" \
-    "4" "Cancel" 3>&1 1>&2 2>&3)
-
-case $ACTION in
-    1)
-        update_script
-        ;;
-    2)
-        systemctl stop matterbridge_child.service >/dev/null 2>&1
-        systemctl start matterbridge.service
-        msg_ok "Started Matterbridge - Bridge"
-        ;;
-    3)
-        systemctl stop matterbridge.service >/dev/null 2>&1
-        systemctl start matterbridge_child.service
-        msg_ok "Started Matterbridge - Childbridge"
-        ;;
-    4)
-        msg_info "Action canceled."
-        ;;
-    *)
-        msg_error "Invalid selection."
-        ;;
-es
-
 # Weitere Funktionen
 start
 build_container
