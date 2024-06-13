@@ -106,7 +106,6 @@ function update_script() {
             else
                 msg_ok "No update required. Matterbridge is already at ${RELEASE}"
             fi
-            exit
             ;;
         2)
             systemctl stop matterbridge_child.service >/dev/null 2>&1
@@ -120,7 +119,7 @@ function update_script() {
             ;;
         4)
             msg_info "Action canceled."
-            exit
+            exit 1
             ;;
         *)
             msg_error "Invalid selection."
