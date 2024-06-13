@@ -61,11 +61,12 @@ function update_script() {
     
     RELEASE=$(curl -s https://api.github.com/repos/Luligu/matterbridge/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3)}')
 
-    UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Matterbridge Actions" --radiolist --cancel-button "Cancel" \
+    UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Matterbridge Actions" --radiolist --nocancel \
     "Please choose an action for Matterbridge:" 15 60 4 \
     "1" "Update & Start Matterbridge" ON \
     "2" "Start Bridge-Mode (stops childbridge if active)" OFF \
     "3" "Start Child-Mode (stops bridge if active)" OFF \
+	"4" "Cancel" OFF \
     3>&1 1>&2 2>&3)
 
     case $UPD in
@@ -117,9 +118,13 @@ function update_script() {
             systemctl start matterbridge_child.service
             msg_ok "Started Matterbridge - Childbridge"
             ;;
-        *)
+        4)
             msg_info "Action canceled."
             exit
+            ;;
+        *)
+            msg_error "Invalid selection."
+            exit 1
             ;;
     esac
 }
