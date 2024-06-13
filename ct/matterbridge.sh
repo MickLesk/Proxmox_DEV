@@ -105,7 +105,7 @@ echo -e "Loading...\n"
 # Auswahl der Aktionen
 ACTION=$(whiptail --title "Matterbridge Actions" --menu \
 "Please choose an action for Matterbridge:" 15 60 4 \
-"1" "Update Matterbridge and Start Matterbridge" \
+"1" "Update Matterbridge and start Matterbridge Service" \
 "2" "Start Matterbridge - Bridge (beends Childbridge if active)" \
 "3" "Start Matterbridge - Childbridge (beends Bridge if active)" \
 "4" "Cancel" 3>&1 1>&2 2>&3)
