@@ -48,7 +48,7 @@ unzip -q spoolman.zip -d spoolman
 echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
 cd spoolman
 python3 -m venv .venv
-source bin/activate
+source .venv/bin/activate
 pip3 install -r requirements.txt
 cp .env.example .env
 chmod +x scripts/*.sh
