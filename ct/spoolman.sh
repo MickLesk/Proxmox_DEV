@@ -69,6 +69,7 @@ cd /opt
 if [ -d spoolman_bak ]; then
   rm -rf spoolman_bak
 fi
+mv spoolman spoolman_bak
 RELEASE=$(wget -q https://github.com/Donkie/Spoolman/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 wget -q https://github.com/Donkie/Spoolman/releases/download/$RELEASE/spoolman.zip 
 unzip -q spoolman.zip -d spoolman 
@@ -82,6 +83,7 @@ chmod +x scripts/*.sh
 
 if [ -d "/opt/spoolman_bak" ]; then
 rm -rf /opt/spoolman_bak
+rm -rf /opt/spoolman.zip
 fi
 msg_ok "Updated ${APP} to latest Git"
 
