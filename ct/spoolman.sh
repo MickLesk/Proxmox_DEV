@@ -72,7 +72,7 @@ fi
 mv spoolman spoolman_bak
 wget -q https://github.com/Donkie/Spoolman/releases/download/${RELEASE}/spoolman.zip 
 unzip -q spoolman.zip -d spoolman 
-echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
+echo "${RELEASE}" >/opt/${APP}_version.txt
 cd spoolman
 python3 -m venv .venv 
 source .venv/bin/activate 
