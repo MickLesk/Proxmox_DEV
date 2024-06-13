@@ -96,11 +96,13 @@ Environment=NODE_ENV=production
 WantedBy=multi-user.target
 EOF
 
-echo "Please choose your running option of matterbridge. This service enables the matterbridge in Bridge-Mode or in Child-Mode, you can change this later manually."
-echo "1) Matterbridge - Bridge"
-echo "2) Matterbridge - Childbridge"
-read -t 60 -p "Enter choice [1 or 2] (default is 1 if no input within 60 seconds): " choice
-choice=${choice:-1}
+choice=$(whiptail --title "Choose Matterbridge Service" --radiolist \
+"Please choose your running option of matterbridge. This service enables the matterbridge, you can change this later manually." 15 60 2 \
+"1" "Matterbridge - Bridge" ON \
+"2" "Matterbridge - Childbridge" OFF 3>&1 1>&2 2>&3)
+if [ $? -ne 0 ]; then
+    choice=1
+fi
 case $choice in
     1)
         systemctl enable -q --now matterbridge.service
@@ -116,7 +118,6 @@ case $choice in
         msg_error "Invalid choice. No service has been started."
         ;;
 esac
-msg_ok "Created Service"
 
 motd_ssh
 customize
