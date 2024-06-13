@@ -79,17 +79,20 @@ source .venv/bin/activate >/dev/null 2>&1
 pip3 install -r requirements.txt >/dev/null 2>&1
 cp .env.example .env
 chmod +x scripts/*.sh
-
-if [ -d "/opt/spoolman_bak" ]; then
-rm -rf /opt/spoolman_bak
-rm -rf /opt/spoolman.zip
-fi
 msg_ok "Updated ${APP} to latest Git"
 
 msg_info "Starting ${APP} Service"
 systemctl start spoolman
 sleep 1
 msg_ok "Started ${APP} Service"
+
+msg_info "Cleaning up"
+if [ -d "/opt/spoolman_bak" ]; then
+rm -rf /opt/spoolman_bak
+rm -rf /opt/spoolman.zip
+fi
+msg_ok "Cleaning up Successfully!"
+
 msg_ok "Updated Successfully!\n"
 exit
 }
