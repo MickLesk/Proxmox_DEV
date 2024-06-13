@@ -47,9 +47,9 @@ wget -q https://github.com/Donkie/Spoolman/releases/download/$RELEASE/spoolman.z
 unzip -q spoolman.zip -d spoolman
 echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
 cd spoolman
-python3 -m venv .venv
-source .venv/bin/activate
-pip3 install -r requirements.txt
+$STD python3 -m venv .venv
+$STD source .venv/bin/activate
+$STD pip3 install -r requirements.txt
 cp .env.example .env
 chmod +x scripts/*.sh
 msg_ok "Installed Spoolman"
