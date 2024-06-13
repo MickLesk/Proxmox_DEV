@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
+
 source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
-# Copyright (c) 2021-2024 tteck
-# Author: MickLesk (Canbiz)
-# License: MIT
-# https://github.com/tteck/Proxmox/raw/main/LICENSE
 
 function header_info {
 clear
@@ -16,8 +13,10 @@ cat <<"EOF"
                                                   /____/                                      
 EOF
 }
+
 header_info
 echo -e "Loading..."
+
 APP="Matterbridge"
 var_disk="4"
 var_cpu="1"
@@ -57,10 +56,11 @@ update_script() {
     if [[ ! -d /opt/matterbridge ]]; then
         msg_error "No ${APP} Installation Found!"
     fi
+    
     RELEASE=$(curl -s https://api.github.com/repos/Luligu/matterbridge/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3)}')
 
     if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
-        msg_info "Stopping ${APP} Service..."
+        msg_info "Stopping ${APP} Services..."
         systemctl stop matterbridge.service >/dev/null 2>&1
         systemctl stop matterbridge_child.service >/dev/null 2>&1
         msg_ok "Stopped ${APP} Services"
@@ -80,7 +80,7 @@ update_script() {
         rm ${RELEASE}.zip 
         msg_ok "Cleaned up"
     
-        msg_info "Start last Service" 
+        msg_info "Starting Matterbridge Service..." 
         if systemctl is-active --quiet matterbridge.service; then
             systemctl start matterbridge.service
             msg_ok "Started Matterbridge - Bridge"
@@ -89,7 +89,7 @@ update_script() {
             msg_ok "Started Matterbridge - Childbridge"
         else
             msg_error "No Matterbridge service was active before update. Starting Default Bridgemode"
-			systemctl start matterbridge.service
+            systemctl start matterbridge.service
         fi
     else
         msg_ok "No update required. ${APP} is already at ${RELEASE}"
@@ -99,8 +99,7 @@ update_script() {
 }
 
 # Hauptprogramm
-header_info
-echo -e "Loading...\n"
+echo -e "\n"
 
 # Auswahl der Aktionen
 ACTION=$(whiptail --title "Matterbridge Actions" --menu \
@@ -132,10 +131,6 @@ case $ACTION in
         ;;
 es
 
-start
-build_container
-description
-
+# Abschlussnachricht
 msg_ok "Completed Successfully!\n"
-echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:8283${CL} \n"
+echo -e "${APP} Setup should be reachable by going to the following URL:\n${BL}http://${IP}:8283${CL}\n"
