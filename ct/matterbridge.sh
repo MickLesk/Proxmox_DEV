@@ -104,25 +104,25 @@ function update_script() {
                     systemctl start matterbridge.service
                 fi
             else
-                msg_ok "No update required. Matterbridge is already at ${RELEASE}"
+                msg_ok "No update required. Matterbridge is already at ${RELEASE}" >&2
             fi
             ;;
         2)
             systemctl stop matterbridge_child.service >/dev/null 2>&1
             systemctl start matterbridge.service
-            msg_ok "Started Matterbridge - Bridge"
+            msg_ok "Started Matterbridge - Bridge" >&2
             ;;
         3)
             systemctl stop matterbridge.service >/dev/null 2>&1
             systemctl start matterbridge_child.service
-            msg_ok "Started Matterbridge - Childbridge"
+            msg_ok "Started Matterbridge - Childbridge" >&2
             ;;
         4)
-            msg_info "Action canceled."
+            msg_info "Action canceled." >&2
             exit 1
             ;;
         *)
-            msg_error "Invalid selection."
+            msg_error "Invalid selection." >&2
             exit 1
             ;;
     esac
