@@ -51,9 +51,8 @@ function default_settings() {
   VERB="no"
   echo_default
 }
-
+header_info
 function update_script() {
-    header_info
     if [[ ! -d /opt/matterbridge ]]; then
         msg_error "No Matterbridge Installation Found!"
         exit 1
