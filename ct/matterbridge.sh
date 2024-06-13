@@ -51,7 +51,6 @@ function default_settings() {
   VERB="no"
   echo_default
 }
-main
 function main() {
     header_info
     echo -e "Loading...\n"
