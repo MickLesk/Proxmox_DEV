@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-
 source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
+# Copyright (c) 2021-2024 tteck
+# Author: MickLesk (Canbiz)
+# License: MIT
+# https://github.com/tteck/Proxmox/raw/main/LICENSE
 
 function header_info {
 clear
@@ -13,10 +16,8 @@ cat <<"EOF"
                                                   /____/                                      
 EOF
 }
-
 header_info
 echo -e "Loading..."
-
 APP="Matterbridge"
 var_disk="4"
 var_cpu="1"
@@ -62,9 +63,9 @@ function update_script() {
 
     UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Matterbridge Actions" --radiolist --cancel-button "Cancel" \
     "Please choose an action for Matterbridge:" 15 60 4 \
-    "1" "Update Matterbridge to $RELEASE and start Matterbridge Service" ON \
-    "2" "Start Matterbridge - Bridge (stops Childbridge if active)" OFF \
-    "3" "Start Matterbridge - Childbridge (stops Bridge if active)" OFF \
+    "1" "Update & Start Matterbridge" ON \
+    "2" "Start Bridge-Mode (stops childbridge if active)" OFF \
+    "3" "Start Child-Mode (stops bridge if active)" OFF \
     3>&1 1>&2 2>&3)
 
     case $UPD in
