@@ -50,87 +50,80 @@ function default_settings() {
   VERB="no"
   echo_default
 }
-
-update_script() {
+function update_script() {
     header_info
     if [[ ! -d /opt/matterbridge ]]; then
-        msg_error "No ${APP} Installation Found!"
+        msg_error "No Matterbridge Installation Found!"
+        exit 1
     fi
     
     RELEASE=$(curl -s https://api.github.com/repos/Luligu/matterbridge/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3)}')
 
-    if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
-        msg_info "Stopping ${APP} Services..."
-        systemctl stop matterbridge.service >/dev/null 2>&1
-        systemctl stop matterbridge_child.service >/dev/null 2>&1
-        msg_ok "Stopped ${APP} Services"
-    
-        msg_info "Updating ${APP} to ${RELEASE}"
-        cd /opt
-        wget -q "https://github.com/Luligu/matterbridge/archive/refs/tags/${RELEASE}.zip" 
-        unzip -q ${RELEASE}.zip
-        mv matterbridge-${RELEASE} /opt/matterbridge
-        cd /opt/matterbridge
-        npm ci >/dev/null 2>&1
-        npm run build >/dev/null 2>&1
-        echo "${RELEASE}" >/opt/${APP}_version.txt
-        msg_ok "Updated ${APP} to ${RELEASE}"
-    
-        msg_info "Cleaning up..."
-        rm ${RELEASE}.zip 
-        msg_ok "Cleaned up"
-    
-        msg_info "Starting Matterbridge Service..." 
-        if systemctl is-active --quiet matterbridge.service; then
+    UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Matterbridge Actions" --radiolist --cancel-button "Cancel" \
+    "Please choose an action for Matterbridge:" 15 60 4 \
+    "1" "Update Matterbridge to $RELEASE and start Matterbridge Service" ON \
+    "2" "Start Matterbridge - Bridge (stops Childbridge if active)" OFF \
+    "3" "Start Matterbridge - Childbridge (stops Bridge if active)" OFF \
+    3>&1 1>&2 2>&3)
+
+    case $UPD in
+        1)
+            if [[ "${RELEASE}" != "$(cat /opt/Matterbridge_version.txt 2>/dev/null)" || ! -f /opt/Matterbridge_version.txt ]]; then
+                msg_info "Stopping Matterbridge Services..."
+                systemctl stop matterbridge.service >/dev/null 2>&1
+                systemctl stop matterbridge_child.service >/dev/null 2>&1
+                msg_ok "Stopped Matterbridge Services"
+            
+                msg_info "Updating to ${RELEASE}"
+                cd /opt
+                wget -q "https://github.com/Luligu/matterbridge/archive/refs/tags/${RELEASE}.zip" 
+                unzip -q ${RELEASE}.zip
+                mv matterbridge-${RELEASE} /opt/matterbridge
+                cd /opt/matterbridge
+                npm ci >/dev/null 2>&1
+                npm run build >/dev/null 2>&1
+                echo "${RELEASE}" >/opt/Matterbridge_version.txt
+                msg_ok "Updated to ${RELEASE}"
+            
+                msg_info "Cleaning up..."
+                rm ${RELEASE}.zip 
+                msg_ok "Cleaned up"
+            
+                msg_info "Starting Matterbridge Service..." 
+                if systemctl is-active --quiet matterbridge.service; then
+                    systemctl start matterbridge.service
+                    msg_ok "Started Matterbridge - Bridge"
+                elif systemctl is-active --quiet matterbridge_child.service; then
+                    systemctl start matterbridge_child.service
+                    msg_ok "Started Matterbridge - Childbridge"
+                else
+                    msg_error "No Matterbridge service was active before update. Starting Default Bridgemode"
+                    systemctl start matterbridge.service
+                fi
+            else
+                msg_ok "No update required. Matterbridge is already at ${RELEASE}"
+            fi
+            exit
+            ;;
+        2)
+            systemctl stop matterbridge_child.service >/dev/null 2>&1
             systemctl start matterbridge.service
             msg_ok "Started Matterbridge - Bridge"
-        elif systemctl is-active --quiet matterbridge_child.service; then
+            ;;
+        3)
+            systemctl stop matterbridge.service >/dev/null 2>&1
             systemctl start matterbridge_child.service
             msg_ok "Started Matterbridge - Childbridge"
-        else
-            msg_error "No Matterbridge service was active before update. Starting Default Bridgemode"
-            systemctl start matterbridge.service
-        fi
-    else
-        msg_ok "No update required. ${APP} is already at ${RELEASE}"
-    fi
-    
-    exit
+            ;;
+        *)
+            msg_info "Action canceled."
+            exit
+            ;;
+    esac
 }
+start
+build_container
+description
 
-# Hauptprogramm
-echo -e "\n"
-
-# Auswahl der Aktionen
-ACTION=$(whiptail --title "Matterbridge Actions" --menu \
-"Please choose an action for Matterbridge:" 15 60 4 \
-"1" "Update Matterbridge and start Matterbridge Service" \
-"2" "Start Matterbridge - Bridge (beends Childbridge if active)" \
-"3" "Start Matterbridge - Childbridge (beends Bridge if active)" \
-"4" "Cancel" 3>&1 1>&2 2>&3)
-
-case $ACTION in
-    1)
-        update_script
-        ;;
-    2)
-        systemctl stop matterbridge_child.service >/dev/null 2>&1
-        systemctl start matterbridge.service
-        msg_ok "Started Matterbridge - Bridge"
-        ;;
-    3)
-        systemctl stop matterbridge.service >/dev/null 2>&1
-        systemctl start matterbridge_child.service
-        msg_ok "Started Matterbridge - Childbridge"
-        ;;
-    4)
-        msg_info "Action canceled."
-        ;;
-    *)
-        msg_error "Invalid selection."
-        ;;
-es
-
-# Abschlussnachricht
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL:\n${BL}http://${IP}:8283${CL}\n"
