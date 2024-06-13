@@ -50,6 +50,7 @@ function default_settings() {
   VERB="no"
   echo_default
 }
+
 function update_script() {
     header_info
     if [[ ! -d /opt/matterbridge ]]; then
