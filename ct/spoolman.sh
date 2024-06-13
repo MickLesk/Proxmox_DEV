@@ -70,7 +70,6 @@ if [ -d spoolman_bak ]; then
   rm -rf spoolman_bak
 fi
 mv spoolman spoolman_bak
-RELEASE=$(wget -q https://github.com/Donkie/Spoolman/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 wget -q https://github.com/Donkie/Spoolman/releases/download/$RELEASE/spoolman.zip 
 unzip -q spoolman.zip -d spoolman 
 echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
