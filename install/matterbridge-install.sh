@@ -51,7 +51,7 @@ $STD npm run build
 echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed Matterbridge"
 
-msg_info "Creating Service"
+msg_info "Creating Services"
 cat <<EOF >/etc/systemd/system/matterbridge.service
 [Unit]
 Description=matterbridge
@@ -73,7 +73,49 @@ Environment=NODE_ENV=production
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable -q --now matterbridge.service
+
+cat <<EOF >/etc/systemd/system/matterbridge_child.service
+[Unit]
+Description=matterbridge - childbridge
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/npm run start:childbridge
+WorkingDirectory=/opt/matterbridge
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+RestartSec=10s
+TimeoutStopSec=30s
+User=root
+Environment=PATH=/usr/bin:/usr/local/bin:/opt/matterbridge/bin
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo "Please choose your running option of matterbridge. This service enables the matterbridge in Bridge-Mode or in Child-Mode, you can change this later manually."
+echo "1) Matterbridge - Bridge"
+echo "2) Matterbridge - Childbridge"
+read -t 60 -p "Enter choice [1 or 2] (default is 1 if no input within 60 seconds): " choice
+choice=${choice:-1}
+case $choice in
+    1)
+        systemctl enable -q --now matterbridge.service
+        systemctl disable -q --now matterbridge_child.service
+        msg_ok "Matterbridge - Bridge has been started."
+        ;;
+    2)
+        systemctl enable -q --now matterbridge_child.service
+        systemctl disable -q --now matterbridge.service
+        msg_ok "Matterbridge - Childbridge has been started."
+        ;;
+    *)
+        msg_error "Invalid choice. No service has been started."
+        ;;
+esac
 msg_ok "Created Service"
 
 motd_ssh
