@@ -101,28 +101,24 @@ choose_service() {
     "Please choose your running option of matterbridge. This service enables the matterbridge, you can change this later manually." 15 60 2 \
     "1" "Matterbridge - Bridge" ON \
     "2" "Matterbridge - Childbridge" OFF 3>&1 1>&2 2>&3)
-
+	
     local exit_status=$?
-
-    # Standardwahl auf 1 setzen, wenn keine Eingabe erfolgt oder Abbruch
     if [ $exit_status -ne 0 ]; then
         choice=1
     fi
-
-    # Basierend auf der Auswahl den entsprechenden Service starten
     case $choice in
         1)
             systemctl enable -q --now matterbridge.service
             systemctl disable -q --now matterbridge_child.service
-            echo "Matterbridge - Bridge has been started."
+            msg_ok "Matterbridge - Bridge has been started."
             ;;
         2)
             systemctl enable -q --now matterbridge_child.service
             systemctl disable -q --now matterbridge.service
-            echo "Matterbridge - Childbridge has been started."
+            msg_ok "Matterbridge - Childbridge has been started."
             ;;
         *)
-            echo "Invalid choice. No service has been started."
+            msg_error "Invalid choice. No service has been started."
             ;;
     esac
 }
