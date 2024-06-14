@@ -64,7 +64,7 @@ WorkingDirectory=/opt/matterbridge
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
-RestartSec=10s
+RestartSec=10schi
 TimeoutStopSec=30s
 User=root
 Environment=PATH=/usr/bin:/usr/local/bin:/opt/matterbridge/bin
