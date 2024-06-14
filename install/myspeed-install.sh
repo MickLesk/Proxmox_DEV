@@ -42,7 +42,7 @@ cd /opt
 wget -q https://github.com/gnmyt/myspeed/releases/download/v$RELEASE/MySpeed-$RELEASE.zip
 unzip -q MySpeed-$RELEASE.zip -d myspeed
 cd myspeed
-npm install
+$STD npm install
 echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed MySpeed"
 
