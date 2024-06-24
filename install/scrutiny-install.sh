@@ -17,7 +17,6 @@ update_os
 
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
-  build-essential \
   sudo \
   git \
   curl \
@@ -30,7 +29,7 @@ msg_info "Installing Scrutiny"
 mkdir -p /opt/scrutiny/config
 mkdir -p /opt/scrutiny/web
 mkdir -p /opt/scrutiny/bin
-wget -q -O wget -q -O /opt/scrutiny/config/scrutiny.yaml https://raw.githubusercontent.com/AnalogJ/scrutiny/master/example.scrutiny.yaml
+wget -q -O /opt/scrutiny/config/scrutiny.yaml https://raw.githubusercontent.com/AnalogJ/scrutiny/master/example.scrutiny.yaml
 RELEASE=$(curl -s https://api.github.com/repos/analogj/scrutiny/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 wget -q -O /opt/scrutiny/bin/scrutiny-web-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-linux-amd64"
 wget -q -O /opt/scrutiny/web/scrutiny-web-frontend.tar.gz "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-frontend.tar.gz"
@@ -46,6 +45,7 @@ DEFAULT_PORT="8086"
 DEFAULT_TOKEN="my-token"
 DEFAULT_ORG="my-org"
 DEFAULT_BUCKET="bucket"
+
 prompt_input() {
     local prompt="$1"
     local default_value="$2"
@@ -56,34 +56,47 @@ prompt_input() {
     fi
     echo "$result"
 }
+
+# Prompt the user for input
 HOST=$(prompt_input "Enter InfluxDB-Host/IP:" "$DEFAULT_HOST")
 PORT=$(prompt_input "Enter InfluxDB Port:" "$DEFAULT_PORT")
 TOKEN=$(prompt_input "Enter InfluxDB Token (optional):" "$DEFAULT_TOKEN")
 ORG=$(prompt_input "Enter InfluxDB Organization (optional):" "$DEFAULT_ORG")
 BUCKET=$(prompt_input "Enter InfluxDB Bucket (optional):" "$DEFAULT_BUCKET")
+
+# Path to the config file
 CONFIG_FILE="/opt/scrutiny/config/scrutiny.yaml"
+
+# Ensure the config file exists
 if [ ! -f "$CONFIG_FILE" ]; then
     touch "$CONFIG_FILE"
 fi
-sed -i -e "s/^host:.*$/host: $HOST/" \
-       -e "s/^port:.*$/port: $PORT/" \
+
+# Update the config file using sed
+sed -i -e "s/^  host:.*$/  host: $HOST/" \
+       -e "s/^  port:.*$/  port: $PORT/" \
        "$CONFIG_FILE"
+
+# Update token, org, and bucket only if they are different from defaults
 if [ "$TOKEN" != "$DEFAULT_TOKEN" ]; then
-    sed -i -e "s/^#\s*token:.*$/token: '$TOKEN'/" "$CONFIG_FILE"
+    sed -i -e "s/^#\s*token:.*$/  token: '$TOKEN'/" "$CONFIG_FILE"
 else
-    sed -i -e "s/^\s*token:.*$/#token: '$DEFAULT_TOKEN'/" "$CONFIG_FILE"
+    sed -i -e "s/^\s*token:.*$/  #token: '$DEFAULT_TOKEN'/" "$CONFIG_FILE"
 fi
+
 if [ "$ORG" != "$DEFAULT_ORG" ]; then
-    sed -i -e "s/^#\s*org:.*$/org: '$ORG'/" "$CONFIG_FILE"
+    sed -i -e "s/^#\s*org:.*$/  org: '$ORG'/" "$CONFIG_FILE"
 else
-    sed -i -e "s/^\s*org:.*$/#org: '$DEFAULT_ORG'/" "$CONFIG_FILE"
+    sed -i -e "s/^\s*org:.*$/  #org: '$DEFAULT_ORG'/" "$CONFIG_FILE"
 fi
+
 if [ "$BUCKET" != "$DEFAULT_BUCKET" ]; then
-    sed -i -e "s/^#\s*bucket:.*$/bucket: '$BUCKET'/" "$CONFIG_FILE"
+    sed -i -e "s/^#\s*bucket:.*$/  bucket: '$BUCKET'/" "$CONFIG_FILE"
 else
-    sed -i -e "s/^\s*bucket:.*$/#bucket: '$DEFAULT_BUCKET'/" "$CONFIG_FILE"
+    sed -i -e "s/^\s*bucket:.*$/  #bucket: '$DEFAULT_BUCKET'/" "$CONFIG_FILE"
 fi
-msg_ok ""
+
+msg_ok "Setup InfluxDB-Connection"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/scrutiny.service
