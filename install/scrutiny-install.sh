@@ -16,7 +16,8 @@ network_check
 update_os
 
 msg_info "Installing Dependencies"
-$STD apt-get install -y --no-install-recommends \
+$STD apt-get install -y \
+  build-essential \
   sudo \
   git \
   curl \
