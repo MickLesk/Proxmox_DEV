@@ -19,6 +19,7 @@ msg_info "Installing Dependencies"
 $STD apt-get install -y --no-install-recommends \
   sudo \
   git \
+  curl \
   smartmontools  \
   make \
   mc
