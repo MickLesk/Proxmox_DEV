@@ -33,12 +33,12 @@ RELEASE=$(curl -s https://api.github.com/repos/analogj/scrutiny/releases/latest 
 wget -q -O /opt/scrutiny/bin/scrutiny-web-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-linux-amd64"
 wget -q -O /opt/scrutiny/web/scrutiny-web-frontend.tar.gz "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-frontend.tar.gz"
 wget -q -O /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-collector-metrics-linux-amd64"
-cd /opt/scrutiny/web && tar xvzf scrutiny-web-frontend.tar.gz --strip-components 1 -C .
+cd /opt/scrutiny/web && tar xzf scrutiny-web-frontend.tar.gz --strip-components 1 -C .
 chmod +x /opt/scrutiny/bin/scrutiny-web-linux-amd64
 chmod +x /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64
 msg_ok "Installed Scrutiny"
 
-DEFAULT_HOST="0.0.0.0"
+DEFAULT_HOST="127.0.0.1"
 DEFAULT_PORT="8086"
 DEFAULT_TOKEN="my-token"
 DEFAULT_ORG="my-org"
@@ -64,7 +64,6 @@ msg_info "Setup InfluxDB-Connection"
 # Path to the config file
 CONFIG_FILE="/opt/scrutiny/config/scrutiny.yaml"
 
-# Ensure the config file exists
 if [ ! -f "$CONFIG_FILE" ]; then
     touch "$CONFIG_FILE"
 fi
