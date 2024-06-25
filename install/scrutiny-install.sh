@@ -64,32 +64,27 @@ msg_info "Setup InfluxDB-Connection"
 # Path to the config file
 CONFIG_FILE="/opt/scrutiny/config/scrutiny.yaml"
 
-if [ ! -f "$CONFIG_FILE" ]; then
-    touch "$CONFIG_FILE"
-fi
-
 # Update the config file using sed
-sed -i -e "s/^  host:.*$/  host: $HOST/" \
-       -e "s/^  port:.*$/  port: $PORT/" \
+sed -i -e "s/^\(\s*host:\).*/\1 $HOST/" \
+       -e "s/^\(\s*port:\).*/\1 $PORT/" \
        "$CONFIG_FILE"
 
-# Update token, org, and bucket only if they are different from defaults
 if [ "$TOKEN" != "$DEFAULT_TOKEN" ]; then
-    sed -i -e "s/^#\s*token:.*$/  token: '$TOKEN'/" "$CONFIG_FILE"
+    sed -i -e "s/^#\s*\(token:\).*/\1 '$TOKEN'/" "$CONFIG_FILE"
 else
-    sed -i -e "s/^\s*token:.*$/  #token: '$DEFAULT_TOKEN'/" "$CONFIG_FILE"
+    sed -i -e "s/^\s*\(token:\).*/#\1 '$DEFAULT_TOKEN'/" "$CONFIG_FILE"
 fi
 
 if [ "$ORG" != "$DEFAULT_ORG" ]; then
-    sed -i -e "s/^#\s*org:.*$/  org: '$ORG'/" "$CONFIG_FILE"
+    sed -i -e "s/^#\s*\(org:\).*/\1 '$ORG'/" "$CONFIG_FILE"
 else
-    sed -i -e "s/^\s*org:.*$/  #org: '$DEFAULT_ORG'/" "$CONFIG_FILE"
+    sed -i -e "s/^\s*\(org:\).*/#\1 '$DEFAULT_ORG'/" "$CONFIG_FILE"
 fi
 
 if [ "$BUCKET" != "$DEFAULT_BUCKET" ]; then
-    sed -i -e "s/^#\s*bucket:.*$/  bucket: '$BUCKET'/" "$CONFIG_FILE"
+    sed -i -e "s/^#\s*\(bucket:\).*/\1 '$BUCKET'/" "$CONFIG_FILE"
 else
-    sed -i -e "s/^\s*bucket:.*$/  #bucket: '$DEFAULT_BUCKET'/" "$CONFIG_FILE"
+    sed -i -e "s/^\s*\(bucket:\).*/#\1 '$DEFAULT_BUCKET'/" "$CONFIG_FILE"
 fi
 msg_ok "Setup InfluxDB-Connection"
 
