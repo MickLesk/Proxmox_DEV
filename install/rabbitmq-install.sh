@@ -20,6 +20,7 @@ $STD apt-get install -y \
   sudo \
   curl \
   debian-keyring \
+  debian-archive-keyring \
   gnupg   \
   apt-transport-https \
   make \
@@ -28,21 +29,22 @@ msg_ok "Installed Dependencies"
 
 # Add RabbitMQ signing key
 msg_info "Adding RabbitMQ signing key"
-curl -fsSL https://packages.rabbitmq.com/rabbitmq-release-signing-key.asc | gpg --dearmor > /usr/share/keyrings/rabbitmq-archive-keyring.gpg
-msg_ok "RabbitMQ signing key added"
+curl -fsSL https://packages.erlang-solutions.com/debian/erlang_solutions.asc | sudo gpg --dearmor -o /usr/share/keyrings/erlang-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/erlang-archive-keyring.gpg] https://packages.erlang-solutions.com/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/erlang.list
+msg_ok "Adding Erlang"
 
-# Add RabbitMQ repository
 msg_info "Adding RabbitMQ repository"
-echo "deb [signed-by=/usr/share/keyrings/rabbitmq-archive-keyring.gpg] https://dl.cloudsmith.io/public/rabbitmq/rabbitmq-server/deb/debian $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/rabbitmq.list > /dev/null
+curl -fsSL https://packages.rabbitmq.com/rabbitmq-release-signing-key.asc | sudo gpg --dearmor -o /usr/share/keyrings/rabbitmq-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/rabbitmq-archive-keyring.gpg] https://packages.rabbitmq.com/debian $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/rabbitmq.list
 msg_ok "RabbitMQ repository added"
 
-# Update package list
 msg_info "Updating package list"
 apt-get update -y
 msg_ok "Package list updated"
 
-# Install RabbitMQ server
-msg_info "Installing RabbitMQ server"
+# Install Erlang / RabbitMQ server
+msg_info "Installing Erlang & RabbitMQ server"
+sudo apt install -y erlang
 apt-get install -y rabbitmq-server
 msg_ok "RabbitMQ server installed"
 
