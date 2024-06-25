@@ -5,7 +5,7 @@
 # Co-Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
-# Source: https://github.com/AnalogJ/scrutiny
+# Source: https://www.rabbitmq.com/
 
 source /dev/stdin <<<"$FUNCTIONS_FILE_PATH"
 color
@@ -28,15 +28,33 @@ $STD apt-get install -y \
   mc
 msg_ok "Installed Dependencies"
 
-# Add RabbitMQ signing key
 msg_info "Adding RabbitMQ signing key"
-curl -1sLf "https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.github.rabbitmq.signing.gpg > /dev/null
-echo "deb [signed-by=/usr/share/keyrings/erlang-archive-keyring.gpg] https://packages.erlang-solutions.com/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/erlang.list
+curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.rabbitmq.team.gpg > /dev/null
+curl -1sLf https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-erlang.E495BB49CC4BBE5B.key | sudo gpg --dearmor | sudo tee /usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg > /dev/null
+curl -1sLf https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-server.9F4587F226208342.key | sudo gpg --dearmor | sudo tee /usr/share/keyrings/rabbitmq.9F4587F226208342.gpg > /dev/null
+
 msg_ok "Adding Erlang"
 
 msg_info "Adding RabbitMQ repository"
-curl -fsSL https://packages.rabbitmq.com/rabbitmq-release-signing-key.asc | sudo gpg --dearmor -o /usr/share/keyrings/rabbitmq-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/rabbitmq-archive-keyring.gpg] https://packages.rabbitmq.com/debian $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/rabbitmq.list
+sudo tee /etc/apt/sources.list.d/rabbitmq.list <<EOF
+## Provides modern Erlang/OTP releases from a Cloudsmith mirror
+##
+deb [signed-by=/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-erlang/deb/ubuntu $(lsb_release -cs) main
+deb-src [signed-by=/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-erlang/deb/ubuntu $(lsb_release -cs) main
+
+# another mirror for redundancy
+deb [signed-by=/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg] https://ppa2.novemberain.com/rabbitmq/rabbitmq-erlang/deb/ubuntu $(lsb_release -cs) main
+deb-src [signed-by=/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg] https://ppa2.novemberain.com/rabbitmq/rabbitmq-erlang/deb/ubuntu $(lsb_release -cs) main
+
+## Provides RabbitMQ from a Cloudsmith mirror
+##
+deb [signed-by=/usr/share/keyrings/rabbitmq.9F4587F226208342.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-server/deb/ubuntu $(lsb_release -cs) main
+deb-src [signed-by=/usr/share/keyrings/rabbitmq.9F4587F226208342.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-server/deb/ubuntu $(lsb_release -cs) main
+
+# another mirror for redundancy
+deb [signed-by=/usr/share/keyrings/rabbitmq.9F4587F226208342.gpg] https://ppa2.novemberain.com/rabbitmq/rabbitmq-server/deb/ubuntu $(lsb_release -cs) main
+deb-src [signed-by=/usr/share/keyrings/rabbitmq.9F4587F226208342.gpg] https://ppa2.novemberain.com/rabbitmq/rabbitmq-server/deb/ubuntu $(lsb_release -cs) main
+EOF
 msg_ok "RabbitMQ repository added"
 
 msg_info "Updating package list"
@@ -45,8 +63,12 @@ msg_ok "Package list updated"
 
 # Install Erlang / RabbitMQ server
 msg_info "Installing Erlang & RabbitMQ server"
-sudo apt install -y erlang
-apt-get install -y rabbitmq-server
+sudo apt-get install -y erlang-base \
+                        erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
+                        erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
+                        erlang-runtime-tools erlang-snmp erlang-ssl \
+                        erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl \
+                        rabbitmq-server
 msg_ok "RabbitMQ server installed"
 
 # Start RabbitMQ service
