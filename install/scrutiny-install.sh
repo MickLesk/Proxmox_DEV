@@ -92,18 +92,18 @@ msg_info "Creating Service"
 if [[ $SCRUTINY_OPTION == "1" ]]; then
     # Create and enable scrutiny service
     cat <<EOF >/etc/systemd/system/scrutiny.service
-	[Unit]
-	Description=Scrutiny - Hard Drive Monitoring and Webapp
-	After=network.target
+[Unit]
+Description=Scrutiny - Hard Drive Monitoring and Webapp
+After=network.target
 
-	[Service]
-	Type=simple
-	ExecStart=/opt/scrutiny/bin/scrutiny-web-linux-amd64 start --config /opt/scrutiny/config/scrutiny.yaml
-	Restart=always
-	User=root
+[Service]
+Type=simple
+ExecStart=/opt/scrutiny/bin/scrutiny-web-linux-amd64 start --config /opt/scrutiny/config/scrutiny.yaml
+Restart=always
+User=root
 
-	[Install]
-	WantedBy=multi-user.target
+[Install]
+WantedBy=multi-user.target
 EOF
     systemctl enable -q --now scrutiny.service
     msg_ok "Created and enabled Scrutiny service"
