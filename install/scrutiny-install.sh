@@ -32,10 +32,10 @@ wget -q -O /opt/scrutiny/config/scrutiny.yaml https://raw.githubusercontent.com/
 RELEASE=$(curl -s https://api.github.com/repos/analogj/scrutiny/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 wget -q -O /opt/scrutiny/bin/scrutiny-web-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-linux-amd64"
 wget -q -O /opt/scrutiny/web/scrutiny-web-frontend.tar.gz "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-frontend.tar.gz"
-#wget -q -O /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-collector-metrics-linux-amd64"
+wget -q -O /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-collector-metrics-linux-amd64"
 cd /opt/scrutiny/web && tar xzf scrutiny-web-frontend.tar.gz --strip-components 1 -C .
 chmod +x /opt/scrutiny/bin/scrutiny-web-linux-amd64
-#chmod +x /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64
+chmod +x /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64
 msg_ok "Installed Scrutiny"
 
 DEFAULT_HOST="127.0.0.1"
@@ -83,22 +83,54 @@ cat << EOF >> "$CONFIG_FILE"
 EOF
 msg_ok "Setup InfluxDB-Connection"
 
+read -r -p "Choose an option:
+1) Start Scrutiny Webapp
+2) Start Scrutiny Collector only
+Enter your choice (1/2): " SCRUTINY_OPTION
 msg_info "Creating Service"
-cat <<EOF >/etc/systemd/system/scrutiny.service
+
+if [[ $SCRUTINY_OPTION == "1" ]]; then
+    # Create and enable scrutiny service
+    cat <<EOF >/etc/systemd/system/scrutiny.service
+	[Unit]
+	Description=Scrutiny - Hard Drive Monitoring and Webapp
+	After=network.target
+
+	[Service]
+	Type=simple
+	ExecStart=/opt/scrutiny/bin/scrutiny-web-linux-amd64 start --config /opt/scrutiny/config/scrutiny.yaml
+	Restart=always
+	User=root
+
+	[Install]
+	WantedBy=multi-user.target
+EOF
+    systemctl enable -q --now scrutiny.service
+    msg_ok "Created and enabled Scrutiny service"
+
+elif [[ $SCRUTINY_OPTION == "2" ]]; then
+    # Create and enable scrutiny collector service
+    cat <<EOF >/etc/systemd/system/scrutiny_collector.service
 [Unit]
-Description=Scrutiny - Hard Drive Monitoring and Webapp
+Description=Scrutiny Collector - Collect Metrics
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=/opt/scrutiny/bin/scrutiny-web-linux-amd64 start --config /opt/scrutiny/config/scrutiny.yaml
+ExecStart=/opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 run --api-endpoint "http://localhost:8080"
 Restart=always
 User=root
 
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable -q --now scrutiny.service
+    systemctl enable -q --now scrutiny_collector.service
+    msg_ok "Created and enabled Scrutiny Collector service"
+
+else
+    msg_error "Invalid option selected. Aborting installation."
+    exit 1
+fi
 msg_ok "Created Service"
 
 motd_ssh
