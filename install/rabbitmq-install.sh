@@ -33,7 +33,7 @@ wget -qO- "https://github.com/rabbitmq/signing-keys/releases/download/3.0/clouds
 msg_ok "Signing keys added"
 
 msg_info "Adding RabbitMQ repository"
-sudo tee /etc/apt/sources.list.d/rabbitmq.list <<EOF
+$STD sudo tee /etc/apt/sources.list.d/rabbitmq.list <<EOF
 ## Provides modern Erlang/OTP releases from a Cloudsmith mirror
 deb [signed-by=/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg] https://dl.cloudsmith.io/public/rabbitmq/rabbitmq-erlang/deb/debian $(lsb_release -cs) main
 deb-src [signed-by=/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg] https://dl.cloudsmith.io/public/rabbitmq/rabbitmq-erlang/deb/debian $(lsb_release -cs) main
@@ -63,13 +63,13 @@ systemctl start rabbitmq-server
 msg_ok "RabbitMQ service started"
 
 msg_info "Enabling RabbitMQ management plugin"
-rabbitmq-plugins enable rabbitmq_management
+$STD rabbitmq-plugins enable rabbitmq_management
 msg_ok "RabbitMQ management plugin enabled"
 
 msg_info "Create User"
-rabbitmqctl add_user proxmox proxmox
-rabbitmqctl set_user_tags proxmox administrator
-rabbitmqctl set_permissions -p / proxmox ".*" ".*" ".*"
+$STD rabbitmqctl add_user proxmox proxmox
+$STD rabbitmqctl set_user_tags proxmox administrator
+$STD rabbitmqctl set_permissions -p / proxmox ".*" ".*" ".*"
 msg_ok "Created User"
 
 motd_ssh
