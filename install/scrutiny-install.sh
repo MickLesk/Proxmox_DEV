@@ -69,20 +69,30 @@ sed -i -e "/influxdb:/,/^  [^ ]/s/^\(\s*host:\).*/\1 $HOST/" \
        -e "/influxdb:/,/^  [^ ]/s/^\(\s*port:\).*/\1 $PORT/" \
        "$CONFIG_FILE"
 
+# Replace or add token, org, and bucket correctly indented
 if [ "$TOKEN" != "$DEFAULT_TOKEN" ]; then
     sed -i -e "/influxdb:/,/^  [^ ]/s/^#\s*\(token:\).*/  \1 '$TOKEN'/" "$CONFIG_FILE"
+    if ! grep -q "^\s*token:" "$CONFIG_FILE"; then
+        sed -i "/influxdb:/a\  token: '$TOKEN'" "$CONFIG_FILE"
+    fi
 else
     sed -i -e "/influxdb:/,/^  [^ ]/s/^\s*\(token:\).*/#  \1 '$DEFAULT_TOKEN'/" "$CONFIG_FILE"
 fi
 
 if [ "$ORG" != "$DEFAULT_ORG" ]; then
     sed -i -e "/influxdb:/,/^  [^ ]/s/^#\s*\(org:\).*/  \1 '$ORG'/" "$CONFIG_FILE"
+    if ! grep -q "^\s*org:" "$CONFIG_FILE"; then
+        sed -i "/influxdb:/a\  org: '$ORG'" "$CONFIG_FILE"
+    fi
 else
     sed -i -e "/influxdb:/,/^  [^ ]/s/^\s*\(org:\).*/#  \1 '$DEFAULT_ORG'/" "$CONFIG_FILE"
 fi
 
 if [ "$BUCKET" != "$DEFAULT_BUCKET" ]; then
     sed -i -e "/influxdb:/,/^  [^ ]/s/^#\s*\(bucket:\).*/  \1 '$BUCKET'/" "$CONFIG_FILE"
+    if ! grep -q "^\s*bucket:" "$CONFIG_FILE"; then
+        sed -i "/influxdb:/a\  bucket: '$BUCKET'" "$CONFIG_FILE"
+    fi
 else
     sed -i -e "/influxdb:/,/^  [^ ]/s/^\s*\(bucket:\).*/#  \1 '$DEFAULT_BUCKET'/" "$CONFIG_FILE"
 fi
