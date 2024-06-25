@@ -54,10 +54,23 @@ function default_settings() {
 
 
 function update_script() {
-  if [[ ! -d /opt/scrutiny ]]; then
-    msg_error "No ${APP} Installation Found!"
-    exit
-  fi
+header_info
+if [[ ! -d /etc/rabbitmq ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
+  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
+  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
+fi
+msg_info "Stopping ${APP} Service"
+systemctl stop rabbitmq-server
+msg_ok "Stopped ${APP} Service"
+
+msg_info "Updating..."
+sudo apt-get update >/dev/null 2>&1
+msg_ok "Update Successfully"
+
+msg_info "Starting ${APP} Service"
+systemctl stop rabbitmq-server
+msg_ok "Starting ${APP} Service"
 }
 
 start
