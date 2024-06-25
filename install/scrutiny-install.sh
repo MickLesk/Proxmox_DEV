@@ -46,23 +46,21 @@ DEFAULT_TOKEN="my-token"
 DEFAULT_ORG="my-org"
 DEFAULT_BUCKET="bucket"
 
-prompt_input() {
-    local prompt="$1"
-    local default_value="$2"
-    local result
-    result=$(whiptail --inputbox "$prompt" 8 78 "$default_value" --timeout 60 3>&1 1>&2 2>&3)
-    if [ -z "$result" ]; then
-        result="$default_value"
-    fi
-    echo "$result"
-}
-
 # Prompt the user for input
-HOST=$(prompt_input "Enter InfluxDB-Host/IP:" "$DEFAULT_HOST")
-PORT=$(prompt_input "Enter InfluxDB Port:" "$DEFAULT_PORT")
-TOKEN=$(prompt_input "Enter InfluxDB Token (optional):" "$DEFAULT_TOKEN")
-ORG=$(prompt_input "Enter InfluxDB Organization (optional):" "$DEFAULT_ORG")
-BUCKET=$(prompt_input "Enter InfluxDB Bucket (optional):" "$DEFAULT_BUCKET")
+read -r -p "Enter InfluxDB Host/IP [$DEFAULT_HOST]: " HOST
+HOST=${HOST:-$DEFAULT_HOST}
+
+read -r -p "Enter InfluxDB Port [$DEFAULT_PORT]: " PORT
+PORT=${PORT:-$DEFAULT_PORT}
+
+read -r -p "Enter InfluxDB Token (optional) [$DEFAULT_TOKEN]: " TOKEN
+TOKEN=${TOKEN:-$DEFAULT_TOKEN}
+
+read -r -p "Enter InfluxDB Organization (optional) [$DEFAULT_ORG]: " ORG
+ORG=${ORG:-$DEFAULT_ORG}
+
+read -r -p "Enter InfluxDB Bucket (optional) [$DEFAULT_BUCKET]: " BUCKET
+BUCKET=${BUCKET:-$DEFAULT_BUCKET}
 
 # Path to the config file
 CONFIG_FILE="/opt/scrutiny/config/scrutiny.yaml"
