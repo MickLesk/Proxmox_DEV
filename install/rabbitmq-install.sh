@@ -48,12 +48,12 @@ EOF
 msg_ok "RabbitMQ repository added"
 
 msg_info "Updating package list"
-sudo apt-get update -y
+$STD sudo apt-get update -y
 msg_ok "Package list updated"
 
 # Install Erlang / RabbitMQ server
 msg_info "Installing Erlang & RabbitMQ server"
-sudo apt-get install -y erlang-base \
+$STD sudo apt-get install -y erlang-base \
                         erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
                         erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
                         erlang-runtime-tools erlang-snmp erlang-ssl \
