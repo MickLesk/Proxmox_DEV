@@ -18,7 +18,6 @@ update_os
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
   sudo \
-  git \
   curl \
   smartmontools  \
   make \
@@ -39,7 +38,6 @@ chmod +x /opt/scrutiny/bin/scrutiny-web-linux-amd64
 chmod +x /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64
 msg_ok "Installed Scrutiny"
 
-msg_info "Setup InfluxDB-Connection" 
 DEFAULT_HOST="0.0.0.0"
 DEFAULT_PORT="8086"
 DEFAULT_TOKEN="my-token"
@@ -62,6 +60,7 @@ ORG=${ORG:-$DEFAULT_ORG}
 read -r -p "Enter InfluxDB Bucket (optional) [$DEFAULT_BUCKET]: " BUCKET
 BUCKET=${BUCKET:-$DEFAULT_BUCKET}
 
+msg_info "Setup InfluxDB-Connection" 
 # Path to the config file
 CONFIG_FILE="/opt/scrutiny/config/scrutiny.yaml"
 
@@ -93,7 +92,6 @@ if [ "$BUCKET" != "$DEFAULT_BUCKET" ]; then
 else
     sed -i -e "s/^\s*bucket:.*$/  #bucket: '$DEFAULT_BUCKET'/" "$CONFIG_FILE"
 fi
-
 msg_ok "Setup InfluxDB-Connection"
 
 msg_info "Creating Service"
