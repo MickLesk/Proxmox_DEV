@@ -52,45 +52,93 @@ function default_settings() {
   echo_default
 }
 
-function update_script() {
-header_info
-if [[ ! -d /opt/myspeed ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
-  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
-  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
-fi
-RELEASE=$(wget -q https://github.com/gnmyt/myspeed/releases/latest -O - | grep "title>Release" | cut -d " " -f 5)
-if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
+function update_scrutiny() {
+  if [[ ! -d /opt/scrutiny ]]; then
+    msg_error "No ${APP} Installation Found!"
+    exit
+  fi
 
-msg_info "Stopping ${APP} Service"
-systemctl stop myspeed
-msg_ok "Stopped ${APP} Service"
+  RELEASE=$(curl -s https://api.github.com/repos/AnalogJ/scrutiny/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 
-msg_info "Updating ${APP} to ${RELEASE}"
-cd /opt
-rm -rf myspeed_bak
-mv myspeed myspeed_bak
-wget -q https://github.com/gnmyt/myspeed/releases/download/v$RELEASE/MySpeed-$RELEASE.zip
-unzip -q MySpeed-$RELEASE.zip -d myspeed
-cd myspeed
-npm install >/dev/null 2>&1
-echo "${RELEASE}" >/opt/${APP}_version.txt
+  if [[ ! -f "/opt/scrutiny/scrutiny_version.txt" ]] || [[ "$RELEASE" != "$(cat /opt/scrutiny/scrutiny_version.txt)" ]]; then
+    msg_info "Stopping all Scrutiny Services"
+    systemctl stop scrutiny.service scrutiny_collector.service
+    msg_ok "Stopped all Scrutiny Services"
 
-msg_ok "Updated ${APP} to ${RELEASE}"
+    msg_info "Updating to ${RELEASE}"
+    cd /opt
+    rm -rf scrutiny_bak
+    mv scrutiny scrutiny_bak
+    mkdir -p /opt/scrutiny/web /opt/scrutiny/bin
+    wget -q -O /opt/scrutiny/bin/scrutiny-web-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-linux-amd64"
+    wget -q -O /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-collector-metrics-linux-amd64"
+    wget -q -O /opt/scrutiny/web/scrutiny-web-frontend.tar.gz "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-frontend.tar.gz"
+    cd /opt/scrutiny/web && tar xvzf scrutiny-web-frontend.tar.gz --strip-components 1 -C .
+    chmod +x /opt/scrutiny/bin/scrutiny-web-linux-amd64
+    chmod +x /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64
+    echo "${RELEASE}" > /opt/scrutiny/scrutiny_version.txt
+    msg_ok "Updated Scrutiny to $RELEASE"
 
-  msg_info "Starting ${APP} Service"
-  systemctl start myspeed
-  msg_ok "Started ${APP} Service"
+    msg_info "Cleaning up"
+    rm -f /opt/scrutiny/web/scrutiny-web-frontend.tar.gz
+    msg_ok "Cleaned"
 
-  msg_info "Cleaning up"
-  rm -rf MySpeed-$RELEASE.zip
-  msg_ok "Cleaned"
+    msg_info "Starting all Scrutiny Services"
+    systemctl start scrutiny.service scrutiny_collector.service
+    msg_ok "Started all Scrutiny Services"
+    msg_ok "Updated Successfully!\n"
+  else
+    msg_ok "No update required. ${APP} is already at ${RELEASE}"
+  fi
+  exit
+}
 
-  msg_ok "Updated Successfully!\n"
-else
-  msg_ok "No update required. ${APP} is already at ${RELEASE}"
-fi
-exit
+function start_webapp() {
+  msg_info "Stopping Scrutiny Collector Service"
+  systemctl stop scrutiny_collector.service
+  msg_ok "Stopped Scrutiny Collector Service"
+
+  msg_info "Starting Scrutiny Webapp Service"
+  systemctl start scrutiny.service
+  msg_ok "Started Scrutiny Webapp Service"
+  exit
+}
+
+function start_collector() {
+  msg_info "Stopping Scrutiny Webapp Service"
+  systemctl stop scrutiny.service
+  msg_ok "Stopped Scrutiny Webapp Service"
+
+  msg_info "Starting Scrutiny Collector Service"
+  systemctl start scrutiny_collector.service
+  msg_ok "Started Scrutiny Collector Service"
+  exit
+}
+
+function menu() {
+  OPTION=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Scrutiny Management" --radiolist --cancel-button Exit-Script "Spacebar = Select" 15 60 3 \
+    "1" "Update Scrutiny" ON \
+    "2" "Start Scrutiny Webapp" OFF \
+    "3" "Start Scrutiny Collector" OFF \
+    3>&1 1>&2 2>&3)
+
+  header_info
+
+  case $OPTION in
+    1)
+      update_scrutiny
+      ;;
+    2)
+      start_webapp
+      ;;
+    3)
+      start_collector
+      ;;
+    *)
+      msg_error "Invalid option selected. Exiting."
+      exit 1
+      ;;
+  esac
 }
 
 start
