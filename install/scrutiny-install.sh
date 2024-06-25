@@ -24,7 +24,7 @@ $STD apt-get install -y \
   mc
 msg_ok "Installed Dependencies"
 
-msg_info "Installing Scrutiny"
+msg_info "Installing Scrutiny WebApp"
 mkdir -p /opt/scrutiny/config
 mkdir -p /opt/scrutiny/web
 mkdir -p /opt/scrutiny/bin
@@ -32,11 +32,14 @@ wget -q -O /opt/scrutiny/config/scrutiny.yaml https://raw.githubusercontent.com/
 RELEASE=$(curl -s https://api.github.com/repos/analogj/scrutiny/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 wget -q -O /opt/scrutiny/bin/scrutiny-web-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-linux-amd64"
 wget -q -O /opt/scrutiny/web/scrutiny-web-frontend.tar.gz "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-frontend.tar.gz"
-wget -q -O /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-collector-metrics-linux-amd64"
 cd /opt/scrutiny/web && tar xzf scrutiny-web-frontend.tar.gz --strip-components 1 -C .
 chmod +x /opt/scrutiny/bin/scrutiny-web-linux-amd64
+msg_ok "Installed Scrutiny WebApp"
+
+msg_info "Installing Scrutiny Collector"
+wget -q -O /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-collector-metrics-linux-amd64"
 chmod +x /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64
-msg_ok "Installed Scrutiny"
+msg_ok "Installed Scrutiny Collector"
 
 DEFAULT_HOST="127.0.0.1"
 DEFAULT_PORT="8086"
@@ -61,12 +64,8 @@ read -r -p "Enter InfluxDB Bucket [$DEFAULT_BUCKET]: " BUCKET
 BUCKET=${BUCKET:-$DEFAULT_BUCKET}
 
 msg_info "Setup InfluxDB-Connection" 
-# Path to the config file
 CONFIG_FILE="/opt/scrutiny/config/scrutiny.yaml"
-
 sed -i '/^ *influxdb:/,/^[^ ]/d' "$CONFIG_FILE"
-
-# Append the new influxdb configuration block
 cat << EOF >> "$CONFIG_FILE"
   influxdb:
     host: $HOST
@@ -83,14 +82,13 @@ cat << EOF >> "$CONFIG_FILE"
 EOF
 msg_ok "Setup InfluxDB-Connection"
 
+SCRUTINY_OPTION="1" 
 read -r -p "Choose an option:
-1) Start Scrutiny Webapp
+1) Start Scrutiny with GUI
 2) Start Scrutiny Collector only
 Enter your choice (1/2): " SCRUTINY_OPTION
-msg_info "Creating Service"
 
 if [[ $SCRUTINY_OPTION == "1" ]]; then
-    # Create and enable scrutiny service
     cat <<EOF >/etc/systemd/system/scrutiny.service
 [Unit]
 Description=Scrutiny - Hard Drive Monitoring and Webapp
@@ -106,7 +104,7 @@ User=root
 WantedBy=multi-user.target
 EOF
     systemctl enable -q --now scrutiny.service
-    msg_ok "Created and enabled Scrutiny service"
+    msg_ok "Created and enabled Scrutiny Webapp service"
 
 elif [[ $SCRUTINY_OPTION == "2" ]]; then
     # Create and enable scrutiny collector service
@@ -128,10 +126,24 @@ EOF
     msg_ok "Created and enabled Scrutiny Collector service"
 
 else
-    msg_error "Invalid option selected. Aborting installation."
-    exit 1
+    msg_error "Invalid option selected. Starting Scrutiny with GUI by default."
+   cat <<EOF >/etc/systemd/system/scrutiny.service
+[Unit]
+Description=Scrutiny - Hard Drive Monitoring and Webapp
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/scrutiny/bin/scrutiny-web-linux-amd64 start --config /opt/scrutiny/config/scrutiny.yaml
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl enable -q --now scrutiny.service
+    msg_ok "Created and enabled Scrutiny Webapp service (default option)"
 fi
-msg_ok "Created Service"
 
 motd_ssh
 customize
