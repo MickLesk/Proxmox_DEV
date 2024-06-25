@@ -65,12 +65,14 @@ systemctl stop rabbitmq-server
 msg_ok "Stopped ${APP} Service"
 
 msg_info "Updating..."
-sudo apt-get update >/dev/null 2>&1
+sudo apt-get update &>/dev/null
 msg_ok "Update Successfully"
 
-msg_info "Starting ${APP} Service"
-systemctl stop rabbitmq-server
-msg_ok "Starting ${APP} Service"
+msg_info "Starting ${APP}"
+systemctl start rabbitmq-server
+msg_ok "Started ${APP}"
+msg_ok "Updated Successfully"
+exit
 }
 
 start
