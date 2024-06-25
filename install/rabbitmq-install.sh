@@ -18,6 +18,7 @@ update_os
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
   sudo \
+  lsb-release \
   curl \
   debian-keyring \
   debian-archive-keyring \
@@ -29,7 +30,7 @@ msg_ok "Installed Dependencies"
 
 # Add RabbitMQ signing key
 msg_info "Adding RabbitMQ signing key"
-curl -fsSL https://packages.erlang-solutions.com/debian/erlang_solutions.asc | sudo gpg --dearmor -o /usr/share/keyrings/erlang-archive-keyring.gpg
+curl -1sLf "https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.github.rabbitmq.signing.gpg > /dev/null
 echo "deb [signed-by=/usr/share/keyrings/erlang-archive-keyring.gpg] https://packages.erlang-solutions.com/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/erlang.list
 msg_ok "Adding Erlang"
 
