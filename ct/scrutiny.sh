@@ -180,7 +180,7 @@ EOF
     msg_ok "Started Scrutiny Collector Service"
     exit
 fi
-if [ "$UPD" == "3" ]; then
+if [ "$UPD" == "4" ]; then
 nano /opt/scrutiny/config/scrutiny.yaml
 fi
 }
