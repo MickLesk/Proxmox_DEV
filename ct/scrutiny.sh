@@ -69,7 +69,7 @@ function update_script() {
   header_info
 
   if [ "$UPD" == "1" ]; then
-    if [[ "${RELEASE}" != "$(cat /opt/scrutiny/scrutiny_version.txt)" ]] || [[ ! -f /opt/scrutiny/scrutiny_version.txt ]]; then
+    if [[ "${RELEASE}" != "$(cat /opt/scrutiny_version.txt)" ]] || [[ ! -f /opt/scrutiny_version.txt ]]; then
 
       msg_info "Stopping all Scrutiny Services"
 	  WEBAPP_ACTIVE=$(systemctl is-active scrutiny.service)
@@ -88,7 +88,7 @@ function update_script() {
       cd /opt/scrutiny/web && tar xvzf scrutiny-web-frontend.tar.gz --strip-components 1 -C .
       chmod +x /opt/scrutiny/bin/scrutiny-web-linux-amd64
       chmod +x /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64
-      echo "${RELEASE}" > /opt/scrutiny/scrutiny_version.txt
+      echo "${RELEASE}" > /opt/scrutiny_version.txt
       msg_ok "Updated Scrutiny to $RELEASE"
 
       msg_info "Cleaning up"
