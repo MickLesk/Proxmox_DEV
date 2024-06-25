@@ -118,7 +118,6 @@ EOF
     msg_ok "Created and enabled Scrutiny Webapp service"
 
 elif [[ $SCRUTINY_OPTION == "2" ]]; then
-    # Create and enable scrutiny collector service
     cat <<EOF >/etc/systemd/system/scrutiny_collector.service
 [Unit]
 Description=Scrutiny Collector - Collect Metrics

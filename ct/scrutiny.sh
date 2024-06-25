@@ -116,23 +116,61 @@ function update_script() {
 
   if [ "$UPD" == "2" ]; then
     msg_info "Stopping Scrutiny Collector Service"
-    systemctl stop scrutiny_collector.service
+    systemctl stop scrutiny_collector.service || msg_warn "Scrutiny Collector Service not found"
     msg_ok "Stopped Scrutiny Collector Service"
 
     msg_info "Starting Scrutiny Webapp Service"
-    systemctl start scrutiny.service
-    msg_ok "Started Scrutiny Webapp Service"
+    if systemctl start scrutiny.service; then
+      msg_ok "Started Scrutiny Webapp Service"
+    else
+      msg_warn "Scrutiny Webapp Service not found, creating..."
+      cat <<EOF >/etc/systemd/system/scrutiny.service
+[Unit]
+Description=Scrutiny - Hard Drive Monitoring and Webapp
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/scrutiny/bin/scrutiny-web-linux-amd64 start --config /opt/scrutiny/config/scrutiny.yaml
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+      systemctl enable -q --now scrutiny.service
+      msg_ok "Created and started Scrutiny Webapp Service"
+    fi
     exit
   fi
 
   if [ "$UPD" == "3" ]; then
     msg_info "Stopping Scrutiny Webapp Service"
-    systemctl stop scrutiny.service
+    systemctl stop scrutiny.service || msg_warn "Scrutiny Webapp Service not found"
     msg_ok "Stopped Scrutiny Webapp Service"
 
     msg_info "Starting Scrutiny Collector Service"
-    systemctl start scrutiny_collector.service
-    msg_ok "Started Scrutiny Collector Service"
+    if systemctl start scrutiny_collector.service; then
+      msg_ok "Started Scrutiny Collector Service"
+    else
+      msg_warn "Scrutiny Collector Service not found, creating..."
+      cat <<EOF >/etc/systemd/system/scrutiny_collector.service
+[Unit]
+Description=Scrutiny Collector
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 run --api-endpoint "http://localhost:8080"
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+      systemctl enable -q --now scrutiny_collector.service
+      msg_ok "Created and started Scrutiny Collector Service"
+    fi
     exit
   fi
 }
