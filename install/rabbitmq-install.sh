@@ -18,10 +18,7 @@ update_os
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
   sudo \
-  lsb-release \
   curl \
-  debian-keyring \
-  debian-archive-keyring \
   gnupg   \
   apt-transport-https \
   make \
@@ -32,8 +29,7 @@ msg_info "Adding RabbitMQ signing key"
 wget -qO- "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" | gpg --dearmor >/usr/share/keyrings/com.rabbitmq.team.gpg
 wget -qO- "https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-erlang.E495BB49CC4BBE5B.key" | gpg --dearmor >/usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg
 wget -qO- "https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-server.9F4587F226208342.key" | gpg --dearmor >/usr/share/keyrings/rabbitmq.9F4587F226208342.gpg
-
-msg_ok "Adding Erlang"
+msg_ok "Signing keys added"
 
 msg_info "Adding RabbitMQ repository"
 sudo tee /etc/apt/sources.list.d/rabbitmq.list <<EOF
@@ -51,7 +47,6 @@ msg_info "Updating package list"
 $STD sudo apt-get update -y
 msg_ok "Package list updated"
 
-# Install Erlang / RabbitMQ server
 msg_info "Installing Erlang & RabbitMQ server"
 $STD sudo apt-get install -y erlang-base \
                         erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
@@ -59,26 +54,22 @@ $STD sudo apt-get install -y erlang-base \
                         erlang-runtime-tools erlang-snmp erlang-ssl \
                         erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl \
                         rabbitmq-server
+sudo sh -c 'echo "LANG=en_US.UTF-8" > /etc/default/locale && . /etc/default/locale'
 msg_ok "RabbitMQ server installed"
 
-# Start RabbitMQ service
 msg_info "Starting RabbitMQ service"
 systemctl start rabbitmq-server
 msg_ok "RabbitMQ service started"
 
-# Enable RabbitMQ management plugin
 msg_info "Enabling RabbitMQ management plugin"
 rabbitmq-plugins enable rabbitmq_management
 msg_ok "RabbitMQ management plugin enabled"
 
-# Set permissions for guest user (optional)
-msg_info "Setting permissions for guest user"
-rabbitmqctl set_permissions -p / guest ".*" ".*" ".*"
-msg_ok "Permissions set for guest user"
-
-# Display RabbitMQ management UI information
-RABBITMQ_IP=$(hostname -I | awk '{print $1}')
-msg_info "RabbitMQ installation completed successfully"
+msg_info "Create User"
+rabbitmqctl add_user proxmox proxmox
+rabbitmqctl set_user_tags proxmox administrator
+rabbitmqctl set_permissions -p / proxmox ".*" ".*" ".*"
+msg_ok "Created User"
 
 motd_ssh
 customize
