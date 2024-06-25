@@ -64,38 +64,23 @@ msg_info "Setup InfluxDB-Connection"
 # Path to the config file
 CONFIG_FILE="/opt/scrutiny/config/scrutiny.yaml"
 
-# Update the config file using sed
-sed -i -e "/influxdb:/,/^  [^ ]/s/^\(\s*host:\).*/\1 $HOST/" \
-       -e "/influxdb:/,/^  [^ ]/s/^\(\s*port:\).*/\1 $PORT/" \
-       "$CONFIG_FILE"
+sed -i '/^ *influxdb:/,/^[^ ]/d' "$CONFIG_FILE"
 
-# Replace or add token, org, and bucket correctly indented
-if [ "$TOKEN" != "$DEFAULT_TOKEN" ]; then
-    sed -i -e "/influxdb:/,/^  [^ ]/s/^#\s*\(token:\).*/  \1 '$TOKEN'/" "$CONFIG_FILE"
-    if ! grep -q "^\s*token:" "$CONFIG_FILE"; then
-        sed -i "/influxdb:/a\  token: '$TOKEN'" "$CONFIG_FILE"
-    fi
-else
-    sed -i -e "/influxdb:/,/^  [^ ]/s/^\s*\(token:\).*/#  \1 '$DEFAULT_TOKEN'/" "$CONFIG_FILE"
-fi
-
-if [ "$ORG" != "$DEFAULT_ORG" ]; then
-    sed -i -e "/influxdb:/,/^  [^ ]/s/^#\s*\(org:\).*/  \1 '$ORG'/" "$CONFIG_FILE"
-    if ! grep -q "^\s*org:" "$CONFIG_FILE"; then
-        sed -i "/influxdb:/a\  org: '$ORG'" "$CONFIG_FILE"
-    fi
-else
-    sed -i -e "/influxdb:/,/^  [^ ]/s/^\s*\(org:\).*/#  \1 '$DEFAULT_ORG'/" "$CONFIG_FILE"
-fi
-
-if [ "$BUCKET" != "$DEFAULT_BUCKET" ]; then
-    sed -i -e "/influxdb:/,/^  [^ ]/s/^#\s*\(bucket:\).*/  \1 '$BUCKET'/" "$CONFIG_FILE"
-    if ! grep -q "^\s*bucket:" "$CONFIG_FILE"; then
-        sed -i "/influxdb:/a\  bucket: '$BUCKET'" "$CONFIG_FILE"
-    fi
-else
-    sed -i -e "/influxdb:/,/^  [^ ]/s/^\s*\(bucket:\).*/#  \1 '$DEFAULT_BUCKET'/" "$CONFIG_FILE"
-fi
+# Append the new influxdb configuration block
+cat << EOF >> "$CONFIG_FILE"
+  influxdb:
+    host: $HOST
+    port: $PORT
+    token: '$TOKEN'
+    org: '$ORG'
+    bucket: '$BUCKET'
+    retention_policy: true
+    # if you wish to disable TLS certificate verification,
+    # when using self-signed certificates for example,
+    # then uncomment the lines below and set \`insecure_skip_verify: true\`
+    # tls:
+    #   insecure_skip_verify: false
+EOF
 msg_ok "Setup InfluxDB-Connection"
 
 msg_info "Creating Service"
