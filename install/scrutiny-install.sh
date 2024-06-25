@@ -35,7 +35,7 @@ wget -q -O /opt/scrutiny/web/scrutiny-web-frontend.tar.gz "https://github.com/An
 #wget -q -O /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-collector-metrics-linux-amd64"
 cd /opt/scrutiny/web && tar xzf scrutiny-web-frontend.tar.gz --strip-components 1 -C .
 chmod +x /opt/scrutiny/bin/scrutiny-web-linux-amd64
-chmod +x /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64
+#chmod +x /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64
 msg_ok "Installed Scrutiny"
 
 DEFAULT_HOST="127.0.0.1"
