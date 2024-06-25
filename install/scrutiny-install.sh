@@ -51,13 +51,13 @@ HOST=${HOST:-$DEFAULT_HOST}
 read -r -p "Enter InfluxDB Port [$DEFAULT_PORT]: " PORT
 PORT=${PORT:-$DEFAULT_PORT}
 
-read -r -p "Enter InfluxDB Token (optional) [$DEFAULT_TOKEN]: " TOKEN
+read -r -p "Enter InfluxDB Token [$DEFAULT_TOKEN]: " TOKEN
 TOKEN=${TOKEN:-$DEFAULT_TOKEN}
 
-read -r -p "Enter InfluxDB Organization (optional) [$DEFAULT_ORG]: " ORG
+read -r -p "Enter InfluxDB Organization [$DEFAULT_ORG]: " ORG
 ORG=${ORG:-$DEFAULT_ORG}
 
-read -r -p "Enter InfluxDB Bucket (optional) [$DEFAULT_BUCKET]: " BUCKET
+read -r -p "Enter InfluxDB Bucket [$DEFAULT_BUCKET]: " BUCKET
 BUCKET=${BUCKET:-$DEFAULT_BUCKET}
 
 msg_info "Setup InfluxDB-Connection" 
@@ -65,26 +65,26 @@ msg_info "Setup InfluxDB-Connection"
 CONFIG_FILE="/opt/scrutiny/config/scrutiny.yaml"
 
 # Update the config file using sed
-sed -i -e "s/^\(\s*host:\).*/\1 $HOST/" \
-       -e "s/^\(\s*port:\).*/\1 $PORT/" \
+sed -i -e "/influxdb:/,/^  [^ ]/s/^\(\s*host:\).*/\1 $HOST/" \
+       -e "/influxdb:/,/^  [^ ]/s/^\(\s*port:\).*/\1 $PORT/" \
        "$CONFIG_FILE"
 
 if [ "$TOKEN" != "$DEFAULT_TOKEN" ]; then
-    sed -i -e "s/^#\s*\(token:\).*/\1 '$TOKEN'/" "$CONFIG_FILE"
+    sed -i -e "/influxdb:/,/^  [^ ]/s/^#\s*\(token:\).*/  \1 '$TOKEN'/" "$CONFIG_FILE"
 else
-    sed -i -e "s/^\s*\(token:\).*/#\1 '$DEFAULT_TOKEN'/" "$CONFIG_FILE"
+    sed -i -e "/influxdb:/,/^  [^ ]/s/^\s*\(token:\).*/#  \1 '$DEFAULT_TOKEN'/" "$CONFIG_FILE"
 fi
 
 if [ "$ORG" != "$DEFAULT_ORG" ]; then
-    sed -i -e "s/^#\s*\(org:\).*/\1 '$ORG'/" "$CONFIG_FILE"
+    sed -i -e "/influxdb:/,/^  [^ ]/s/^#\s*\(org:\).*/  \1 '$ORG'/" "$CONFIG_FILE"
 else
-    sed -i -e "s/^\s*\(org:\).*/#\1 '$DEFAULT_ORG'/" "$CONFIG_FILE"
+    sed -i -e "/influxdb:/,/^  [^ ]/s/^\s*\(org:\).*/#  \1 '$DEFAULT_ORG'/" "$CONFIG_FILE"
 fi
 
 if [ "$BUCKET" != "$DEFAULT_BUCKET" ]; then
-    sed -i -e "s/^#\s*\(bucket:\).*/\1 '$BUCKET'/" "$CONFIG_FILE"
+    sed -i -e "/influxdb:/,/^  [^ ]/s/^#\s*\(bucket:\).*/  \1 '$BUCKET'/" "$CONFIG_FILE"
 else
-    sed -i -e "s/^\s*\(bucket:\).*/#\1 '$DEFAULT_BUCKET'/" "$CONFIG_FILE"
+    sed -i -e "/influxdb:/,/^  [^ ]/s/^\s*\(bucket:\).*/#  \1 '$DEFAULT_BUCKET'/" "$CONFIG_FILE"
 fi
 msg_ok "Setup InfluxDB-Connection"
 
