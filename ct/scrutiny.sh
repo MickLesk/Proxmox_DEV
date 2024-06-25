@@ -114,17 +114,15 @@ function update_script() {
     exit
   fi
 
-  if [ "$UPD" == "2" ]; then
-    msg_info "Stopping Scrutiny Collector Service"
-    systemctl stop scrutiny_collector.service || msg_error "Scrutiny Collector Service not found"
-    msg_ok "Stopped Scrutiny Collector Service"
-
-    msg_info "Starting Scrutiny Webapp Service"
-    if systemctl start scrutiny.service; then
-      msg_ok "Started Scrutiny Webapp Service"
+if [ "$UPD" == "2" ]; then
+    msg_info "Checking for Scrutiny Webapp Service"
+    if systemctl list-units --full -all | grep -Fq 'scrutiny.service'; then
+        msg_info "Stopping Scrutiny Webapp Service"
+        systemctl stop scrutiny.service
+        msg_ok "Stopped Scrutiny Webapp Service"
     else
-      msg_ok "Scrutiny Webapp Service not found, creating..."
-      cat <<EOF >/etc/systemd/system/scrutiny.service
+        msg_info "Scrutiny Webapp Service not found, creating..."
+        cat <<EOF >/etc/systemd/system/scrutiny.service
 [Unit]
 Description=Scrutiny - Hard Drive Monitoring and Webapp
 After=network.target
@@ -138,23 +136,25 @@ User=root
 [Install]
 WantedBy=multi-user.target
 EOF
-      systemctl enable -q --now scrutiny.service
-      msg_ok "Created and started Scrutiny Webapp Service"
+        systemctl enable -q scrutiny.service
+        msg_ok "Created Scrutiny Webapp Service"
     fi
+
+    msg_info "Starting Scrutiny Webapp Service"
+    systemctl start scrutiny.service
+    msg_ok "Started Scrutiny Webapp Service"
     exit
-  fi
+fi
 
-  if [ "$UPD" == "3" ]; then
-    msg_info "Stopping Scrutiny Webapp Service"
-    systemctl stop scrutiny.service || msg_error "Scrutiny Webapp Service not found"
-    msg_ok "Stopped Scrutiny Webapp Service"
-
-    msg_info "Starting Scrutiny Collector Service"
-    if systemctl start scrutiny_collector.service; then
-      msg_ok "Started Scrutiny Collector Service"
+if [ "$UPD" == "3" ]; then
+    msg_info "Checking for Scrutiny Collector Service"
+    if systemctl list-units --full -all | grep -Fq 'scrutiny_collector.service'; then
+        msg_info "Stopping Scrutiny Collector Service"
+        systemctl stop scrutiny_collector.service
+        msg_ok "Stopped Scrutiny Collector Service"
     else
-      msg_ok "Scrutiny Collector Service not found, creating..."
-      cat <<EOF >/etc/systemd/system/scrutiny_collector.service
+        msg_info "Scrutiny Collector Service not found, creating..."
+        cat <<EOF >/etc/systemd/system/scrutiny_collector.service
 [Unit]
 Description=Scrutiny Collector
 After=network.target
@@ -168,11 +168,15 @@ User=root
 [Install]
 WantedBy=multi-user.target
 EOF
-      systemctl enable -q --now scrutiny_collector.service
-      msg_ok "Created and started Scrutiny Collector Service"
+        systemctl enable -q scrutiny_collector.service
+        msg_ok "Created Scrutiny Collector Service"
     fi
+
+    msg_info "Starting Scrutiny Collector Service"
+    systemctl start scrutiny_collector.service
+    msg_ok "Started Scrutiny Collector Service"
     exit
-  fi
+fi
 }
 
 start
