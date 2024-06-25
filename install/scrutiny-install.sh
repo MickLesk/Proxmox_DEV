@@ -28,7 +28,6 @@ msg_info "Installing Scrutiny WebApp"
 mkdir -p /opt/scrutiny/config
 mkdir -p /opt/scrutiny/web
 mkdir -p /opt/scrutiny/bin
-wget -q -O /opt/scrutiny/config/scrutiny.yaml https://raw.githubusercontent.com/AnalogJ/scrutiny/master/example.scrutiny.yaml
 RELEASE=$(curl -s https://api.github.com/repos/analogj/scrutiny/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 wget -q -O /opt/scrutiny/bin/scrutiny-web-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-linux-amd64"
 wget -q -O /opt/scrutiny/web/scrutiny-web-frontend.tar.gz "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-frontend.tar.gz"
@@ -64,9 +63,19 @@ read -r -p "Enter InfluxDB Bucket [$DEFAULT_BUCKET]: " BUCKET
 BUCKET=${BUCKET:-$DEFAULT_BUCKET}
 
 msg_info "Setup InfluxDB-Connection" 
-CONFIG_FILE="/opt/scrutiny/config/scrutiny.yaml"
-sed -i '/^ *influxdb:/,/^[^ ]/d' "$CONFIG_FILE"
-cat << EOF >> "$CONFIG_FILE"
+cat << EOF >/opt/scrutiny/config/scrutiny.yaml
+version: 1
+web:
+  listen:
+    port: 8080
+    host: 0.0.0.0
+
+  database:
+    location: /opt/scrutiny/config/scrutiny.db
+  src:
+    frontend:
+      path: /opt/scrutiny/web
+
   influxdb:
     host: $HOST
     port: $PORT
@@ -74,11 +83,12 @@ cat << EOF >> "$CONFIG_FILE"
     org: '$ORG'
     bucket: '$BUCKET'
     retention_policy: true
-    # if you wish to disable TLS certificate verification,
-    # when using self-signed certificates for example,
-    # then uncomment the lines below and set \`insecure_skip_verify: true\`
     # tls:
     #   insecure_skip_verify: false
+
+log:
+  file: '' #absolute or relative paths allowed, eg. web.log
+  level: INFO
 EOF
 msg_ok "Setup InfluxDB-Connection"
 
