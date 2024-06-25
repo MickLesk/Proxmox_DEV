@@ -116,14 +116,14 @@ function update_script() {
 
   if [ "$UPD" == "2" ]; then
     msg_info "Stopping Scrutiny Collector Service"
-    systemctl stop scrutiny_collector.service || msg_warn "Scrutiny Collector Service not found"
+    systemctl stop scrutiny_collector.service || msg_error "Scrutiny Collector Service not found"
     msg_ok "Stopped Scrutiny Collector Service"
 
     msg_info "Starting Scrutiny Webapp Service"
     if systemctl start scrutiny.service; then
       msg_ok "Started Scrutiny Webapp Service"
     else
-      msg_warn "Scrutiny Webapp Service not found, creating..."
+      msg_ok "Scrutiny Webapp Service not found, creating..."
       cat <<EOF >/etc/systemd/system/scrutiny.service
 [Unit]
 Description=Scrutiny - Hard Drive Monitoring and Webapp
@@ -146,14 +146,14 @@ EOF
 
   if [ "$UPD" == "3" ]; then
     msg_info "Stopping Scrutiny Webapp Service"
-    systemctl stop scrutiny.service || msg_warn "Scrutiny Webapp Service not found"
+    systemctl stop scrutiny.service || msg_error "Scrutiny Webapp Service not found"
     msg_ok "Stopped Scrutiny Webapp Service"
 
     msg_info "Starting Scrutiny Collector Service"
     if systemctl start scrutiny_collector.service; then
       msg_ok "Started Scrutiny Collector Service"
     else
-      msg_warn "Scrutiny Collector Service not found, creating..."
+      msg_ok "Scrutiny Collector Service not found, creating..."
       cat <<EOF >/etc/systemd/system/scrutiny_collector.service
 [Unit]
 Description=Scrutiny Collector
