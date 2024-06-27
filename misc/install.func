@@ -12,7 +12,7 @@ color() {
   CM="${GN}✓${CL}"
   CROSS="${RD}✗${CL}"
   BFR="\\r\\033[K"
-  HOLD="-"
+  HOLD=" "
 }
 
 # This function enables IPv6 if it's not disabled and sets verbose mode if the global variable is set to "yes"
@@ -49,13 +49,13 @@ error_handler() {
 
 # This function displays a spinner.
 spinner() {
-  printf "\e[?25l"
-  spinner="/-\\|/-\\|"
-  spin_i=0
-  while true; do
-    printf "\b%s" "${spinner:spin_i++%${#spinner}:1}"
-    sleep 0.1
-  done
+    local chars="/-\|"
+    local spin_i=0
+    printf "\e[?25l"
+    while true; do
+        printf "\r \e[36m%s\e[0m" "${chars:spin_i++%${#chars}:1}"
+        sleep 0.1
+    done
 }
 
 # This function displays an informational message with a yellow color.
@@ -112,35 +112,33 @@ setting_up_container() {
 network_check() {
   set +e
   trap - ERR
-# Check if IPv4 is being used
-  if ip -o -4 addr show | grep -q "scope global"; then
-    if ping -c 1 -W 1 1.1.1.1 &>/dev/null; then 
-        msg_ok "IPv4 Internet Connected"; 
-    else
-        msg_error "IPv4 Internet Not Connected";
-        read -r -p "Would you like to continue anyway? <y/N> " prompt
-        if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
-            echo -e " ⚠️  ${RD}Expect Issues Without Internet${CL}"
-        else
-            echo -e " 🖧  Check Network Settings"
-            exit 1
-        fi
-    fi
+  ipv4_connected=false
+  ipv6_connected=false
+
+# Check IPv4 connectivity
+  if ping -c 1 -W 1 1.1.1.1 &>/dev/null; then 
+    msg_ok "IPv4 Internet Connected";
+    ipv4_connected=true
+  else
+    msg_error "IPv4 Internet Not Connected";
   fi
 
-# Check if IPv6 is being used
-  if ip -o -6 addr show | grep -q "scope global"; then
-    if ping6 -c 1 -W 1 2606:4700:4700::1111 &>/dev/null; then
-        msg_ok "IPv6 Internet Connected";
+# Check IPv6 connectivity
+  if ping6 -c 1 -W 1 2606:4700:4700::1111 &>/dev/null; then
+    msg_ok "IPv6 Internet Connected";
+    ipv6_connected=true
+  else
+    msg_error "IPv6 Internet Not Connected";
+  fi
+
+# If both IPv4 and IPv6 checks fail, prompt the user
+  if [[ $ipv4_connected == false && $ipv6_connected == false ]]; then
+    read -r -p "No Internet detected,would you like to continue anyway? <y/N> " prompt
+    if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
+      echo -e " ⚠️  ${RD}Expect Issues Without Internet${CL}"
     else
-        msg_error "IPv6 Internet Not Connected";
-        read -r -p "Would you like to continue anyway? <y/N> " prompt
-        if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
-            echo -e " ⚠️  ${RD}Expect Issues Without Internet${CL}"
-        else
-            echo -e " 🖧  Check Network Settings"
-            exit 1
-        fi
+      echo -e " 🖧  Check Network Settings"
+      exit 1
     fi
   fi
 
@@ -154,7 +152,16 @@ network_check() {
 update_os() {
   msg_info "Updating Container OS"
   if [[ "$CACHER" == "yes" ]]; then
-    echo "Acquire::http { Proxy \"http://${CACHER_IP}:3142\"; };" >/etc/apt/apt.conf.d/00aptproxy
+    echo "Acquire::http::Proxy-Auto-Detect \"/usr/local/bin/apt-proxy-detect.sh\";" >/etc/apt/apt.conf.d/00aptproxy
+    cat <<EOF >/usr/local/bin/apt-proxy-detect.sh
+#!/bin/bash
+if nc -w1 -z "${CACHER_IP}" 3142; then
+  echo -n "http://${CACHER_IP}:3142"
+else
+  echo -n "DIRECT"
+fi
+EOF
+  chmod +x /usr/local/bin/apt-proxy-detect.sh
   fi
   $STD apt-get update
   $STD apt-get -o Dpkg::Options::="--force-confold" -y dist-upgrade
@@ -164,7 +171,7 @@ update_os() {
 # This function modifies the message of the day (motd) and SSH settings
 motd_ssh() {
   echo "export TERM='xterm-256color'" >>/root/.bashrc
-  echo -e "$APPLICATION LXC provided by https://tteck.github.io/Proxmox/\n" >/etc/motd
+  echo -e "$APPLICATION LXC provided by https://helper-scripts.com/\n" >/etc/motd
   chmod -x /etc/update-motd.d/*
   if [[ "${SSH_ROOT}" == "yes" ]]; then
     sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/g" /etc/ssh/sshd_config
