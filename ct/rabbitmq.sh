@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
-# Author: MickLesk (Canbiz)
+# Author: tteck
+# Co-Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
@@ -18,7 +19,7 @@ EOF
 }
 header_info
 echo -e "Loading..."
-APP="rabbitmq"
+APP="RabbitMQ"
 var_disk="4"
 var_cpu="1"
 var_ram="1024"
@@ -65,7 +66,7 @@ systemctl stop rabbitmq-server
 msg_ok "Stopped ${APP} Service"
 
 msg_info "Updating..."
-sudo apt-get update &>/dev/null
+apt install --only-upgrade rabbitmq-server &>/dev/null
 msg_ok "Update Successfully"
 
 msg_info "Starting ${APP}"
