@@ -22,6 +22,7 @@ apt-get install -y --no-install-recommends \
   vorbis-tools \
   lame \
   ffmpeg \
+  lsb_release \
   gosu \
   wget \
   curl \
@@ -35,10 +36,10 @@ apt-get install -y --no-install-recommends \
  
 msg_info "Setting up PHP"
 sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
-$STD sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
-$STD sudo apt update
-$STD sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,imagick,intl,mbstring,mysql,sqlite3,xml,xmlrpc,zip}
-$STD apt-get install -y --no-install-recommends \
+sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+sudo apt update
+sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,imagick,intl,mbstring,mysql,sqlite3,xml,xmlrpc,zip}
+apt-get install -y \
   libapache2-mod-php \
   inotify-tools \
   libavcodec-extra \
@@ -63,31 +64,22 @@ echo -e "Ampache Database Name: \e$DB_NAME\e" >>~/ampache.creds
 msg_ok "Set up database"
 
 msg_info "Installing Ampache(Patience)"
-#sudo sed -i 's|short_open_tag=.*|MEDIA_PATH=/opt/koel_media|' /etc/php/8.3/apache2/php.ini
-#sudo sed -i 's|memory_limit=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|' /etc/php/8.3/apache2/php.ini
-#sudo sed -i 's|cgi.fix_pathinfo=.*|MEDIA_PATH=/opt/koel_media|' /etc/php/8.3/apache2/php.ini
-#sudo sed -i 's|FFMPEG_PATH=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|' /etc/php/8.3/apache2/php.ini
-#sudo sed -i 's|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|' /etc/php/8.3/apache2/php.ini
-#sudo sed -i 's|FFMPEG_PATH=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|' /etc/php/8.3/apache2/php.ini
-#sudo sed -i 's|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|' /etc/php/8.3/apache2/php.ini
-#sudo sed -i 's|FFMPEG_PATH=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|' /opt/koel/.env
-#nano /etc/php/8.3/apache2/php.ini
-#short_open_tag = On
-#memory_limit = 256M
-#cgi.fix_pathinfo = 0
-#max_execution_time = 360
-#upload_max_filesize = 64M
-#post_max_size = 64M
-#systemctl restart apache2
-
-
-
 cd /opt
 AMPACHE_VERSION=$(wget -q https://github.com/ampache/ampache/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 wget https://github.com/ampache/ampache/releases/download/${AMPACHE_VERSION}/ampache-${AMPACHE_VERSION}_all_php8.3.zip
 unzip -q ampache-${AMPACHE_VERSION}_all_php8.3.zip -d ampache
 rm -rf /var/www/html
 ln -s /opt/ampache/public /var/www/html
+sudo mv /opt/ampache/rest/.htaccess.dist /opt/ampache/rest/.htaccess
+sudo mv /opt/ampache/play/.htaccess.dist /opt/ampache/play/.htaccess
+sudo mv /opt/ampache/channel/.htaccess.dist /opt/ampache/channel/.htaccess
+sudo cp /opt/ampache/config/ampache.cfg.php.dist /opt/ampache/config/ampache.cfg.php
+sudo chmod 664 /opt/ampache/rest/.htaccess /opt/ampache/play/.htaccess
+sudo sed -i 's/upload_max_filesize = .*/upload_max_filesize = 50M/' /etc/php/8.3/apache2/php.ini \
+&& sudo sed -i 's/post_max_size = .*/post_max_size = 50M/' /etc/php/8.3/apache2/php.ini \
+&& sudo sed -i 's/max_execution_time = .*/max_execution_time = 300/' /etc/php/8.3/apache2/php.ini \
+&& sudo sed -i 's/memory_limit = .*/memory_limit = 256M/' /etc/php/8.3/apache2/php.ini \
+&& sudo systemctl restart apache2
 msg_ok "Installed Ampache"
 
 motd_ssh
