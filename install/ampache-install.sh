@@ -49,6 +49,19 @@ $STD apt-get install -y --no-install-recommends \
   libvpx-dev 
 msg_ok "PHP successfully setup"  
 
+msg_info "Setting up Database"
+DB_NAME=ampache2
+DB_USER=ampache2
+DB_PASS=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | head -c13)
+sudo mysql -u root -e "CREATE DATABASE $DB_NAME;"
+sudo mysql -u root -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED WITH mysql_native_password AS PASSWORD('$DB_PASS');"
+sudo mysql -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUSH PRIVILEGES;"
+echo "" >>~/ampache.creds
+echo -e "Ampache Database User: \e $DB_USER\e" >>~/ampache.creds
+echo -e "Ampache Database Password: \e$DB_PASS\e" >>~/ampache.creds
+echo -e "Ampache Database Name: \e$DB_NAME\e" >>~/ampache.creds
+msg_ok "Set up database"
+
 msg_info "Installing Ampache(Patience)"
 #sudo sed -i 's|short_open_tag=.*|MEDIA_PATH=/opt/koel_media|' /etc/php/8.3/apache2/php.ini
 #sudo sed -i 's|memory_limit=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|' /etc/php/8.3/apache2/php.ini
@@ -66,6 +79,7 @@ msg_info "Installing Ampache(Patience)"
 #upload_max_filesize = 64M
 #post_max_size = 64M
 #systemctl restart apache2
+
 
 
 cd /opt
