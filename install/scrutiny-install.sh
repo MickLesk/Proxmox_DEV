@@ -45,9 +45,11 @@ echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
 wget -q -O /opt/scrutiny/config/scrutiny.yaml https://raw.githubusercontent.com/AnalogJ/scrutiny/master/example.scrutiny.yaml
 wget -q -O /opt/scrutiny/bin/scrutiny-web-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-linux-amd64"
 wget -q -O /opt/scrutiny/web/scrutiny-web-frontend.tar.gz "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-web-frontend.tar.gz"
+wget -q -O /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 "https://github.com/AnalogJ/scrutiny/releases/download/${RELEASE}/scrutiny-collector-metrics-linux-amd64"
 cd /opt/scrutiny/web 
 tar xzf scrutiny-web-frontend.tar.gz --strip-components 1 -C .
 chmod +x /opt/scrutiny/bin/scrutiny-web-linux-amd64
+chmod +x /opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64
 msg_ok "Installed Scrutiny WebApp"
 
 msg_info "Setup Service" 
@@ -65,7 +67,22 @@ User=root
 [Install]
 WantedBy=multi-user.target
 EOF
+cat <<EOF >/etc/systemd/system/scrutiny_collector.service
+[Unit]
+Description=Scrutiny Collector
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/scrutiny/bin/scrutiny-collector-metrics-linux-amd64 run --api-endpoint "http://localhost:8080"
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
 systemctl enable -q --now scrutiny.service
+systemctl enable -q --now scrutiny_collector.service
 msg_ok "Created and enabled Service"
 
 motd_ssh
