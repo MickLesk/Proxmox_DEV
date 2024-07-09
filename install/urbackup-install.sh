@@ -26,8 +26,8 @@ msg_ok "Installed Dependencies"
 msg_info "Installing Urbackup"
 VERSION=$(wget -q -O - https://hndl.urbackup.org/Server/latest/debian/bookworm/ | grep -oP 'urbackup-server_\K[\d\.]+(?=_amd64\.deb)' | head -1)
 wget -q https://hndl.urbackup.org/Server/latest/debian/bookworm/urbackup-server_${VERSION}_amd64.deb 
-sudo dpkg -i urbackup-server_${VERSION}_amd64.deb
-sudo apt install -f
+sudo dpkg -i --force-confdef urbackup-server_${VERSION}_amd64.deb
+$STD sudo apt install -f
 msg_ok "Installed Urbackup"
 
 motd_ssh
