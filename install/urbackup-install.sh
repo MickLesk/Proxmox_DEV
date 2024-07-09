@@ -23,18 +23,19 @@ $STD apt-get install -y sudo
 $STD apt-get install -y mc
 msg_ok "Installed Dependencies"
 
-msg_info "Installing Urbackup"
-VERSION=$(wget -q -O - https://hndl.urbackup.org/Server/latest/debian/bookworm/ | grep -oP 'urbackup-server_\K[\d\.]+(?=_amd64\.deb)' | head -1)
-wget -q https://hndl.urbackup.org/Server/latest/debian/bookworm/urbackup-server_${VERSION}_amd64.deb 
-$STD sudo dpkg -i --force-confdef urbackup-server_${VERSION}_amd64.deb
+msg_info "Installing UrBackup"
+RELEASE=$(wget -q -O - https://hndl.urbackup.org/Server/latest/debian/bookworm/ | grep -oP 'urbackup-server_\K[\d\.]+(?=_amd64\.deb)' | head -1)
+wget -q https://hndl.urbackup.org/Server/latest/debian/bookworm/urbackup-server_${RELEASE}_amd64.deb 
+$STD sudo dpkg -i --force-confold urbackup-server_${RELEASE}_amd64.deb
+echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
 $STD sudo apt install -f
-msg_ok "Installed Urbackup"
+msg_ok "Installed UrBackup"
 
 motd_ssh
 customize
 
 msg_info "Cleaning up"
-rm -rf urbackup-server_${VERSION}_amd64.deb
+rm -f urbackup-server_${RELEASE}_amd64.deb
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"

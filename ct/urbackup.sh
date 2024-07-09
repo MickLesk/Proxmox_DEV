@@ -55,14 +55,19 @@ function default_settings() {
 }
 
 function update_script() {
-header_info
-if [[ ! -d /etc/default/urbackupsrv ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-
-msg_info "Updating UrBackup"
-VERSION=$(wget -q -O - https://hndl.urbackup.org/Server/latest/debian/bookworm/ | grep -oP 'urbackup-server_\K[\d\.]+(?=_amd64\.deb)' | head -1)
-wget -q https://hndl.urbackup.org/Server/latest/debian/bookworm/urbackup-server_${VERSION}_amd64.deb 
-sudo dpkg -i urbackup-server_${VERSION}_amd64.deb
-sudo apt install -f
+  header_info
+  if [[ ! -d /etc/default/urbackupsrv ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+  RELEASE=$(wget -q -O - https://hndl.urbackup.org/Server/latest/debian/bookworm/ | grep -oP 'urbackup-server_\K[\d\.]+(?=_amd64\.deb)' | head -1)
+  if [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]] || [[ ! -f /opt/${APP}_version.txt ]]; then
+    msg_info "Updating $APP LXC"
+    wget -q https://hndl.urbackup.org/Server/latest/debian/bookworm/urbackup-server_${RELEASE}_amd64.deb 
+    sudo dpkg -i urbackup-server_${RELEASE}_amd64.deb
+    rm -f urbackup-server_${RELEASE}_amd64.deb
+    echo "${RELEASE}" >/opt/${APP}_version.txt
+    msg_ok "Updated $APP LXC"
+  else
+    msg_ok "No update required. ${APP} is already at ${RELEASE}"
+  fi
 msg_ok "Updated UrBackup"
 
 exit
