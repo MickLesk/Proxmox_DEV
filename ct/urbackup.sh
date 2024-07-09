@@ -56,7 +56,7 @@ function default_settings() {
 
 function update_script() {
   header_info
-  if [[ ! -d /etc/default/urbackupsrv ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+  if [[ ! -f /etc/default/urbackupsrv ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
   RELEASE=$(wget -q -O - https://hndl.urbackup.org/Server/latest/debian/bookworm/ | grep -oP 'urbackup-server_\K[\d\.]+(?=_amd64\.deb)' | head -1)
   if [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]] || [[ ! -f /opt/${APP}_version.txt ]]; then
     msg_info "Updating $APP LXC"
