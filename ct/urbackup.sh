@@ -62,6 +62,7 @@ function update_script() {
     msg_info "Updating $APP LXC"
     wget -q https://hndl.urbackup.org/Server/latest/debian/bookworm/urbackup-server_${RELEASE}_amd64.deb 
     sudo DEBIAN_FRONTEND=noninteractive dpkg -i urbackup-server_${RELEASE}_amd64.deb
+	sudo apt install -f
     rm -f urbackup-server_${RELEASE}_amd64.deb
     echo "${RELEASE}" >/opt/${APP}_version.txt
     msg_ok "Updated $APP LXC"
