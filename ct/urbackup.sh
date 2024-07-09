@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
+# Copyright (c) 2021-2024 tteck
+# Author: tteck (tteckster)
+# Co-Author: MickLesk (Canbiz)
+# License: MIT
+# https://github.com/tteck/Proxmox/raw/main/LICENSE
+
+function header_info {
+clear
+cat <<"EOF"
+   __  __     ____             __             
+  / / / /____/ __ )____ ______/ /____  ______ 
+ / / / / ___/ __  / __ `/ ___/ //_/ / / / __ \
+/ /_/ / /  / /_/ / /_/ / /__/ ,< / /_/ / /_/ /
+\____/_/  /_____/\__,_/\___/_/|_|\__,_/ .___/ 
+                                     /_/    
+
+EOF
+}
+header_info
+echo -e "Loading..."
+APP="UrBackup"
+var_disk="10"
+var_cpu="2"
+var_ram="2048"
+var_os="debian"
+var_version="12"
+variables
+color
+catch_errors
+
+function default_settings() {
+  CT_TYPE="1"
+  PW=""
+  CT_ID=$NEXTID
+  HN=$NSAPP
+  DISK_SIZE="$var_disk"
+  CORE_COUNT="$var_cpu"
+  RAM_SIZE="$var_ram"
+  BRG="vmbr0"
+  NET="dhcp"
+  GATE=""
+  APT_CACHER=""
+  APT_CACHER_IP=""
+  DISABLEIP6="no"
+  MTU=""
+  SD=""
+  NS=""
+  MAC=""
+  VLAN=""
+  SSH="no"
+  VERB="no"
+  echo_default
+}
+
+function update_script() {
+header_info
+if [[ ! -d /etc/default/urbackupsrv ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+
+msg_info "Updating UrBackup"
+VERSION=$(wget -q -O - https://hndl.urbackup.org/Server/latest/debian/bookworm/ | grep -oP 'urbackup-server_\K[\d\.]+(?=_amd64\.deb)' | head -1)
+wget -q https://hndl.urbackup.org/Server/latest/debian/bookworm/urbackup-server_${VERSION}_amd64.deb 
+sudo dpkg -i urbackup-server_${VERSION}_amd64.deb
+sudo apt install -f
+msg_ok "Updated UrBackup"
+
+exit
+}
+
+start
+build_container
+description
+
+msg_ok "Completed Successfully!\n"
+echo -e "${APP} should be reachable by going to the following URL.
+         ${BL}http://${IP}:55414${CL} \n"
