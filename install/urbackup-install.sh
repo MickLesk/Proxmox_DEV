@@ -22,8 +22,8 @@ $STD apt-get install -y mc
 msg_ok "Installed Dependencies"
 
 msg_info "Installing UrBackup"
-echo 'deb http://download.opensuse.org/repositories/home:/uroni/Debian_12/ /' | >/etc/apt/sources.list.d/home:uroni.list
-curl -fsSL https://download.opensuse.org/repositories/home:uroni/Debian_12/Release.key | gpg --dearmor | >/etc/apt/trusted.gpg.d/home_uroni.gpg
+curl -sSf https://download.opensuse.org/repositories/home:uroni/Debian_12/Release.key | gpg --dearmor >/etc/apt/trusted.gpg.d/home_uroni.gpg
+echo 'deb [signed-by=/etc/apt/trusted.gpg.d/home_uroni.gpg] http://download.opensuse.org/repositories/home:/uroni/Debian_12/ /' >/etc/apt/sources.list.d/home:uroni.list
 $STD sudo apt update
 $STD sudo apt install urbackup-server
 msg_ok "Installed UrBackup"
