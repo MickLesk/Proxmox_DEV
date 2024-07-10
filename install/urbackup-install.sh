@@ -26,7 +26,7 @@ msg_info "Installing UrBackup"
 curl -fsSL https://download.opensuse.org/repositories/home:uroni/Debian_12/Release.key | gpg --dearmor >/etc/apt/trusted.gpg.d/home_uroni.gpg
 echo 'deb [signed-by=/etc/apt/trusted.gpg.d/home_uroni.gpg] http://download.opensuse.org/repositories/home:/uroni/Debian_12/ /' >/etc/apt/sources.list.d/home:uroni.list
 $STD sudo apt update
-sudo DEBIAN_FRONTEND=noninteractive apt install urbackup-server -y
+$STD sudo DEBIAN_FRONTEND=noninteractive apt install urbackup-server -y
 msg_ok "Installed UrBackup"
 
 motd_ssh
