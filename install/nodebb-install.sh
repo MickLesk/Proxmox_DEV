@@ -97,23 +97,23 @@ cd /opt/nodebb
 NODEBB_USER=$(grep "NodeBB User" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
 NODEBB_PWD=$(grep "NodeBB Password" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
 NODEBB_SECRET=$(grep "NodeBB Secret" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
-#cat <<EOF >/opt/nodebb/config.json
-#{
-#    "url": "http://localhost:4567",
-#    "secret": "$NODEBB_SECRET",
-#    "database": "mongo",
-#    "mongo": {
-#        "host": "127.0.0.1",
-#        "port": "27017",
-#        "username": "$NODEBB_USER",
-#        "password": "$NODEBB_PWD",
-#        "database": "nodebb",
-#        "uri": ""
-#    },
-#    "port": "4567"
-#}
-#EOF
-#./nodebb build
+cat <<EOF >/opt/nodebb/config.json
+{
+    "url": "http://localhost:4567",
+    "secret": "$NODEBB_SECRET",
+    "database": "mongo",
+    "mongo": {
+        "host": "127.0.0.1",
+        "port": "27017",
+        "username": "$NODEBB_USER",
+        "password": "$NODEBB_PWD",
+        "database": "nodebb",
+        "uri": ""
+    },
+    "port": "4567"
+}
+EOF
+./nodebb setup
 #$STD npm ci
 #$STD npm run build
 echo "${CLEAN_RELEASE}" >/opt/${APPLICATION}_version.txt
