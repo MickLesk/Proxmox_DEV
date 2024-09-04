@@ -92,7 +92,6 @@ wget -q "https://github.com/NodeBB/NodeBB/archive/refs/tags/${RELEASE}.zip"
 unzip -q ${RELEASE}.zip
 CLEAN_RELEASE=$(echo $RELEASE | sed 's/^v//')
 mv NodeBB-${CLEAN_RELEASE} /opt/nodebb
-rm -R ${RELEASE}.zip 
 cd /opt/nodebb
 NODEBB_USER=$(grep "NodeBB User" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
 NODEBB_PWD=$(grep "NodeBB Password" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
@@ -113,9 +112,7 @@ cat <<EOF >/opt/nodebb/config.json
     "port": "4567"
 }
 EOF
-./nodebb setup
-#$STD npm ci
-#$STD npm run build
+$STD ./nodebb setup
 echo "${CLEAN_RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed NodeBB"
 
@@ -146,6 +143,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
+rm -R /opt/${RELEASE}.zip 
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
