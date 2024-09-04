@@ -97,49 +97,49 @@ cd /opt/nodebb
 NODEBB_USER=$(grep "NodeBB User" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
 NODEBB_PWD=$(grep "NodeBB Password" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
 NODEBB_SECRET=$(grep "NodeBB Secret" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
-cat <<EOF >/opt/nodebb/config.json
-{
-    "url": "http://localhost:4567",
-    "secret": "$NODEBB_SECRET",
-    "database": "mongo",
-    "mongo": {
-        "host": "127.0.0.1",
-        "port": "27017",
-        "username": "$NODEBB_USER",
-        "password": "$NODEBB_PWD",
-        "database": "nodebb",
-        "uri": ""
-    },
-    "port": "4567"
-}
-EOF
-./nodebb build
+#cat <<EOF >/opt/nodebb/config.json
+#{
+#    "url": "http://localhost:4567",
+#    "secret": "$NODEBB_SECRET",
+#    "database": "mongo",
+#    "mongo": {
+#        "host": "127.0.0.1",
+#        "port": "27017",
+#        "username": "$NODEBB_USER",
+#        "password": "$NODEBB_PWD",
+#        "database": "nodebb",
+#        "uri": ""
+#    },
+#    "port": "4567"
+#}
+#EOF
+#./nodebb build
 #$STD npm ci
 #$STD npm run build
 echo "${CLEAN_RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed NodeBB"
 
 msg_info "Creating Services"
-cat <<EOF >/etc/systemd/system/nodebb.service
-[Unit]
-Description=NodeBB Launcher
-After=network-online.target
+#cat <<EOF >/etc/systemd/system/nodebb.service
+#[Unit]
+#Description=NodeBB Launcher
+#After=network-online.target
 
-[Service]
-Type=simple
-ExecStart=/opt/nodebb/nodebb start
-ExecStop=/opt/nodebb/nodebb stop
-WorkingDirectory=/opt/nodebb
-StandardOutput=inherit
-StandardError=inherit
-Restart=always
-RestartSec=3
-User=root
+#[Service]
+#Type=simple
+#ExecStart=/opt/nodebb/nodebb start
+#ExecStop=/opt/nodebb/nodebb stop
+#WorkingDirectory=/opt/nodebb
+#StandardOutput=inherit
+#StandardError=inherit
+#Restart=always
+#RestartSec=3
+#User=root
 
-[Install]
-WantedBy=multi-user.target
-EOF
-systemctl enable -q --now nodebb
+#[Install]
+#WantedBy=multi-user.target
+#EOF
+#systemctl enable -q --now nodebb
 msg_ok "Created Service"
 
 motd_ssh
