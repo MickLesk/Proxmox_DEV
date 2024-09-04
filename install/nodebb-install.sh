@@ -46,7 +46,7 @@ msg_ok "Installed Node.js"
 msg_info "Installing MongoDB"
 $STD sudo apt-get install -y mongodb-org
 sudo systemctl start mongod
-sleep 5
+sleep 5 # MongoDB needs some secounds to start, if not sleep it collide with following mongosh
 msg_ok "Installed MongoDB"   
 
 msg_info "Configure MongoDB"
@@ -62,7 +62,7 @@ echo -e "NodeBB User: $NODEBB_USER" >>~/nodebb.creds
 echo -e "NodeBB Password: $NODEBB_PWD" >>~/nodebb.creds
 echo -e "NodeBB Secret: $NODEBB_SECRET" >>~/nodebb.creds
 
-mongosh <<EOF
+$STD mongosh <<EOF
 use admin
 db.createUser({
   user: "$MONGO_ADMIN_USER",
