@@ -113,6 +113,7 @@ cat <<EOF >/opt/nodebb/config.json
     "port": "4567"
 }
 EOF
+./nodebb build
 #$STD npm ci
 #$STD npm run build
 echo "${CLEAN_RELEASE}" >/opt/${APPLICATION}_version.txt
@@ -126,7 +127,8 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/npm run start
+ExecStart=/opt/nodebb/nodebb start
+ExecStop=/opt/nodebb/nodebb stop
 WorkingDirectory=/opt/nodebb
 StandardOutput=inherit
 StandardError=inherit
