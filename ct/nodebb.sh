@@ -8,12 +8,12 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 function header_info {
 clear
 cat <<"EOF"
-    __  ___      __  __            __         _     __         
-   /  |/  /___ _/ /_/ /____  _____/ /_  _____(_)___/ /___ ____ 
-  / /|_/ / __ `/ __/ __/ _ \/ ___/ __ \/ ___/ / __  / __ `/ _ \
- / /  / / /_/ / /_/ /_/  __/ /  / /_/ / /  / / /_/ / /_/ /  __/
-/_/  /_/\__,_/\__/\__/\___/_/  /_.___/_/  /_/\__,_/\__, /\___/ 
-                                                  /____/                                      
+    _   __          __     ____  ____ 
+   / | / /___  ____/ /__  / __ )/ __ )
+  /  |/ / __ \/ __  / _ \/ __  / __  |
+ / /|  / /_/ / /_/ /  __/ /_/ / /_/ / 
+/_/ |_/\____/\__,_/\___/_____/_____/  
+                                                                          
 EOF
 }
 header_info
@@ -48,7 +48,7 @@ function default_settings() {
   MAC=""
   VLAN=""
   SSH="no"
-  VERB="no"
+  VERB="yes"
   echo_default
 }
 function update_script() {

@@ -28,25 +28,25 @@ $STD apt-get install -y --no-install-recommends \
   mc
 msg_ok "Installed Dependencies"
 
-msg_info "Setting up Node.js Repository"
+msg_info "Setting up Node.js & MongoDB Repository"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
-msg_ok "Set up Node.js Repository"
+curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
+sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
+   --dearmor
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+$STD apt-get update
+msg_ok "Set up Repositories"
 
 msg_info "Installing Node.js"
-$STD apt-get update
 $STD apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
 msg_info "Installing MongoDB"
-curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
-   sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
-   --dearmor
-echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
-$STD sudo apt-get update
-sudo apt-get install -y mongodb-org
+$STD sudo apt-get install -y mongodb-org
 sudo systemctl start mongod
+sleep 5
 msg_ok "Installed MongoDB"   
 
 msg_info "Configure MongoDB"
@@ -113,8 +113,8 @@ cat <<EOF >/opt/nodebb/config.json
     "port": "4567"
 }
 EOF
-$STD npm ci
-$STD npm run build
+#$STD npm ci
+#$STD npm run build
 echo "${CLEAN_RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed NodeBB"
 
