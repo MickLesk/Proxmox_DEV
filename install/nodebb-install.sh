@@ -119,7 +119,7 @@ NODEBB_SECRET=$(grep "NodeBB Secret" ~/nodebb.creds | awk -F: '{print $2}' | xar
 echo "${CLEAN_RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed NodeBB"
 
-msg_info "Creating Services"
+#msg_info "Creating Services"
 #cat <<EOF >/etc/systemd/system/nodebb.service
 #[Unit]
 #Description=NodeBB Launcher
@@ -140,7 +140,7 @@ msg_info "Creating Services"
 #WantedBy=multi-user.target
 #EOF
 #systemctl enable -q --now nodebb
-msg_ok "Created Service"
+#msg_ok "Created Service"
 
 motd_ssh
 customize
