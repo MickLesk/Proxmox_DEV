@@ -55,25 +55,10 @@ function default_settings() {
 function update_script() {
 header_info
 if [[ ! -d /opt/tianji ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-# Checkout new release/tags
-cd tianji
-git fetch --tags
-git checkout -q <version>
-
-# run db migrations
-cd src/server
-pnpm db:migrate:apply
-
-# Restart Server
-pm2 restart tianji
  
 start
 build_container
 description
-
-msg_info "Setting Container to Normal Resources"
-pct set $CTID -cores 2
-msg_ok "Set Container to Normal Resources"
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
