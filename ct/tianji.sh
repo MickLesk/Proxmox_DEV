@@ -52,10 +52,6 @@ function default_settings() {
   echo_default
 }
 
-function update_script() {
-header_info
-if [[ ! -d /opt/tianji ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
- 
 start
 build_container
 description
