@@ -117,26 +117,25 @@ echo "${CLEAN_RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed NodeBB"
 
 #msg_info "Creating Services"
-#cat <<EOF >/etc/systemd/system/nodebb.service
-#[Unit]
-#Description=NodeBB Launcher
-#After=network-online.target
+cat <<EOF >/etc/systemd/system/nodebb.service
+[Unit]
+Description=NodeBB
+Documentation=https://docs.nodebb.org
+After=system.slice multi-user.target mongod.service
 
-#[Service]
-#Type=simple
-#ExecStart=/opt/nodebb/nodebb start
-#ExecStop=/opt/nodebb/nodebb stop
-#WorkingDirectory=/opt/nodebb
-#StandardOutput=inherit
-#StandardError=inherit
-#Restart=always
-#RestartSec=3
-#User=root
+[Service]
+Type=forking
+User=root
 
-#[Install]
-#WantedBy=multi-user.target
-#EOF
-#systemctl enable -q --now nodebb
+WorkingDirectory=/opt/nodebb/nodebb
+PIDFile=/opt/nodebb/pidfile
+ExecStart=/usr/bin/env node loader.js --no-silent
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl enable -q --now nodebb
 #msg_ok "Created Service"
 
 motd_ssh
