@@ -51,6 +51,37 @@ function default_settings() {
   VERB="no"
   echo_default
 }
+function update_script() {
+header_info
+if [[ ! -d /opt/nodebb ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+
+RELEASE=$(curl -s https://api.github.com/repos/linkwarden/linkwarden/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+if [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]] || [[ ! -f /opt/${APP}_version.txt ]]; then
+  msg_info "Stopping ${APP}"
+  systemctl stop nodebb
+  msg_ok "Stopped ${APP}"
+
+  msg_info "Updating ${APP} to ${RELEASE}"
+  cd /opt/nodebb
+  git pull
+  yarn
+  npx playwright install-deps
+  yarn playwright install
+  yarn prisma generate
+  yarn build
+  yarn prisma migrate deploy
+  echo "${RELEASE}" >/opt/${APP}_version.txt
+  msg_ok "Updated ${APP} to ${RELEASE}"
+
+  msg_info "Starting ${APP}"
+  systemctl start linkwarden
+  msg_ok "Started ${APP}"
+  msg_ok "Updated Successfully"
+else
+  msg_ok "No update required.  ${APP} is already at ${RELEASE}."
+fi
+exit
+}
 
 start
 build_container
