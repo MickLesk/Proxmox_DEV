@@ -36,7 +36,7 @@ msg_ok "Set up Repositories"
 
 msg_info "Installing Node.js, pnpm & pm2"
 $STD apt-get install -y nodejs
-npm install -g pnpm
+npm install -g pnpm@9.7.1
 npm install -g pm2 
 msg_ok "Installed Node.js, pnpm & pm2"
 
