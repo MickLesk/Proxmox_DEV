@@ -19,9 +19,9 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Tianji"
-var_disk="7"
-var_cpu="2"
-var_ram="2048"
+var_disk="10"
+var_cpu="4"
+var_ram="4096"
 var_os="debian"
 var_version="12"
 variables
