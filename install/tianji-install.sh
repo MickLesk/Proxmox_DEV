@@ -36,14 +36,14 @@ msg_ok "Set up Repositories"
 
 msg_info "Installing Node.js, pnpm & pm2"
 $STD apt-get install -y nodejs
-npm install -g pnpm@9.7.1
-npm install -g pm2 
+$STD npm install -g pnpm@9.7.1
+$STD npm install -g pm2 
 msg_ok "Installed Node.js, pnpm & pm2"
 
 
 msg_info "Setup Tianji (Patience)"
 cd /opt
-git clone https://github.com/msgbyte/tianji.git
+$STD git clone https://github.com/msgbyte/tianji.git
 cd tianji
 pnpm install
 pnpm build
