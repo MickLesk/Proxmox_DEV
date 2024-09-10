@@ -46,9 +46,8 @@ cd /opt
 $STD git clone https://github.com/msgbyte/tianji.git
 cd tianji
 export NODE_OPTIONS=--max_old_space_size=4096
-echo $NODE_OPTIONS
-$STD  pnpm install
-pnpm build
+$STD pnpm install
+$STD pnpm build
 msg_ok "Initial Setup complete"
 
 msg_info "Setting up Database"
