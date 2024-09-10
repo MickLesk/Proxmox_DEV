@@ -45,8 +45,8 @@ msg_info "Setup Tianji (Patience)"
 cd /opt
 $STD git clone https://github.com/msgbyte/tianji.git
 cd tianji
-pnpm install
-pnpm build
+$STD pnpm install
+$STD pnpm build
 msg_ok "Initial Setup complete"
 
 msg_info "Setting up Database"
@@ -58,9 +58,6 @@ $STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
 $STD sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
 $STD sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" 
 $STD sudo -u postgres psql -c "ALTER DATABASE $DB_NAME OWNER TO $DB_USER;"
-$STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET client_encoding TO $DB_ENCODING;"
-$STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET default_transaction_isolation TO 'read committed';"
-$STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET timezone TO $DB_TIMEZONE;"
 $STD sudo -u postgres psql -c "ALTER USER $DB_USER WITH SUPERUSER;"
 echo "" >>~/tianji.creds
 echo -e "Tianji Database User: $DB_USER" >>~/tianji.creds
