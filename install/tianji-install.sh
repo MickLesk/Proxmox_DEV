@@ -45,8 +45,8 @@ msg_info "Setup Tianji (Patience)"
 cd /opt
 $STD git clone https://github.com/msgbyte/tianji.git
 cd tianji
-$STD pnpm install
-$STD pnpm build
+pnpm install
+pnpm build
 msg_ok "Initial Setup complete"
 
 msg_info "Setting up Database"
@@ -63,6 +63,7 @@ echo "" >>~/tianji.creds
 echo -e "Tianji Database User: $DB_USER" >>~/tianji.creds
 echo -e "Tianji Database Password: $DB_PASS" >>~/tianji.creds
 echo -e "Tianji Database Name: $DB_NAME" >>~/tianji.creds
+echo -e "Tianji Secret: $TIANJI_SECRET" >>~/tianji.creds
 msg_ok "Set up PostgreSQL database"
 
 msg_info "Setting up Tianji Env"
