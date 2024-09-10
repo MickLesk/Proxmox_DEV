@@ -45,7 +45,9 @@ msg_info "Setup Tianji (Patience)"
 cd /opt
 $STD git clone https://github.com/msgbyte/tianji.git
 cd tianji
-pnpm install
+echo $NODE_OPTIONS
+export NODE_OPTIONS=--max_old_space_size=4096
+$STD  pnpm install
 pnpm build
 msg_ok "Initial Setup complete"
 
