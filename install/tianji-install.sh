@@ -87,8 +87,8 @@ $STD pnpm db:migrate:apply
 msg_ok "Application Initialized"
 
 msg_info "Activate PM2 Service" 
-pm2 start /opt/tianji/src/server/dist/src/server/main.js --name tianji
-pm2 save
+$STD pm2 start /opt/tianji/src/server/dist/src/server/main.js --name tianji
+$STD pm2 save
 msg_ok "Service activated"
 
 motd_ssh

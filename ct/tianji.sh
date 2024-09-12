@@ -62,18 +62,18 @@ RELEASE=$(curl -s https://api.github.com/repos/msgbyte/tianji/releases/latest | 
 if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
 
   msg_info "Stopping ${APP}"
-  pm2 stop tianji
+  pm2 stop tianji >/dev/null 2>&1
   msg_ok "Stopped ${APP}"
 
   msg_info "Updating ${APP} to ${RELEASE}"
   cd /opt/tianji
   git checkout -q $RELEASE
-  pnpm db:migrate:apply
+  pnpm db:migrate:apply >/dev/null 2>&1
   echo "${RELEASE}" >/opt/${APP}_version.txt
   msg_ok "Updated ${APP} to ${RELEASE}"
 
   msg_info "Starting ${APP}"
-  pm2 start tianji
+  pm2 start tianji >/dev/null 2>&1
   msg_ok "Started ${APP}"
   msg_ok "Updated Successfully"
 else
