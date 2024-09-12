@@ -19,7 +19,7 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Tianji"
-var_disk="10"
+var_disk="7"
 var_cpu="4"
 var_ram="4096"
 var_os="debian"
@@ -53,28 +53,23 @@ function default_settings() {
 }
 function update_script() {
 header_info
-if [[ ! -d /opt/nodebb ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if [[ ! -d /opt/tianji ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 
-RELEASE=$(curl -s https://api.github.com/repos/linkwarden/linkwarden/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+RELEASE=$(curl -s https://api.github.com/repos/msgbyte/tianji/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 if [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]] || [[ ! -f /opt/${APP}_version.txt ]]; then
   msg_info "Stopping ${APP}"
-  systemctl stop nodebb
+  pm2 stop tianji
   msg_ok "Stopped ${APP}"
 
   msg_info "Updating ${APP} to ${RELEASE}"
-  cd /opt/nodebb
-  git pull
-  yarn
-  npx playwright install-deps
-  yarn playwright install
-  yarn prisma generate
-  yarn build
-  yarn prisma migrate deploy
+  cd /opt/tianji
+  git checkout -q $RELEASE
+  pnpm db:migrate:apply
   echo "${RELEASE}" >/opt/${APP}_version.txt
   msg_ok "Updated ${APP} to ${RELEASE}"
 
   msg_info "Starting ${APP}"
-  systemctl start linkwarden
+  pm2 start tianji
   msg_ok "Started ${APP}"
   msg_ok "Updated Successfully"
 else

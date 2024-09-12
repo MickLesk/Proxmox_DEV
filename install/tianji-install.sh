@@ -43,9 +43,14 @@ msg_ok "Installed Node.js, pnpm & pm2"
 
 msg_info "Setup Tianji (Patience)"
 cd /opt
-$STD git clone https://github.com/msgbyte/tianji.git
+RELEASE=$(curl -s https://api.github.com/repos/msgbyte/tianji/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+wget -q "https://github.com/msgbyte/tianji/archive/refs/tags/${RELEASE}.zip"
+unzip -q ${RELEASE}.zip
+CLEAN_RELEASE=$(echo $RELEASE | sed 's/^v//')
+mv tianji-${CLEAN_RELEASE} /opt/tianji
 cd tianji
 export NODE_OPTIONS=--max_old_space_size=4096
+echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 $STD pnpm install
 $STD pnpm build
 msg_ok "Initial Setup complete"
@@ -76,16 +81,21 @@ msg_ok ".env successfully set up"
 
 msg_info "Initialize Application"
 cd /opt/tianji
-npm install pm2 -g && pm2 install pm2-logrotate
+$STD npm install pm2 -g && pm2 install pm2-logrotate
 cd src/server
-pnpm db:migrate:apply
-pm2 start ./dist/src/server/main.js --name tianji
+$STD pnpm db:migrate:apply
 msg_ok "Application Initialized"
+
+msg_info "Activate PM2 Service" 
+pm2 start /opt/tianji/src/server/dist/src/server/main.js --name tianji
+pm2 save
+msg_ok "Service activated"
 
 motd_ssh
 customize
 
 msg_info "Cleaning up"
+rm -R /opt/${RELEASE}.zip
 $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"
