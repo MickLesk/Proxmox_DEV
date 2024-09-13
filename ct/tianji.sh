@@ -58,12 +58,12 @@ if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
   read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
   [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
-RELEASE=$(curl -s https://api.github.com/repos/msgbyte/tianji/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+RELEASE=$(wget -q https://github.com/msgbyte/tianji/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
 
-  msg_info "Stopping ${APP}"
+  msg_info "Stopping ${APP} Service"
   pm2 stop tianji >/dev/null 2>&1
-  msg_ok "Stopped ${APP}"
+  msg_ok "Stopped ${APP} Service"
 
   msg_info "Updating ${APP} to ${RELEASE}"
   cd /opt/tianji
