@@ -81,7 +81,8 @@ msg_ok ".env successfully set up"
 
 msg_info "Initialize Application"
 cd /opt/tianji
-$STD npm install pm2 -g && pm2 install pm2-logrotate
+$STD npm install pm2 -g
+$STD pm2 install pm2-logrotate
 cd src/server
 $STD pnpm db:migrate:apply
 msg_ok "Application Initialized"
