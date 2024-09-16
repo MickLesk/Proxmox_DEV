@@ -14,11 +14,10 @@ network_check
 update_os
 
 msg_info "Installing Dependencies (Patience)"
-$STD apt-get install -y --no-install-recommends \
+$STD apt-get install -y \
   postgresql \
   build-essential \
   curl \
-  unzip \
   sudo \
   git \
   make \
@@ -43,16 +42,15 @@ msg_ok "Installed Node.js, pnpm & pm2"
 
 msg_info "Setup Tianji (Patience)"
 cd /opt
-RELEASE=$(curl -s https://api.github.com/repos/msgbyte/tianji/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-wget -q "https://github.com/msgbyte/tianji/archive/refs/tags/${RELEASE}.zip"
-unzip -q ${RELEASE}.zip
-CLEAN_RELEASE=$(echo $RELEASE | sed 's/^v//')
-mv tianji-${CLEAN_RELEASE} /opt/tianji
+RELEASE=$(curl -s https://api.github.com/repos/msgbyte/tianji/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+wget -q "https://github.com/msgbyte/tianji/archive/refs/tags/v${RELEASE}.zip"
+unzip -q v${RELEASE}.zip
+mv tianji-${RELEASE} /opt/tianji
 cd tianji
 export NODE_OPTIONS=--max_old_space_size=4096
-echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 $STD pnpm install
 $STD pnpm build
+echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Initial Setup complete"
 
 msg_info "Setting up Database"
@@ -97,6 +95,6 @@ customize
 
 msg_info "Cleaning up"
 rm -R /opt/${RELEASE}.zip
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get autoremove -y
+$STD apt-get autoclean -y
 msg_ok "Cleaned"
