@@ -63,10 +63,10 @@ mv zipline-${RELEASE} /opt/zipline
 cd /opt/zipline
 mv .env.local.example .env
 sudo sed -i "s|CORE_SECRET=.*|CORE_SECRET=\"$SECRET_KEY\"|" /opt/zipline/.env
-sudo sed -i "s|CORE_HOST=.*|CORE_HOST=127.0.0.1|" /opt/zipline/.env
 sudo sed -i "s|CORE_DATABASE_URL=.*|CORE_DATABASE_URL=\"postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME\"|" /opt/zipline/.env
 $STD yarn install
 $STD yarn build
+echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Zipline"
 
 msg_info "Creating Service"

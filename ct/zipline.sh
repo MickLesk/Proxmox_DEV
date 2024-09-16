@@ -67,21 +67,23 @@ if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_v
 
   msg_info "Updating ${APP} to ${RELEASE}"
   cp /opt/zipline/.env /opt/
-  cd /opt
+  rm -R /opt/zipline
   wget -q "https://github.com/diced/zipline/archive/refs/tags/v${RELEASE}.zip"
   unzip -q v${RELEASE}.zip
   mv zipline-${RELEASE} /opt/zipline
   cd /opt/zipline
-  wget -qO- https://github.com/sysadminsmedia/homebox/releases/download/${RELEASE}/homebox_Linux_x86_64.tar.gz | tar -xzf - -C /opt
+  mv /opt/.env /opt/zipline/.env
+  yarn install &>/dev/null
+  yarn build &>/dev/null
   echo "${RELEASE}" >/opt/${APP}_version.txt
-  msg_ok "Updated Homebox"
+  msg_ok "Updated ${APP}"
 
   msg_info "Starting ${APP}"
-  systemctl start homebox
+  systemctl start zipline
   msg_ok "Started ${APP}"
 
   msg_info "Cleaning Up"
-  rm -rf homebox_Linux_x86_64.tar.gz
+  rm -rf v${RELEASE}.zip
   msg_ok "Cleaned"
   msg_ok "Updated Successfully"
 else
@@ -96,4 +98,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:7745${CL} \n"
+         ${BL}http://${IP}:3000${CL} \n"
