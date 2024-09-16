@@ -36,7 +36,7 @@ $STD apt-get install -y nodejs
 $STD npm install -g yarn
 msg_ok "Installed Node.js"
 
-msg_info "Setting up postgresql"
+msg_info "Setting up PostgreSQL"
 DB_NAME=ziplinedb
 DB_USER=zipline
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
@@ -51,7 +51,7 @@ echo -e "Zipline Database User: $DB_USER" >>~/zipline.creds
 echo -e "Zipline Database Password: $DB_PASS" >>~/zipline.creds
 echo -e "Zipline Database Name: $DB_NAME" >>~/zipline.creds
 echo -e "Zipline Secret: $SECRET_KEY" >>~/zipline.creds
-msg_ok "Set up postgresql"
+msg_ok "Set up PostgreSQL"
 
 msg_info "Installing Zipline (Patience)"
 cd /opt
