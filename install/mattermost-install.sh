@@ -40,13 +40,13 @@ echo -e "Mattermost Database Name: $DB_NAME" >>~/mattermost.creds
 msg_ok "Set up PostgreSQL"
 
 msg_info "Installing Mattermost (Patience)"
-wget -qO- https://releases.mattermost.com/10.0.0/mattermost-10.0.0-linux-amd64.tar.gz | tar -xzf - -C /opt
+wget -qO- https://releases.mattermost.com/10.0.0/mattermost-team-10.0.0-linux-amd64.tar.gz| tar -xzf - -C /opt
 sudo mkdir /opt/mattermost/data
 cd /opt/mattermost
 sudo useradd --system --user-group mattermost
 sudo chown -R mattermost:mattermost /opt/mattermost
 sudo chmod -R g+w /opt/mattermost
-sudo sed -i "s|\"DataSource\":.*|\"DataSource\": \"postgres://$DB_USER:$DB_PASS@localhost/$DB_NAME?sslmode=disable&connect_timeout=10\",|" /opt/mattermost/config/config.json
+sudo sed -i "s|\"DataSource\": \".*\"|\"DataSource\": \"postgres://$DB_USER:$DB_PASS@localhost/$DB_NAME?sslmode=disable&connect_timeout=10\"|" /opt/mattermost/config/config.json
 msg_ok "Installed Zipline"
 
 msg_info "Creating Service"
@@ -70,6 +70,7 @@ LimitNOFILE=49152
 [Install]
 WantedBy=multi-user.target
 EOF
+systemctl enable -q --now mattermost.service
 msg_ok "Created Service"
 
 motd_ssh
