@@ -70,8 +70,6 @@ LimitNOFILE=49152
 [Install]
 WantedBy=multi-user.target
 EOF
-sudo systemctl daemon-reload
-systemctl enable -q --now mattermost.service
 msg_ok "Created Service"
 
 motd_ssh
