@@ -50,7 +50,7 @@ sudo sed -i "s|\"DataSource\":.*|\"DataSource\": \"postgres://$DB_USER:$DB_PASS@
 msg_ok "Installed Zipline"
 
 msg_info "Creating Service"
-cat <<EOF >/etc/systemd/system/mattermost.service
+cat <<EOF >/lib/systemd/system/mattermost.service
 [Unit]
 Description=Mattermost
 After=network.target
@@ -70,6 +70,7 @@ LimitNOFILE=49152
 [Install]
 WantedBy=multi-user.target
 EOF
+sudo systemctl daemon-reload
 systemctl enable -q --now mattermost.service
 msg_ok "Created Service"
 
