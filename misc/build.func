@@ -603,7 +603,7 @@ lxc.mount.entry: /dev/dri/renderD128 dev/dri/renderD128 none bind,optional,creat
 EOF
     fi
   else
-    if [[ "$APP" == "Channels" || "$APP" == "Emby" || "$APP" == "Frigate" || "$APP" == "Jellyfin" || "$APP" == "Plex" || "$APP" == "Scrypted" || "$APP" == "Tdarr" || "$APP" == "Unmanic" || "$APP" == "ErsatzTV"]]; then
+    if [[ "$APP" == "Channels" || "$APP" == "Emby" || "$APP" == "Frigate" || "$APP" == "Jellyfin" || "$APP" == "Plex" || "$APP" == "Scrypted" || "$APP" == "Tdarr" || "$APP" == "Unmanic" || "$APP" == "ErsatzTV" ]]; then
       if [[ -e "/dev/dri/renderD128" ]]; then
         if [[ -e "/dev/dri/card0" ]]; then
           cat <<EOF >>$LXC_CONFIG
@@ -622,7 +622,6 @@ EOF
     fi
   fi
 
-
   # This starts the container and executes <app>-install.sh
   msg_info "Starting LXC Container"
   pct start "$CTID"
@@ -630,10 +629,10 @@ EOF
   if [ "$var_os" == "alpine" ]; then
     sleep 3
         pct exec "$CTID" -- /bin/sh -c 'cat <<EOF >/etc/apk/repositories
-#http://dl-cdn.alpinelinux.org/alpine/latest-stable/main
-#http://dl-cdn.alpinelinux.org/alpine/latest-stable/community
-http://dl-cdn.alpinelinux.org/alpine/v3.19/main
-http://dl-cdn.alpinelinux.org/alpine/v3.19/community
+http://dl-cdn.alpinelinux.org/alpine/latest-stable/main
+http://dl-cdn.alpinelinux.org/alpine/latest-stable/community
+#http://dl-cdn.alpinelinux.org/alpine/v3.19/main
+#http://dl-cdn.alpinelinux.org/alpine/v3.19/community
 EOF'
     pct exec "$CTID" -- ash -c "apk add bash >/dev/null"
   fi
