@@ -50,9 +50,9 @@ RELEASE=$(curl -s https://api.github.com/repos/ErsatzTV/ErsatzTV/releases | grep
 wget -qO- "https://github.com/ErsatzTV/ErsatzTV/releases/download/${RELEASE}/ErsatzTV-${RELEASE}-linux-x64.tar.gz" | tar -xz -C /opt
 mv "/opt/ErsatzTV-${RELEASE}-linux-x64" /opt/ErsatzTV
 if [[ "$CTTYPE" == "0" ]]; then
-  sed -i -e 's/^ssl-cert:x:104:$/render:x:104:root,ersatztv/' -e 's/^render:x:108:root,ersatztv$/ssl-cert:x:108:/' /etc/group
+  sed -i -e 's/^sgx:x:104:$/render:x:104:root/' -e 's/^render:x:106:root$/sgx:x:106:/' /etc/group
 else
-  sed -i -e 's/^ssl-cert:x:104:$/render:x:104:ersatztv/' -e 's/^render:x:108:ersatztv$/ssl-cert:x:108:/' /etc/group
+  sed -i -e 's/^sgx:x:104:$/render:x:104:/' -e 's/^render:x:106:$/sgx:x:106:/' /etc/group
 fi
 msg_ok "Installed ErsatzTV"
 
