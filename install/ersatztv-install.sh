@@ -15,24 +15,45 @@ setting_up_container
 network_check
 update_os
 
-msg_info "Installing Dependencies (Patience)"
-$STD apt-get install -y --no-install-recommends \
-  ffmpeg \
-  build-essential \
-  unzip \
-  pkg-config \
-  curl \
-  sudo \
-  git \
-  make \
-  mc
+msg_info "Installing Dependencies"
+$STD apt-get install -y curl
+$STD apt-get install -y sudo
+$STD apt-get install -y mc
 msg_ok "Installed Dependencies"
 
+msg_info "Setting Up Hardware Acceleration"
+$STD apt-get -y install {va-driver-all,ocl-icd-libopencl1,intel-opencl-icd,vainfo,intel-gpu-tools}
+if [[ "$CTTYPE" == "0" ]]; then
+  chgrp video /dev/dri
+  chmod 755 /dev/dri
+  chmod 660 /dev/dri/*
+  $STD adduser $(id -u -n) video
+  $STD adduser $(id -u -n) render
+fi
+msg_ok "Set Up Hardware Acceleration"
 
-msg_info "Installing ErsatzTV " 
+msg_info "Installing FFmpeg (Patience)"
+wget -q https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb
+$STD dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
+cat <<EOF >/etc/apt/sources.list.d/backports.list
+deb https://www.deb-multimedia.org bookworm main non-free
+deb https://www.deb-multimedia.org bookworm-backports main
+EOF
+$STD apt update
+DEBIAN_FRONTEND=noninteractive $STD apt-get install -t bookworm-backports ffmpeg -y
+rm -rf /etc/apt/sources.list.d/backports.list deb-multimedia-keyring_2016.8.1_all.deb
+$STD apt update
+msg_ok "Installed FFmpeg"
+
+msg_info "Installing ErsatzTV" 
 RELEASE=$(curl -s https://api.github.com/repos/ErsatzTV/ErsatzTV/releases | grep -oP '"tag_name": "\K[^"]+' | head -n 1)
 wget -qO- "https://github.com/ErsatzTV/ErsatzTV/releases/download/${RELEASE}/ErsatzTV-${RELEASE}-linux-x64.tar.gz" | tar -xz -C /opt
 mv "/opt/ErsatzTV-${RELEASE}-linux-x64" /opt/ErsatzTV
+if [[ "$CTTYPE" == "0" ]]; then
+  sed -i -e 's/^ssl-cert:x:104:$/render:x:104:root,ersatztv/' -e 's/^render:x:108:root,ersatztv$/ssl-cert:x:108:/' /etc/group
+else
+  sed -i -e 's/^ssl-cert:x:104:$/render:x:104:ersatztv/' -e 's/^render:x:108:ersatztv$/ssl-cert:x:108:/' /etc/group
+fi
 msg_ok "Installed ErsatzTV"
 
 msg_info "Creating Service"
@@ -59,6 +80,6 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"
