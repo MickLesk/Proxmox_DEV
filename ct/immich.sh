@@ -13,13 +13,13 @@ cat <<"EOF"
    / // __ `__ \/ __ `__ \/ / ___/ __ \
  _/ // / / / / / / / / / / / /__/ / / /
 /___/_/ /_/ /_/_/ /_/ /_/_/\___/_/ /_/ 
-                                                                               
+                                       
 EOF
 }
 header_info
 echo -e "Loading..."
 APP="Immich"
-var_disk="10"
+var_disk="50"
 var_cpu="4"
 var_ram="4096"
 var_os="debian"
@@ -54,24 +54,43 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -d /opt/tandoor ]]; then 
-	msg_error "No ${APP} Installation Found!"; 
-	exit; 
+INSTALL_DIR_app=/home/immich/app
+if [[ ! -d $INSTALL_DIR_app ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
+  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
+  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
-msg_info "Updating ${APP} LXC"
-if cd /opt/tandoor && git pull | grep -q 'Already up to date'; then
-    msg_error "There is currently no update path available."
-else
-    export $(cat /opt/tandoor/.env | grep "^[^#]" | xargs)
-    /opt/tandoor/bin/pip3 install -r requirements.txt >/dev/null 2>&1
-    /opt/tandoor/bin/python3 manage.py migrate >/dev/null 2>&1
-    /opt/tandoor/bin/python3 manage.py collectstatic --no-input >/dev/null 2>&1
-    /opt/tandoor/bin/python3 manage.py collectstatic_js_reverse >/dev/null 2>&1
-    cd /opt/tandoor/vue
-    yarn install >/dev/null 2>&1
-    yarn build >/dev/null 2>&1
-    sudo systemctl restart gunicorn_tandoor
-fi
+rm -rf $INSTALL_DIR_app
+
+su immich -c "git clone https://github.com/loeeeee/immich-in-lxc.git /tmp"
+
+msg_info "Stopping immich"
+systemctl stop immich-microservices.service
+systemctl stop immich-ml.service
+systemctl stop immich-web.service
+msg_ok "Stopped immich"
+
+cd /tmp/immich-in-lxc
+#su immich -c "/tmp/install.sh" # creates env file
+# Replace password in runtime.env file
+#sed -i 's/A_SEHR_SAFE_PASSWORD/YUaaWZAvtL@JpNgpi3z6uL4MmDMR_w/g' runtime.env
+
+msg_info "Updating immich"
+
+su immich -c "/tmp/install.sh" # runs rest of script
+
+msg_ok "Updated immich"
+
+msg_info "Starting immich"
+systemctl stop immich-microservices.service
+systemctl stop immich-ml.service
+systemctl stop immich-web.service
+msg_ok "Started immich"
+
+msg_info "Cleaning Up"
+rm -rf /tmp/immich-in-lxc
+msg_ok "Cleaned"
+msg_ok "Updated Successfully"
 exit
 }
 
@@ -81,4 +100,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:8002${CL} \n"
+         ${BL}http://${IP}:3001${CL} \n"
