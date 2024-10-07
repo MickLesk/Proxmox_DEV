@@ -60,7 +60,7 @@ wget -q "https://github.com/msgbyte/tianji/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
 mv tianji-${RELEASE} /opt/tianji
 cd tianji
-export NODE_OPTIONS="--max_old_space_size=2048 --gc-interval=100"
+export NODE_OPTIONS="--max_old_space_size=2048 --optimize_for_size --max_semi_space_size=4"
 $STD pnpm install 
 $STD pnpm build 
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
