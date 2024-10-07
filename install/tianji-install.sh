@@ -61,8 +61,8 @@ unzip -q v${RELEASE}.zip
 mv tianji-${RELEASE} /opt/tianji
 cd tianji
 export NODE_OPTIONS="--max_old_space_size=2048 --gc-interval=100"
-$STD pnpm install --frozen-lockfile
-$STD pnpm build --max-concurrency=2
+$STD pnpm install 
+$STD pnpm build 
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 cat <<EOF >/opt/tianji/src/server/.env
 DATABASE_URL="postgresql://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME?schema=public"
