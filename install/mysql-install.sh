@@ -27,6 +27,7 @@ msg_ok "Installed Dependencies"
 msg_info "Setup Repository..."
 curl -fsSL https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 | gpg --dearmor  -o /usr/share/keyrings/mysql.gpg
 echo "deb [signed-by=/usr/share/keyrings/mysql.gpg] http://repo.mysql.com/apt/debian $(lsb_release -sc) mysql-8.0" >/etc/apt/sources.list.d/mysql.list
+sudo apt update
 msg_ok "Repository set" 
 
 
