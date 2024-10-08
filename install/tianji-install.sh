@@ -65,7 +65,7 @@ mv tianji-${RELEASE} /opt/tianji
 cd tianji
 export NODE_OPTIONS="--max_old_space_size=4096"
 export COREPACK_ENABLE_STRICT=0
-$STD pnpm install --filter @tianji/client... --config.dedupe-peer-dependents=false --frozen-lockfile
+$STD pnpm install --no-strict --filter @tianji/client... --config.dedupe-peer-dependents=false --frozen-lockfile
 $STD pnpm build:static
 pnpm install --filter @tianji/server... --config.dedupe-peer-dependents=false
 mkdir -p ./src/server/public
