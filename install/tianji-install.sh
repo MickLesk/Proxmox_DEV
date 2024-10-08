@@ -59,8 +59,9 @@ msg_ok "Set up PostgreSQL"
 msg_info "Installing Tianji (Extreme Patience)"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/msgbyte/tianji/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
-wget -q "https://github.com/msgbyte/tianji/archive/refs/tags/v${RELEASE}.zip" | unzip -q -d /opt/tianji
-mv /opt/tianji/tianji-${RELEASE} /opt/tianji
+wget -q "https://github.com/msgbyte/tianji/archive/refs/tags/v${RELEASE}.zip"
+unzip -q v${RELEASE}.zip
+mv tianji-${RELEASE} /opt/tianji
 cd tianji
 export NODE_OPTIONS="--max_old_space_size=4096"
 $STD pnpm install --filter @tianji/client... --config.dedupe-peer-dependents=false --frozen-lockfile
