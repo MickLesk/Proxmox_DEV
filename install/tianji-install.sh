@@ -35,7 +35,7 @@ curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dea
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
 $STD apt-get update
 $STD apt-get install -y nodejs
-$STD npm install -g pnpm@9.7.1
+$STD npm install -g pnpm
 $STD npm install -g pm2 
 msg_ok "Installed Node.js, pnpm & pm2"
 
@@ -64,6 +64,7 @@ unzip -q v${RELEASE}.zip
 mv tianji-${RELEASE} /opt/tianji
 cd tianji
 export NODE_OPTIONS="--max_old_space_size=4096"
+export COREPACK_ENABLE_STRICT=0
 $STD pnpm install --filter @tianji/client... --config.dedupe-peer-dependents=false --frozen-lockfile
 $STD pnpm build:static 
 pnpm install --filter @tianji/server... --config.dedupe-peer-dependents=false
