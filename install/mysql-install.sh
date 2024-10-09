@@ -59,18 +59,14 @@ if [[ ${prompt,,} =~ ^(y|yes)$ ]]; then
     php-json \
     php-curl 
 	
-	RELEASE=$(curl -s https://api.github.com/repos/phpmyadmin/phpmyadmin/releases/latest | grep '"tag_name":' | head -n 1 | awk -F'"' '{print $4}')
-	wget -q "https://github.com/phpmyadmin/phpmyadmin/archive/refs/tags/${RELEASE}.zip"
+	wget -q "https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.gz"
 	sudo mkdir -p /var/www/html/phpMyAdmin
-	sudo unzip -q ${RELEASE}.zip -d /tmp/phpmyadmin-temp
-	sudo mv /tmp/phpmyadmin-temp/phpmyadmin-*/* /var/www/html/phpMyAdmin/
-	sudo rm -rf /tmp/phpmyadmin-temp
+	sudo tar xvf phpMyAdmin-5.2.1-all-languages.tar.gz --strip-components=1 -C /var/www/html/phpMyAdmin
 	sudo cp /var/www/html/phpMyAdmin/config.sample.inc.php /var/www/html/phpMyAdmin/config.inc.php
 	SECRET=$(openssl rand -base64 32)
 	sudo sed -i "s#\$cfg\['blowfish_secret'\] = '';#\$cfg['blowfish_secret'] = '${SECRET}';#" /var/www/html/phpMyAdmin/config.inc.php
 	sudo chmod 660 /var/www/html/phpMyAdmin/config.inc.php
 	sudo chown -R www-data:www-data /var/www/html/phpMyAdmin
-	sudo a2enmod rewrite
 	sudo systemctl restart apache2
   msg_ok "Added PhpMyAdmin"
 fi
