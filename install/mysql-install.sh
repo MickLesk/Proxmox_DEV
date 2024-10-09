@@ -48,7 +48,7 @@ msg_ok "MySQL Server configured"
 
 read -r -p "Would you like to add PhpMyAdmin? <y/N> " prompt
 if [[ ${prompt,,} =~ ^(y|yes)$ ]]; then
-  msg_info "Adding PhpMyAdmin"
+  msg_info "Adding phpMyAdmin"
   $STD apt-get install -y \
     apache2 \
     php \
@@ -68,7 +68,7 @@ if [[ ${prompt,,} =~ ^(y|yes)$ ]]; then
 	sudo chmod 660 /var/www/html/phpMyAdmin/config.inc.php
 	sudo chown -R www-data:www-data /var/www/html/phpMyAdmin
 	sudo systemctl restart apache2
-  msg_ok "Added PhpMyAdmin"
+  msg_ok "Added phpMyAdmin"
 fi
 
 msg_info "Start Service"
