@@ -24,14 +24,10 @@ $STD apt-get install -y \
   mc
 msg_ok "Installed Dependencies"
 
-msg_info "Setup Repository..."
+msg_info "Installing MySQL"
 curl -fsSL https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 | gpg --dearmor  -o /usr/share/keyrings/mysql.gpg
 echo "deb [signed-by=/usr/share/keyrings/mysql.gpg] http://repo.mysql.com/apt/debian $(lsb_release -sc) mysql-8.0" >/etc/apt/sources.list.d/mysql.list
-sudo apt update
-msg_ok "Repository set" 
-
-
-msg_info "Installing MySQL"
+$STD sudo apt update
 export DEBIAN_FRONTEND=noninteractive
 $STD apt-get install -y \
   mysql-common \
@@ -41,7 +37,7 @@ msg_ok "Installed MySQL"
 
 msg_info "Configure MySQL Server"
 ADMIN_PASS="$(openssl rand -base64 18 | cut -c1-13)"
-sudo mysql -uroot -p"$ADMIN_PASS" -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$ADMIN_PASS'; FLUSH PRIVILEGES;"
+$STD sudo mysql -uroot -p"$ADMIN_PASS" -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$ADMIN_PASS'; FLUSH PRIVILEGES;"
 echo "" >>~/mysql.creds
 echo -e "MySQL Root Password: $ADMIN_PASS" >>~/mysql.creds
 msg_ok "MySQL Server configured"
@@ -61,7 +57,7 @@ if [[ ${prompt,,} =~ ^(y|yes)$ ]]; then
 	
 	wget -q "https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.gz"
 	sudo mkdir -p /var/www/html/phpMyAdmin
-	sudo tar xvf phpMyAdmin-5.2.1-all-languages.tar.gz --strip-components=1 -C /var/www/html/phpMyAdmin
+	$STD sudo tar xvf phpMyAdmin-5.2.1-all-languages.tar.gz --strip-components=1 -C /var/www/html/phpMyAdmin
 	sudo cp /var/www/html/phpMyAdmin/config.sample.inc.php /var/www/html/phpMyAdmin/config.inc.php
 	SECRET=$(openssl rand -base64 32)
 	sudo sed -i "s#\$cfg\['blowfish_secret'\] = '';#\$cfg['blowfish_secret'] = '${SECRET}';#" /var/www/html/phpMyAdmin/config.inc.php
@@ -72,7 +68,7 @@ if [[ ${prompt,,} =~ ^(y|yes)$ ]]; then
 fi
 
 msg_info "Start Service"
-sudo systemctl enable --now mysql
+sudo systemctl enable -q --now mysql
 msg_ok "Service started"
 
 motd_ssh
