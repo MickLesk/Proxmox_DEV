@@ -68,5 +68,5 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} setup completed successfully with the IP: ${IP}.\n\
-If you use phpMyAdmin, you can access it at the following URL:\n\
-${BL}http://${IP}/phpMyAdmin${CL}\n"
+		 If you use phpMyAdmin, you can access it at the following URL:\n\
+		 ${BL}http://${IP}/phpMyAdmin${CL}\n"
