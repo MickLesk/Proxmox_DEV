@@ -41,8 +41,7 @@ msg_ok "Installed MySQL"
 
 msg_info "Configure MySQL Server"
 ADMIN_PASS="$(openssl rand -base64 18 | cut -c1-13)"
-sudo mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$ADMIN_PASS';"
-sudo mysql -uroot -e "FLUSH PRIVILEGES;"
+sudo mysql -uroot -p"$ADMIN_PASS" -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$ADMIN_PASS'; FLUSH PRIVILEGES;"
 echo "" >>~/mysql.creds
 echo -e "MySQL Root Password: $ADMIN_PASS" >>~/mysql.creds
 msg_ok "MySQL Server configured"
