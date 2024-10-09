@@ -36,9 +36,16 @@ export DEBIAN_FRONTEND=noninteractive
 $STD apt-get install -y \
   mysql-common \
   mysql-community-client \
-  mysql-client \
   mysql-community-server
 msg_ok "Installed MySQL"
+
+msg_info "Configure MySQL Server"
+ADMIN_PASS="$(openssl rand -base64 18 | cut -c1-13)"
+sudo mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$ADMIN_PASS';"
+sudo mysql -uroot -e "FLUSH PRIVILEGES;"
+echo "" >>~/mysql.creds
+echo -e "MySQL Root Password: $ADMIN_PASS" >>~/mysql.creds
+msg_ok "MySQL Server configured"
 
 read -r -p "Would you like to add PhpMyAdmin? <y/N> " prompt
 if [[ ${prompt,,} =~ ^(y|yes)$ ]]; then
@@ -51,10 +58,21 @@ if [[ ${prompt,,} =~ ^(y|yes)$ ]]; then
     php-zip \
     php-gd \
     php-json \
-    php-curl \
-    phpmyadmin
-sudo a2enmod rewrite
-sudo systemctl restart apache2
+    php-curl 
+	
+	RELEASE=$(curl -s https://api.github.com/repos/phpmyadmin/phpmyadmin/releases/latest | grep '"tag_name":' | head -n 1 | awk -F'"' '{print $4}')
+	wget -q "https://github.com/phpmyadmin/phpmyadmin/archive/refs/tags/${RELEASE}.zip"
+	sudo mkdir -p /var/www/html/phpMyAdmin
+	sudo unzip -q ${RELEASE}.zip -d /tmp/phpmyadmin-temp
+	sudo mv /tmp/phpmyadmin-temp/phpmyadmin-*/* /var/www/html/phpMyAdmin/
+	sudo rm -rf /tmp/phpmyadmin-temp
+	sudo cp /var/www/html/phpMyAdmin/config.sample.inc.php /var/www/html/phpMyAdmin/config.inc.php
+	SECRET=$(openssl rand -base64 32)
+	sudo sed -i "s#\$cfg\['blowfish_secret'\] = '';#\$cfg['blowfish_secret'] = '${SECRET}';#" /var/www/html/phpMyAdmin/config.inc.php
+	sudo chmod 660 /var/www/html/phpMyAdmin/config.inc.php
+	sudo chown -R www-data:www-data /var/www/html/phpMyAdmin
+	sudo a2enmod rewrite
+	sudo systemctl restart apache2
   msg_ok "Added PhpMyAdmin"
 fi
 
