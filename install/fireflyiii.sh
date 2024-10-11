@@ -21,7 +21,7 @@ $STD apt-get install -y --no-install-recommends \
   apache2 \
   curl \
   sudo \
-lsb-release \
+  lsb-release \
   git \
   make \
   mc
