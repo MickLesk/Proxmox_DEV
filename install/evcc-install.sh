@@ -22,8 +22,8 @@ $STD apt-get install -y \
   mc 
 msg_ok "Installed Dependencies"
 
-msg_info "Installing ${APPLICATION} ${RELEASE}"
 RELEASE=$(curl -s https://api.github.com/repos/evcc-io/evcc/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-4) }')
+msg_info "Installing ${APPLICATION} ${RELEASE}"
 wget -q "https://github.com/evcc-io/evcc/releases/download/${RELEASE}/evcc_${RELEASE}_amd64.deb"
 $STD dpkg -i evcc_${RELEASE}_amd64.deb
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
