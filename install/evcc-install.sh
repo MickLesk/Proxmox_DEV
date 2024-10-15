@@ -38,7 +38,6 @@ $STD sudo apt install -y evcc
 $STD systemctl enable --now evcc.service
 msg_ok "Installed ${APPLICATION}"
 
-
 motd_ssh
 customize
 
