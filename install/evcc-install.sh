@@ -22,7 +22,7 @@ $STD apt-get install -y \
   mc 
 msg_ok "Installed Dependencies"
 
-RELEASE=$(curl -s https://api.github.com/repos/evcc-io/evcc/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-4) }')
+RELEASE=$(curl -s https://api.github.com/repos/evcc-io/evcc/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 msg_info "Installing ${APPLICATION} ${RELEASE}"
 wget -q "https://github.com/evcc-io/evcc/releases/download/${RELEASE}/evcc_${RELEASE}_amd64.deb"
 $STD dpkg -i evcc_${RELEASE}_amd64.deb
@@ -33,6 +33,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
+rm -rf evcc_${RELEASE}_amd64.deb
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
