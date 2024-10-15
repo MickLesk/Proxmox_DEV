@@ -35,6 +35,7 @@ msg_ok "evcc Repository setup sucessfully"
 
 msg_info "Installing ${APPLICATION}"
 $STD sudo apt install -y evcc
+$STD systemctl enable --now evcc.service
 msg_ok "Installed ${APPLICATION}"
 
 
