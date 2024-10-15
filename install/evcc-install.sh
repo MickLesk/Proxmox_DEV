@@ -42,7 +42,6 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-rm -rf evcc_${RELEASE}_amd64.deb
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
