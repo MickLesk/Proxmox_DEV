@@ -65,6 +65,10 @@ if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_v
   systemctl stop jellyseerr
   msg_ok "${APP} Stopped"
 
+  msg_info "Setting Container to Extended Resources"
+  pct set $CTID -memory 4096
+  msg_ok "Set Container to Extended Resources"
+  
   msg_info "Updating ${APP} to ${RELEASE}"
   cd /opt
   wget -q "https://github.com/Fallenbagel/jellyseerr/archive/refs/tags/${RELEASE}.zip"
