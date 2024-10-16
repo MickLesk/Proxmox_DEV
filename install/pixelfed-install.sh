@@ -24,7 +24,7 @@ $STD apt-get install -y \
   gnupg2 \
   ca-certificates \
   lsb-release \
-  php8.2-full \
+  php8.2-{fpm,bcmath,ctype,curl,exif,gd,iconv,intl,mbstring,redis,tokenizer,xml,zip,pgsql,pdo-pgsql,bz2,sqlite3} \
   composer \
   redis-server \
   ffmpeg \
