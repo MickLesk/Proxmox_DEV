@@ -36,38 +36,36 @@ $STD apt-get install -y \
 msg_ok "Installed Dependencies"
 
 msg_info "Configure Redis Socket"
+REDIS_PASS="$(openssl rand -base64 18 | cut -c1-13)"
 sed -i 's/^port .*/port 0/' /etc/redis/redis.conf
+sed -i "s/^# requirepass foobared/requirepass $REDIS_PASS/" /etc/redis/redis.conf
 sed -i 's|^# unixsocket .*|unixsocket /run/redis/redis.sock|' /etc/redis/redis.conf
 sed -i 's/^# unixsocketperm .*/unixsocketperm 770/' /etc/redis/redis.conf
 systemctl restart redis
 msg_ok "Redis Socket configured"
 
-msg_info "Add pixelfed user"
-useradd -rU -s /bin/bash pixelfed
-msg_ok "Pixelfed User Added"
+#msg_info "Add pixelfed user"
+#useradd -rU -s /bin/bash pixelfed
+#msg_ok "Pixelfed User Added"
 
-msg_info "Configure PHP-FPM for Pixelfed"
-cp /etc/php/8.2/fpm/pool.d/www.conf /etc/php/8.2/fpm/pool.d/pixelfed.conf
-sed -i 's/\[www\]/\[pixelfed\]/' /etc/php/8.2/fpm/pool.d/pixelfed.conf
-sed -i 's/^user = www-data/user = pixelfed/' /etc/php/8.2/fpm/pool.d/pixelfed.conf
-sed -i 's/^group = www-data/group = pixelfed/' /etc/php/8.2/fpm/pool.d/pixelfed.conf
-sed -i 's|^listen = .*|listen = /run/php-fpm/pixelfed.sock|' /etc/php/8.2/fpm/pool.d/pixelfed.conf
-systemctl restart php8.2-fpm
-msg_ok "successfully configured PHP-FPM"
+#msg_info "Configure PHP-FPM for Pixelfed"
+#cp /etc/php/8.2/fpm/pool.d/www.conf /etc/php/8.2/fpm/pool.d/pixelfed.conf
+#sed -i 's/\[www\]/\[pixelfed\]/' /etc/php/8.2/fpm/pool.d/pixelfed.conf
+#sed -i 's/^user = www-data/user = pixelfed/' /etc/php/8.2/fpm/pool.d/pixelfed.conf
+#sed -i 's/^group = www-data/group = pixelfed/' /etc/php/8.2/fpm/pool.d/pixelfed.conf
+#sed -i 's|^listen = .*|listen = /run/php-fpm/pixelfed.sock|' /etc/php/8.2/fpm/pool.d/pixelfed.conf
+#systemctl restart php8.2-fpm
+#msg_ok "successfully configured PHP-FPM"
+
+msg_info "Setup Composer"
+curl -sS https://getcomposer.org/installer | php
+php composer.phar install --no-dev
+msg_ok "Composer setup"
 
 msg_info "Setup Postgres Database"
 DB_NAME=pixelfed_db
 DB_USER=pixelfed_user
-DB_ENCODING=utf8
-DB_TIMEZONE=UTC
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
-sed -i -e "s|DB_CONNECTION=.*|DB_CONNECTION=pgsql|g" \
-	   -e "s|DB_PORT=.*|DB_PORT=5432|g" \
-       -e "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|g" \
-       -e "s|DB_DATABASE=.*|DB_DATABASE=$DB_NAME|g" \
-       -e "s|DB_USERNAME=.*|DB_USERNAME=$DB_USER|g" /opt/pixelfed/.env
-
-
 curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
 echo "deb https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" >/etc/apt/sources.list.d/pgdg.list
 $STD apt-get update
@@ -75,10 +73,7 @@ $STD apt-get install -y postgresql-17
 $STD sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS';"
 $STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER TEMPLATE template0;"
 $STD sudo -u postgres psql -c "ALTER DATABASE $DB_NAME OWNER TO $DB_USER;"
-$STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET client_encoding TO 'utf8';"
 $STD sudo -u postgres psql -c "GRANT CREATE ON SCHEMA public TO $DB_USER;" 
-$STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET default_transaction_isolation TO 'read committed';"
-$STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET timezone TO 'UTC'"
 echo "" >>~/pixelfed.creds
 echo -e "Pixelfed Database Name: $DB_NAME" >>~/pixelfed.creds
 echo -e "Pixelfed Database User: $DB_USER" >>~/pixelfed.creds
@@ -93,12 +88,24 @@ unzip -q ${RELEASE}.zip
 mv pixelfed-${RELEASE:1} /opt/pixelfed
 rm -R ${RELEASE}.zip 
 cd /opt/pixelfed
-cd /opt/pixelfed
-sudo chown -R www-data:www-data . 
-sudo find . -type d -exec chmod 755 {} \;  
-sudo find . -type f -exec chmod 644 {} \;  
-composer install --no-ansi --no-interaction --optimize-autoloader
+#sudo chown -R www-data:www-data . 
+#sudo find . -type d -exec chmod 755 {} \;  
+#sudo find . -type f -exec chmod 644 {} \;  
+chown -R www-data:www-data /opt/pixelfed
+chmod -R 755 /opt/pixelfed
+php composer.phar install --no-dev --no-ansi --no-interaction --optimize-autoloader
+
+msg_info "Setup envoirement & PHP Database Migration"
 cp .env.example .env
+sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" .env
+sed -i "s/DB_PORT=.*/DB_PORT=5432/" .env
+sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" .env
+sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" .env
+sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASSWORD/" .env
+sed -i "s/REDIS_HOST=.*/REDIS_HOST=127.0.0.1/" .env
+sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$REDIS_PASS/" .env
+sed -i "s/APP_URL=.*/APP_URL=http:\/\/localhost/" .env  # localhost URL
+
 php artisan key:generate
 php artisan storage:link
 php artisan migrate --force
@@ -110,26 +117,71 @@ php artisan view:cache
 msg_ok "Pixelfed successfully set up"
 
 msg_info "Creating Services"
-cat <<EOF >/etc/systemd/system/pixelfed.service
-[Unit]
-Description=Pixelfed task queueing via Laravel Horizon
-After=network.target
-Requires=postgresql
-Requires=php-fpm
-Requires=redis
+cat <<EOF >/etc/supervisor/conf.d/pixelfed-worker.conf
+[program:pixelfed-worker]
+command=/usr/bin/php /opt/pixelfed/artisan queue:work
+autostart=true
+autorestart=true
+user=root
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/opt/pixelfed/storage/logs/worker.log
+EOL
+EOF
+supervisorctl reread
+supervisorctl update
+supervisorctl start pixelfed-worker
 
-[Service]
-Type=simple
-ExecStart=/usr/bin/php /opt/pixelfed/artisan serve --host=0.0.0.0 --port=8000
-WorkingDirectory=/opt/pixelfed
-User=root
-Restart=on-failure
+cat <<EOF >/etc/nginx/sites-available/pixelfed.conf
+server {
+    listen 80;
+    server_name localhost;  # Nutzung von localhost
+    root /opt/pixelfed/public;
 
-[Install]
-WantedBy=multi-user.target
+    index index.php;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    client_max_body_size 20M;
+}
 EOF
 
-systemctl enable -q --now pixelfed.service
+ln -s /etc/nginx/sites-available/pixelfed.conf /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+
+#cat <<EOF >/etc/systemd/system/pixelfed.service
+#[Unit]
+#Description=Pixelfed task queueing via Laravel Horizon
+#After=network.target
+#Requires=postgresql
+#Requires=php-fpm
+#Requires=redis
+
+#[Service]
+#Type=simple
+#ExecStart=/usr/bin/php /opt/pixelfed/artisan serve --host=0.0.0.0 --port=8000
+#WorkingDirectory=/opt/pixelfed
+#User=root
+#Restart=on-failure
+
+#[Install]
+#WantedBy=multi-user.target
+#EOF
+
+#systemctl enable -q --now pixelfed.service
 msg_ok "Created Services"
 
 motd_ssh
