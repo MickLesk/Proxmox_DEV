@@ -55,21 +55,39 @@ function default_settings() {
 function update_script() {
 header_info
 if [[ ! -d /opt/jellyseerr ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-msg_info "Updating $APP"
-systemctl stop jellyseerr
-cd /opt/jellyseerr
-output=$(git pull)
-git pull &>/dev/null
-if echo "$output" | grep -q "Already up to date."
-then
-  msg_ok " $APP is already up to date."
-  systemctl start jellyseerr
-  exit
+if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
+  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
+  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
-CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile --network-timeout 1000000 &>/dev/null
-yarn build &>/dev/null
-systemctl start jellyseerr
-msg_ok "Updated $APP"
+RELEASE=$(curl -s https://api.github.com/repos/Fallenbagel/jellyseerr/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
+  msg_info "Stopping ${APP}"
+  systemctl stop jellyseerr
+  msg_ok "${APP} Stopped"
+
+  msg_info "Updating ${APP} to ${RELEASE}"
+  cd /opt
+  wget -q "https://github.com/Fallenbagel/jellyseerr/archive/refs/tags/${RELEASE}.zip"
+  unzip -q ${RELEASE}.zip 
+  mv jellyseerr-${RELEASE:1} /opt/jellyseerr
+  rm -R ${RELEASE}.zip 
+  cd /opt/jellyseerr
+  pnpm install &>/dev/null
+  yarn build &>/dev/null
+  echo "${RELEASE}" >/opt/${APP}_version.txt
+  msg_ok "Updated ${APP}"
+
+  msg_info "Starting ${APP}"
+  systemctl start jellyseerrr
+  msg_ok "Started ${APP}"
+
+  msg_info "Cleaning Up"
+  rm -R ${RELEASE}.zip 
+  msg_ok "Cleaned"
+  msg_ok "Updated Successfully"
+else
+  msg_ok "No update required. ${APP} is already at ${RELEASE}"
+fi
 exit
 }
 

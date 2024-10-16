@@ -54,6 +54,7 @@ PORT=5055
 # HOST=0.0.0.0
 # FORCE_IPV4_FIRST=true
 EOF
+echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Jellyseerr"
 
 msg_info "Creating Service"
