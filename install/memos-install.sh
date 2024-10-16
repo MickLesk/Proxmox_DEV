@@ -54,6 +54,7 @@ unzip -q ${RELEASE}.zip
 mv memos-${RELEASE:1} /opt/memos
 rm -R ${RELEASE}.zip 
 cd /opt/memos/web
+corepack enable
 pnpm install --frozen-lockfile
 pnpm build
 cp -r /opt/memos/web/dist /opt/memos/server/router/frontend
