@@ -39,9 +39,9 @@ msg_ok "Installed pnpm"
 
 msg_info "Installing Golang"
 set +o pipefail
-RELEASE=$(curl -s https://go.dev/dl/ | grep -o "go.*\linux-amd64.tar.gz" | head -n 1)
-wget -q https://golang.org/dl/$RELEASE
-tar -xzf $RELEASE -C /usr/local
+GOLANG=$(curl -s https://go.dev/dl/ | grep -o "go.*\linux-amd64.tar.gz" | head -n 1)
+wget -q https://golang.org/dl/$GOLANG
+tar -xzf $GOLANG -C /usr/local
 ln -s /usr/local/go/bin/go /usr/local/bin/go
 set -o pipefail
 msg_ok "Installed Golang"
@@ -54,8 +54,8 @@ unzip -q ${RELEASE}.zip
 mv memos-${RELEASE:1} /opt/memos
 rm -R ${RELEASE}.zip 
 cd /opt/memos/web
-$STD pnpm i --frozen-lockfile
-$STD pnpm build
+pnpm i --frozen-lockfile
+pnpm build
 cp -r /opt/memos/web/dist /opt/memos/server/router/frontend
 go build -o memos ./bin/memos/main.go
 mkdir -p /opt/memos_data
