@@ -67,7 +67,7 @@ EnvironmentFile=/etc/jellyseerr/jellyseerr.conf
 Environment=NODE_ENV=production
 Type=exec
 WorkingDirectory=/opt/jellyseerr
-ExecStart=/usr/bin/yarn start
+ExecStart=/usr/bin/pnpm start
 
 [Install]
 WantedBy=multi-user.target
