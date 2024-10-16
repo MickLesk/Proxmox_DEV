@@ -48,14 +48,14 @@ msg_ok "Installed Golang"
 
 msg_info "Installing Memos (Patience)"
 RELEASE=$(curl -s https://api.github.com/repos/usememos/memos/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+export BUF_TOKEN=7e6b142af8b96e87f9ad11e36559197c78b4a2c4ad9750cb4d14b5ab4344ae76
 cd /opt
 wget -q "https://github.com/usememos/memos/archive/refs/tags/${RELEASE}.zip"
 unzip -q ${RELEASE}.zip 
 mv memos-${RELEASE:1} /opt/memos
 rm -R ${RELEASE}.zip 
 cd /opt/memos/web
-corepack enable
-pnpm i --frozen-lockfile
+pnpm install --frozen-lockfile
 pnpm build
 cp -r /opt/memos/web/dist /opt/memos/server/router/frontend/dist
 go build -o memos ./bin/memos/main.go
