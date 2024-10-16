@@ -55,9 +55,9 @@ mv memos-${RELEASE:1} /opt/memos
 rm -R ${RELEASE}.zip 
 cd /opt/memos/web
 corepack enable
-pnpm install --frozen-lockfile
+pnpm i --frozen-lockfile
 pnpm build
-cp -r /opt/memos/web/dist /opt/memos/server/router/frontend
+cp -r /opt/memos/web/dist /opt/memos/server/router/frontend/dist
 go build -o memos ./bin/memos/main.go
 mkdir -p /opt/memos_data
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
