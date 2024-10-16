@@ -56,7 +56,7 @@ mv memos-${RELEASE:1} /opt/memos
 rm -R ${RELEASE}.zip 
 cd /opt/memos/web
 pnpm install --frozen-lockfile
-pnpm build
+pnpm build --verbose
 cp -r /opt/memos/web/dist /opt/memos/server/router/frontend/dist
 go build -o memos ./bin/memos/main.go
 mkdir -p /opt/memos_data
