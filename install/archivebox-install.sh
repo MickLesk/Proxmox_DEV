@@ -16,7 +16,6 @@ update_os
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
   build-essential \
-  git \
   curl \
   sudo \
   python3-{pip,minimal,distutils,ldap,msgpack,mutagen,regex,pycryptodome} \
@@ -50,16 +49,15 @@ $STD apt-get update
 $STD apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
-msg_info "Installing pnpm"
-$STD npm install -g pnpm
-msg_ok "Installed pnpm"
-
 msg_info "Installing ArchiveBox"
+mkdir -p /opt/archivebox
+cd /opt/archivebox
+pip install --upgrade --ignore-installed archivebox[ldap,sonic]
 sudo adduser --system --shell /bin/bash --gecos 'Archive Box User' --group --disabled-password --home /opt/archivebox archivebox
 mkdir -p /opt/archivebox/data
 cd /opt/archivebox/data
-pip install --upgrade --ignore-installed archivebox[ldap,sonic]
 sudo chown -R archivebox:archivebox /opt/archivebox/data
+sudo chown -R archivebox:archivebox /root
 sudo chmod -R 755 /opt/archivebox/data
 sudo -u archivebox archivebox init 
 msg_ok "Installed ArchiveBox"
@@ -72,7 +70,7 @@ After=network.target
 
 [Service]
 User=archivebox
-WorkingDirectory=/opt/archivebox
+WorkingDirectory=/opt/archivebox/data
 ExecStart=/usr/local/bin/archivebox server 0.0.0.0:8000
 Restart=always
 
