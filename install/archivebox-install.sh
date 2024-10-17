@@ -34,8 +34,8 @@ $STD apt-get install -y \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Playright"
-pip install --upgrade playwright
-playwright install --with-deps chromium
+$STD pip install --upgrade playwright
+$STD playwright install --with-deps chromium
 msg_ok "Installed Playright"
 
 msg_info "Setting up Node.js Repository"
@@ -52,14 +52,14 @@ msg_ok "Installed Node.js"
 msg_info "Installing ArchiveBox"
 mkdir -p /opt/archivebox
 cd /opt/archivebox
-pip install --upgrade --ignore-installed archivebox[ldap,sonic]
+$STD pip install --upgrade --ignore-installed archivebox[ldap,sonic]
 sudo adduser --system --shell /bin/bash --gecos 'Archive Box User' --group --disabled-password --home /opt/archivebox archivebox
 mkdir -p /opt/archivebox/data
 cd /opt/archivebox/data
 sudo chown -R archivebox:archivebox /opt/archivebox/data
 sudo chown -R archivebox:archivebox /root
 sudo chmod -R 755 /opt/archivebox/data
-sudo -u archivebox archivebox init 
+$STD sudo -u archivebox archivebox init 
 msg_ok "Installed ArchiveBox"
 
 msg_info "Creating Service"
