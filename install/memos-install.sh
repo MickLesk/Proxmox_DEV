@@ -62,7 +62,7 @@ sudo npm install --global pnpm
 sudo pnpm install --frozen-lockfile
 sudo pnpm build
 cp -r /opt/memos/web/dist /opt/memos/server/router/frontend/dist
-go build -o memos ./bin/memos/main.go
+go build -o memos /opt/memos/bin/memos/main.go
 mkdir -p /opt/memos_data
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Memos"
