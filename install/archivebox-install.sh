@@ -50,10 +50,8 @@ $STD apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
 msg_info "Installing ArchiveBox"
-mkdir -p /opt/archivebox
-cd /opt/archivebox
 $STD pip install --upgrade --ignore-installed archivebox[ldap,sonic]
-sudo adduser --system --shell /bin/bash --gecos 'Archive Box User' --group --disabled-password --home /opt/archivebox archivebox
+$STD sudo adduser --system --shell /bin/bash --gecos 'Archive Box User' --group --disabled-password --home /opt/archivebox archivebox
 mkdir -p /opt/archivebox/data
 cd /opt/archivebox/data
 sudo chown -R archivebox:archivebox /opt/archivebox/data
