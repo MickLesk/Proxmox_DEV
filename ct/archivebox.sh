@@ -65,7 +65,7 @@ msg_ok "Stopped ${APP}"
 
 msg_info "Updating ${APP}"
 cd /opt/archivebox/data
-sudo -u archivebox archivebox setup &>/dev/null 
+pip install --upgrade --ignore-installed archivebox &>/dev/null 
 sudo -u archivebox archivebox init &>/dev/null
 msg_ok "Updated ${APP}"
 

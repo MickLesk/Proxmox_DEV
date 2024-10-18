@@ -18,7 +18,6 @@ $STD apt-get install -y \
   build-essential \
   curl \
   sudo \
-  python3-{pip,minimal,distutils,ldap,msgpack,mutagen,regex,pycryptodome} \
   libatomic1 \
   zlib1g-dev \
   libssl-dev \
@@ -30,34 +29,53 @@ $STD apt-get install -y \
   ffmpeg \
   ripgrep \
   mc
-
 msg_ok "Installed Dependencies"
 
+msg_info "Installing Python Dependencies..."
+$STD apt-get install -y \
+  python3-pip \
+  python3-distutils \
+  python3-regex
+msg_ok "Installed Python Dependencies"
+
 msg_info "Installing Playright"
-$STD pip install --upgrade playwright
+$STD pip install playwright
 $STD playwright install --with-deps chromium
 msg_ok "Installed Playright"
 
-msg_info "Setting up Node.js Repository"
+msg_info "Installing Node.js"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
-msg_ok "Set up Node.js Repository"
-
-msg_info "Installing Node.js"
-$STD apt-get update
-$STD apt-get install -y nodejs
+apt-get update
+apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
 msg_info "Installing ArchiveBox"
-$STD pip install --upgrade --ignore-installed archivebox[ldap,sonic]
-$STD sudo adduser --system --shell /bin/bash --gecos 'Archive Box User' --group --disabled-password --home /opt/archivebox archivebox
-mkdir -p /opt/archivebox/data
+mkdir -p /opt/archivebox/{data,.npm,.cache,.local}
+adduser --system --shell /bin/bash --gecos 'Archive Box User' --group --disabled-password  archivebox
+chown -R archivebox:archivebox /opt/archivebox/{data,.npm,.cache,.local}
+chmod -R 755 /opt/archivebox/data
+pip install archivebox
 cd /opt/archivebox/data
-sudo chown -R archivebox:archivebox /opt/archivebox/data
-sudo chown -R archivebox:archivebox /root
-sudo chmod -R 755 /opt/archivebox/data
-$STD sudo -u archivebox archivebox init 
+expect <<EOF
+set timeout -1
+spawn sudo -u archivebox archivebox setup
+
+expect "Username"
+send "\r"
+
+expect "Email address"
+send "\r"
+
+expect "Password"
+send "helper-scripts.com\r"
+
+expect "Password (again)"
+send "helper-scripts.com\r"
+
+expect eof
+EOF
 msg_ok "Installed ArchiveBox"
 
 msg_info "Creating Service"
