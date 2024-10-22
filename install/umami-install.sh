@@ -58,11 +58,11 @@ wget -q "https://github.com/umami-software/umami/archive/refs/tags/v${RELEASE}.z
 unzip -q v${RELEASE}.zip
 mv umami-${RELEASE} /opt/umami
 cd /opt/umami
-$STD yarn install
+yarn install
 cat <<EOF >/opt/umami/.env
 DATABASE_URL=postgresql://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME
 EOF
-$STD yarn build
+yarn build
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Umami"
 
