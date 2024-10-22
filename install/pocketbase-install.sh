@@ -41,7 +41,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/opt
-ExecStart=/opt/pocketbase serve --http 0.0.0.0:8090
+ExecStart=/opt/pocketbase/pocketbase serve --http 0.0.0.0:8090
 Restart=on-failure
 
 [Install]
