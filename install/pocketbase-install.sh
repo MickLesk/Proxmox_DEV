@@ -23,13 +23,14 @@ $STD apt-get install -y \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Pocketbase (Patience)"
-cd /opt
+mkdir -p /opt/pocketbase
+cd /opt/pocketbase
 RELEASE=$(curl -s https://api.github.com/repos/pocketbase/pocketbase/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
-wget -q "https://github.com/pocketbase/pocketbase/archive/refs/tags/v${RELEASE}.zip"
-unzip -q v${RELEASE}.zip
-mv pocketbase-${RELEASE} /opt/pocketbase
+wget -q "https://github.com/pocketbase/pocketbase/releases/download/v${RELEASE}/pocketbase_${RELEASE}_linux_amd64.zip"
+unzip -q pocketbase_${RELEASE}_linux_amd64.zip
 ln -s /opt/pocketbase/pocketbase /usr/local/bin/pocketbase
 chmod +x /opt/pocketbase/pocketbase
+rm -R pocketbase_${RELEASE}_linux_amd64.zip
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Pocketbase"
 
