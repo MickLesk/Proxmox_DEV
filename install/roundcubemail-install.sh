@@ -20,34 +20,44 @@ $STD apt-get install -y \
   curl \
   sudo \
   mc \
+  lsb-release \
+  gnupg \
   apache2 \
   libapache2-mod-php \
   composer \
   php8.2-{mbstring,gd,imap,mysql,ldap,curl,intl,imagick,bz2,sqlite3,zip,xml} 
 msg_ok "Installed Dependencies"
 
-msg_info "Installing Database"
-sqluser="root"
-sqlpass="root"
-echo "mariadb-server mariadb-server/root_password password $sqlpass" | debconf-set-selections
-echo "mariadb-server mariadb-server/root_password_again password $sqlpass" | debconf-set-selections
-$STD apt-get install -y mariadb-server
-service mysql start
-mysql -u "$sqluser" -p "$sqlpass" -e "source sql/user.sql" || true
-msg_ok "Installed Database"
+msg_info "Installing MySQL"
+curl -fsSL https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 | gpg --dearmor  -o /usr/share/keyrings/mysql.gpg
+echo "deb [signed-by=/usr/share/keyrings/mysql.gpg] http://repo.mysql.com/apt/debian $(lsb_release -sc) mysql-8.0" >/etc/apt/sources.list.d/mysql.list
+$STD apt-get update
+export DEBIAN_FRONTEND=noninteractive
+$STD apt-get install -y \
+  mysql-community-client \
+  mysql-community-server
+msg_ok "Installed MySQL"
+
+msg_info "Configure MySQL Server"
+ADMIN_PASS="$(openssl rand -base64 18 | cut -c1-13)"
+$STD mysql -uroot -p"$ADMIN_PASS" -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$ADMIN_PASS'; FLUSH PRIVILEGES;"
+msg_ok "MySQL Server configured"
 
 msg_info "Setting Up MariaDB"
 DB_NAME=roundcubedb
 DB_USER=roundcubeuser
 DB_HOST=localhost
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
-mysql -u"$sqluser" -p"$sqlpass" <<EOF
+mysql -uroot -p"$ADMIN_PASS" <<EOF
 CREATE DATABASE $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER '$DB_USER'@'$DB_HOST' IDENTIFIED BY '$DB_PASS';
 GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'$DB_HOST';
 FLUSH PRIVILEGES;
 EOF
 echo "" >>~/roundcubemail.creds
+echo -e "MySQL user: root" >>~/roundcubemail.creds
+echo -e "MySQL password: $ADMIN_PASS" >>~/roundcubemail.creds
+echo "" >~/roundcubemail.creds
 echo -e "Roundcubemail Database User: $DB_USER" >>~/roundcubemail.creds
 echo -e "Roundcubemail Database Password: $DB_PASS" >>~/roundcubemail.creds
 echo -e "Roundcubemail Database Name: $DB_NAME" >>~/roundcubemail.creds
@@ -60,7 +70,7 @@ wget -q "https://github.com/roundcube/roundcubemail/releases/download/${RELEASE}
 tar -xf roundcubemail-${RELEASE}-complete.tar.gz
 mv roundcubemail-${RELEASE} /opt/roundcubemail
 cd /opt/roundcubemail
-$STD COMPOSER_ALLOW_SUPERUSER=1 composer update
+$STD COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
 chown -R www-data:www-data temp/ logs/
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 
