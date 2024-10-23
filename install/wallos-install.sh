@@ -38,7 +38,7 @@ chmod -R 755 /opt/wallos
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 
 cat <<EOF >/etc/apache2/sites-available/wallos.conf
-<VirtualHost *:8000>
+<VirtualHost *:80>
     ServerAdmin webmaster@localhost
     DocumentRoot /opt/wallos
 
@@ -55,6 +55,7 @@ EOF
 $STD a2ensite wallos.conf
 $STD a2dissite 000-default.conf  
 $STD systemctl reload apache2
+curl -q http://localhost/endpoints/db/migrate.php
 msg_ok "Installed Wallos"
 
 motd_ssh
