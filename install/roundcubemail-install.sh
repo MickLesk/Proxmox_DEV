@@ -60,7 +60,7 @@ wget -q "https://github.com/roundcube/roundcubemail/releases/download/${RELEASE}
 tar -xf roundcubemail-${RELEASE}-complete.tar.gz
 mv roundcubemail-${RELEASE} /opt/roundcubemail
 cd /opt/roundcubemail
-$STD COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
+$STD COMPOSER_ALLOW_SUPERUSER=1 composer update
 chown -R www-data:www-data temp/ logs/
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 
