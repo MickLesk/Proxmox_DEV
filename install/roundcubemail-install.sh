@@ -40,15 +40,15 @@ msg_ok "Installed MySQL"
 
 msg_info "Configure MySQL Server"
 ADMIN_PASS="$(openssl rand -base64 18 | cut -c1-13)"
-$STD mysql -uroot -p"$ADMIN_PASS" -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$ADMIN_PASS'; FLUSH PRIVILEGES;"
+mysql -uroot -p"$ADMIN_PASS" -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$ADMIN_PASS'; FLUSH PRIVILEGES;"
 msg_ok "MySQL Server configured"
 
-msg_info "Setting Up MariaDB"
+msg_info "Setting Up MySQL"
 DB_NAME=roundcubedb
 DB_USER=roundcubeuser
 DB_HOST=localhost
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
-mysql -uroot -p"$ADMIN_PASS" <<EOF
+$STD mysql -uroot -p"$ADMIN_PASS" <<EOF
 CREATE DATABASE $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER '$DB_USER'@'$DB_HOST' IDENTIFIED BY '$DB_PASS';
 GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'$DB_HOST';
@@ -61,7 +61,7 @@ echo "" >~/roundcubemail.creds
 echo -e "Roundcubemail Database User: $DB_USER" >>~/roundcubemail.creds
 echo -e "Roundcubemail Database Password: $DB_PASS" >>~/roundcubemail.creds
 echo -e "Roundcubemail Database Name: $DB_NAME" >>~/roundcubemail.creds
-msg_ok "Set up MariaDB"
+msg_ok "Set up MySQL"
 
 msg_info "Installing Roundcubemail (Patience)"
 cd /opt
@@ -70,7 +70,7 @@ wget -q "https://github.com/roundcube/roundcubemail/releases/download/${RELEASE}
 tar -xf roundcubemail-${RELEASE}-complete.tar.gz
 mv roundcubemail-${RELEASE} /opt/roundcubemail
 cd /opt/roundcubemail
-$STD COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
+COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
 chown -R www-data:www-data temp/ logs/
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 
