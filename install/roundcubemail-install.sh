@@ -39,6 +39,7 @@ msg_ok "Installed Database"
 msg_info "Setting Up MariaDB"
 DB_NAME=roundcubedb
 DB_USER=roundcubeuser
+DB_HOST=localhost
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
 mysql -u"$sqluser" -p"$sqlpass" <<EOF
 CREATE DATABASE $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
