@@ -1,28 +1,27 @@
 #!/usr/bin/env bash
 source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
-# Author: tteck
-# Co-Author: MickLesk (Canbiz)
+# Author: tteck (tteckster)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
 function header_info {
 clear
 cat <<"EOF"
-    ____             __        __  __                  
-   / __ \____  _____/ /_____  / /_/ /_  ____ _________ 
-  / /_/ / __ \/ ___/ //_/ _ \/ __/ __ \/ __ `/ ___/ _ \
- / ____/ /_/ / /__/ ,< /  __/ /_/ /_/ / /_/ (__  )  __/
-/_/    \____/\___/_/|_|\___/\__/_.___/\__,_/____/\___/ 
-                                                       
+ _       __      ____          
+| |     / /___ _/ / /___  _____
+| | /| / / __ `/ / / __ \/ ___/
+| |/ |/ / /_/ / / / /_/ (__  ) 
+|__/|__/\__,_/_/_/\____/____/  
+                               
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="Pocketbase"
+APP="Wallos"
 var_disk="5"
 var_cpu="2"
-var_ram="1024"
+var_ram="2048"
 var_os="debian"
 var_version="12"
 variables
@@ -49,33 +48,38 @@ function default_settings() {
   MAC=""
   VLAN=""
   SSH="no"
-  VERB="no"
+  VERB="yes"
   echo_default
 }
+
 function update_script() {
 header_info
-if [[ ! -f /opt/pocketbase ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if [[ ! -d /opt/wallos ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
   read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
   [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
-RELEASE=$(curl -s https://api.github.com/repos/pocketbase/pocketbase/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+RELEASE=$(curl -s https://api.github.com/repos/ellite/Wallos/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
-  msg_info "Stopping ${APP}"
-  systemctl stop pocketbase
-  msg_ok "${APP} Stopped"
-
   msg_info "Updating ${APP} to ${RELEASE}"
-  pocketbase update
+  cd /opt
+  wget -q "https://github.com/ellite/Wallos/archive/refs/tags/v${RELEASE}.zip"
+  mv /opt/wallos/db/wallos.db /opt/wallos.db
+  unzip -q v${RELEASE}.zip
+  mv Wallos-${RELEASE} /opt/wallos
+  rm -rf /opt/wallos/db/wallos.empty.db
+  mv /opt/wallos.db /opt/wallos/db/wallos.db
+  chown -R www-data:www-data /opt/wallos
+  chmod -R 755 /opt/wallos
   echo "${RELEASE}" >/opt/${APP}_version.txt
   msg_ok "Updated ${APP}"
 
-  msg_info "Starting ${APP}"
-  systemctl start umami
-  msg_ok "Started ${APP}"
+  msg_info "Reload Apache2"
+  systemctl reload apache2
+  msg_ok "Apache2 Reloaded"
 
   msg_info "Cleaning Up"
-  rm -rf v${RELEASE}.zip
+  rm -R /opt/v${RELEASE}.zip 
   msg_ok "Cleaned"
   msg_ok "Updated Successfully"
 else
@@ -89,5 +93,5 @@ build_container
 description
 
 msg_ok "Completed Successfully!\n"
-echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:8090/_/${CL} \n"
+echo -e "${APP} should be reachable by going to the following URL.
+         ${BL}http://${IP}:8000${CL} \n"
