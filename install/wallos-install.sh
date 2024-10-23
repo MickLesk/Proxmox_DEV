@@ -5,7 +5,7 @@
 # Co-Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
-# Source: https://github.com/diced/zipline
+# Source: https://github.com/ellite/wallos
 
 source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
 color
