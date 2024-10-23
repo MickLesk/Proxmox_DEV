@@ -23,7 +23,7 @@ $STD apt-get install -y \
   apache2 \
   libapache2-mod-php \
   composer \
-  php8.2-{mbstring,gd,imap,mysql,curl,intl,imagick,bz2,sqlite3,zip,xml} 
+  php8.2-{mbstring,gd,imap,mysql,ldap,curl,intl,imagick,bz2,sqlite3,zip,xml} 
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Database"
@@ -33,7 +33,7 @@ echo "mariadb-server mariadb-server/root_password password $sqlpass" | debconf-s
 echo "mariadb-server mariadb-server/root_password_again password $sqlpass" | debconf-set-selections
 $STD apt-get install -y mariadb-server
 service mysql start
-mysql -u "$sqluser" -p"$sqlpass" -e "source sql/user.sql" || true
+mysql -u "$sqluser" -p "$sqlpass" -e "source sql/user.sql" || true
 msg_ok "Installed Database"
 
 msg_info "Setting Up MariaDB"
@@ -60,7 +60,7 @@ wget -q "https://github.com/roundcube/roundcubemail/releases/download/${RELEASE}
 tar -xf roundcubemail-${RELEASE}-complete.tar.gz
 mv roundcubemail-${RELEASE} /opt/roundcubemail
 cd /opt/roundcubemail
-COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
+$STD COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
 chown -R www-data:www-data temp/ logs/
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 
