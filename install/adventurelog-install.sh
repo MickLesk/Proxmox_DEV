@@ -105,8 +105,11 @@ $STD pip install --upgrade pip
 $STD pip install -r requirements.txt
 $STD python3 manage.py collectstatic --noinput
 $STD python3 manage.py migrate
+cat <<EOF > /opt/adventurelog/frontend/.env
+PUBLIC_SERVER_URL=http://127.0.0.1:8000
+BODY_SIZE_LIMIT=Infinity
+EOF
 cd /opt/adventurelog/frontend
-mv .env.example .env
 $STD pnpm install
 $STD pnpm run build
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
