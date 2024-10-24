@@ -23,6 +23,7 @@ $STD apt-get install -y \
   mc \
   gdal-bin \
   libgdal-dev \
+  git \
   python3-venv \
   python3-pip
 msg_ok "Installed Dependencies"
