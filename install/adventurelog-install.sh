@@ -21,7 +21,6 @@ $STD apt-get install -y \
   curl \
   sudo \
   mc \
-  git \
   gdal-bin \
   libgdal-dev \
   python3-venv \
