@@ -82,15 +82,19 @@ unzip -q v${RELEASE}.zip
 mv AdventureLog-${RELEASE} /opt/adventurelog
 cat <<EOF > /opt/adventurelog/backend/server/.env
 PGHOST='localhost'
-PGDATABASE='$DB_NAME'
-PGUSER='$DB_USER'
-PGPASSWORD='$DB_PASS'
-SECRET_KEY='$SECRET_KEY'
-PUBLIC_URL='http://127.0.0.1:8000'
+PGDATABASE=$DB_NAME
+PGUSER=$DB_USER
+PGPASSWORD=$DB_PASS
+SECRET_KEY=$SECRET_KEY
+PUBLIC_URL='http://localhost:81'
 DEBUG=False
-FRONTEND_URL='http://localhost:3000'
+FRONTEND_URL='http://localhost:8080'
 EMAIL_BACKEND='console'
-CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000'
+# CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000'
+DJANGO_ADMIN_USERNAME=$DJANGO_ADMIN_USER
+DJANGO_ADMIN_PASSWORD=$DJANGO_ADMIN_PASS
+DJANGO_ADMIN_EMAIL=$DJANGO_ADMIN_EMAIL
+DISABLE_REGISTRATION=False
 # EMAIL_BACKEND='email'
 # EMAIL_HOST='smtp.gmail.com'
 # EMAIL_USE_TLS=False
@@ -101,14 +105,25 @@ CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000'
 # DEFAULT_FROM_EMAIL='user@example.com'
 EOF
 cd /opt/adventurelog/backend/server
+$STD python3 manage.py shell << EOF
+from django.contrib.auth import get_user_model
+User = get_user_model()
+if User.objects.count() == 0:
+    User.objects.create_superuser('$DJANGO_ADMIN_USER', '$DJANGO_ADMIN_EMAIL', '$DJANGO_ADMIN_PASS')
+    print("Superuser created successfully.")
+else:
+    print("Superuser already exists.")
+EOF
+mkdir -p /opt/adventurelog/backend/server/media
 $STD pip install --upgrade pip
 $STD pip install -r requirements.txt
 $STD python3 manage.py collectstatic --noinput
 $STD python3 manage.py migrate
+$STD python3 manage.py download-countries
 cat <<EOF > /opt/adventurelog/frontend/.env
 PUBLIC_SERVER_URL=http://127.0.0.1:8000
 BODY_SIZE_LIMIT=Infinity
-ORIGIN='http://localhost:8000'
+ORIGIN='http://localhost:8080'
 EOF
 cd /opt/adventurelog/frontend
 $STD pnpm install
