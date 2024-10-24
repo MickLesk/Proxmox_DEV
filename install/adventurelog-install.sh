@@ -69,7 +69,6 @@ msg_ok "Set up PostgreSQL"
 msg_info "Installing AdventureLog (Patience)"
 DJANGO_ADMIN_USER="djangoadmin"
 DJANGO_ADMIN_PASS="$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-13)"
-DJANGO_ADMIN_EMAIL="django@localhost.com"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/seanmorley15/AdventureLog/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/seanmorley15/AdventureLog/archive/refs/tags/v${RELEASE}.zip"
@@ -130,7 +129,6 @@ EOF
     echo "Django-Credentials"
     echo "Django Admin User: $DJANGO_ADMIN_USER"
     echo "Django Admin Password: $DJANGO_ADMIN_PASS"
-    echo "Django E-Mail: $DJANGO_ADMIN_EMAIL"
 } >> ~/adventurelog.creds
 msg_ok "Setup Django Admin"
 
