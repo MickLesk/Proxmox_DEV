@@ -110,15 +110,15 @@ $STD pip install --upgrade pip
 $STD pip install -r requirements.txt
 $STD python3 manage.py collectstatic --noinput
 $STD python3 manage.py migrate
-$STD python3 manage.py shell << EOF
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if User.objects.count() == 0:
-    User.objects.create_superuser('$DJANGO_ADMIN_USER', '$DJANGO_ADMIN_EMAIL', '$DJANGO_ADMIN_PASS')
-    print("Superuser created successfully.")
-else:
-    print("Superuser already exists.")
-EOF
+#$STD python3 manage.py shell << EOF
+#from django.contrib.auth import get_user_model
+#User = get_user_model()
+#if User.objects.count() == 0:
+#    User.objects.create_superuser('$DJANGO_ADMIN_USER', '$DJANGO_ADMIN_EMAIL', '$DJANGO_ADMIN_PASS')
+#    print("Superuser created successfully.")
+#else:
+#    print("Superuser already exists.")
+#EOF
 $STD python3 manage.py download-countries
 cat <<EOF > /opt/adventurelog/frontend/.env
 PUBLIC_SERVER_URL=http://127.0.0.1:8000
