@@ -69,6 +69,7 @@ msg_ok "Set up PostgreSQL"
 msg_info "Installing AdventureLog (Patience)"
 DJANGO_ADMIN_USER="djangoadmin"
 DJANGO_ADMIN_PASS="$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-13)"
+LOCAL_IP="$(hostname -I | awk '{print $1}')"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/seanmorley15/AdventureLog/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/seanmorley15/AdventureLog/archive/refs/tags/v${RELEASE}.zip"
@@ -80,10 +81,10 @@ PGDATABASE='${DB_NAME}'
 PGUSER='${DB_USER}'
 PGPASSWORD='${DB_PASS}'
 SECRET_KEY='${SECRET_KEY}'
-PUBLIC_URL='http://$(hostname -I | awk '{print $1}'):8000'
+PUBLIC_URL='http://$LOCAL_IP:8000'
 DEBUG=False
-FRONTEND_URL='http://$(hostname -I | awk '{print $1}'):3000'
-CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000,http://$(hostname -I | awk '{print $1}'):3000'
+FRONTEND_URL='http://$LOCAL_IP:3000'
+CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000,http://$LOCAL_IP:3000'
 DJANGO_ADMIN_USERNAME='${DJANGO_ADMIN_USER}'
 DJANGO_ADMIN_PASSWORD='${DJANGO_ADMIN_PASS}'
 DISABLE_REGISTRATION=False
@@ -104,9 +105,9 @@ $STD python3 manage.py collectstatic --noinput
 $STD python3 manage.py migrate
 $STD python3 manage.py download-countries
 cat <<EOF > /opt/adventurelog/frontend/.env
-PUBLIC_SERVER_URL=http://$(hostname -I | awk '{print $1}'):8000
+PUBLIC_SERVER_URL=http://$LOCAL_IP:8000
 BODY_SIZE_LIMIT=Infinity
-ORIGIN='http://$(hostname -I | awk '{print $1}'):3000'
+ORIGIN='http://$LOCAL_IP:3000'
 EOF
 cd /opt/adventurelog/frontend
 $STD pnpm i
