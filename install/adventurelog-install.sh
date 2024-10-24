@@ -51,9 +51,6 @@ DB_NAME="adventurelog_db"
 DB_USER="adventurelog_user"
 DB_PASS="$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-13)"
 SECRET_KEY="$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | cut -c1-32)"
-DJANGO_ADMIN_USER="djangoadmin"
-DJANGO_ADMIN_PASS="$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-13)"
-DJANGO_ADMIN_EMAIL="django@localhost.com"
 $STD sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS';"
 $STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER ENCODING 'UTF8' TEMPLATE template0;"
 $STD sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS postgis;" $DB_NAME
@@ -66,15 +63,13 @@ $STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET timezone TO 'UTC';"
     echo "AdventureLog Database Password: $DB_PASS"
     echo "AdventureLog Database Name: $DB_NAME"
     echo "AdventureLog Secret: $SECRET_KEY"
-    echo ""
-    echo "Django-Credentials"
-    echo "Django Admin User: $DJANGO_ADMIN_USER"
-    echo "Django Admin Password: $DJANGO_ADMIN_PASS"
-    echo "Django E-Mail: $DJANGO_ADMIN_EMAIL"
 } >> ~/adventurelog.creds
 msg_ok "Set up PostgreSQL"
 
 msg_info "Installing AdventureLog (Patience)"
+DJANGO_ADMIN_USER="djangoadmin"
+DJANGO_ADMIN_PASS="$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-13)"
+DJANGO_ADMIN_EMAIL="django@localhost.com"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/seanmorley15/AdventureLog/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/seanmorley15/AdventureLog/archive/refs/tags/v${RELEASE}.zip"
@@ -110,15 +105,6 @@ $STD pip install -r requirements.txt
 $STD python3 manage.py collectstatic --noinput
 $STD python3 manage.py migrate
 $STD python3 manage.py download-countries
-$STD python3 manage.py shell << EOF
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if User.objects.count() == 0:
-    User.objects.create_superuser('$DJANGO_ADMIN_USER', '$DJANGO_ADMIN_EMAIL', '$DJANGO_ADMIN_PASS')
-    print("Superuser created successfully.")
-else:
-    print("Superuser already exists.")
-EOF
 cat <<EOF > /opt/adventurelog/frontend/.env
 PUBLIC_SERVER_URL=http://$(hostname -I | awk '{print $1}'):8000
 BODY_SIZE_LIMIT=Infinity
@@ -129,6 +115,24 @@ $STD pnpm i
 $STD pnpm build
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed AdventureLog"
+
+msg_info "Setting up Django Admin"
+$STD python3 /opt/adventurelog/backend/server/manage.py shell << EOF
+from django.contrib.auth import get_user_model
+User = get_user_model()
+User.objects.create_superuser('$DJANGO_ADMIN_USER', '$DJANGO_ADMIN_EMAIL', '$DJANGO_ADMIN_PASS')
+user.is_superuser = True
+user.is_staff = True
+user.save()
+EOF
+{
+    echo ""
+    echo "Django-Credentials"
+    echo "Django Admin User: $DJANGO_ADMIN_USER"
+    echo "Django Admin Password: $DJANGO_ADMIN_PASS"
+    echo "Django E-Mail: $DJANGO_ADMIN_EMAIL"
+} >> ~/adventurelog.creds
+msg_ok "Setup Django Admin"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/adventurelog-backend.service
