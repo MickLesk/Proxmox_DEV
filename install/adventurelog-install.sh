@@ -91,7 +91,7 @@ sed -i -e "s|PGHOST=''|PGHOST='localhost'|" \
 cd /opt/adventurelog/backend/server
 $STD pip install --upgrade pip
 $STD pip install -r requirements.txt
-$STD python3 manage.py collectstatic --noinput --verbosity 2
+$STD python3 manage.py collectstatic --noinput
 $STD python3 manage.py migrate
 cd /opt/adventurelog/frontend
 mv .env.example .env

@@ -76,7 +76,7 @@ if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_v
   cd /opt/adventurelog/backend/server
   pip install --upgrade pip &>/dev/null
   pip install -r requirements.txt &>/dev/null
-  python3 manage.py collectstatic --noinput --verbosity 2 &>/dev/null
+  python3 manage.py collectstatic --noinput &>/dev/null
   python3 manage.py migrate &>/dev/null
   
   mv /opt/frontend.env /opt/adventurelog/frontend/.env
