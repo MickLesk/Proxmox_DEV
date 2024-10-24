@@ -119,8 +119,8 @@ msg_ok "Installed AdventureLog"
 msg_info "Setting up Django Admin"
 $STD python3 /opt/adventurelog/backend/server/manage.py shell << EOF
 from django.contrib.auth import get_user_model
-User = get_user_model()
-User.objects.create_superuser('$DJANGO_ADMIN_USER', '$DJANGO_ADMIN_EMAIL', '$DJANGO_ADMIN_PASS')
+UserModel = get_user_model()
+user = UserModel.objects.create_user('$DJANGO_ADMIN_USER', password='$DJANGO_ADMIN_PASS')
 user.is_superuser = True
 user.is_staff = True
 user.save()
