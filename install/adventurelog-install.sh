@@ -108,6 +108,7 @@ $STD python3 manage.py migrate
 cat <<EOF > /opt/adventurelog/frontend/.env
 PUBLIC_SERVER_URL=http://127.0.0.1:8000
 BODY_SIZE_LIMIT=Infinity
+ORIGIN='http://localhost:8000'
 EOF
 cd /opt/adventurelog/frontend
 $STD pnpm install
