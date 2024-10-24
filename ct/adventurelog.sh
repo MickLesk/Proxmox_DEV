@@ -74,15 +74,15 @@ if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_v
   mv AdventureLog-${RELEASE} /opt/adventurelog
   mv /opt/server.env /opt/adventurelog/backend/server/.env
   cd /opt/adventurelog/backend/server
-  pip install --upgrade pip
-  pip install -r requirements.txt
-  python3 manage.py collectstatic --noinput --verbosity 2
-  python3 manage.py migrate
+  pip install --upgrade pip &>/dev/null
+  pip install -r requirements.txt &>/dev/null
+  python3 manage.py collectstatic --noinput --verbosity 2 &>/dev/null
+  python3 manage.py migrate &>/dev/null
   
   mv /opt/frontend.env /opt/adventurelog/frontend/.env
   cd /opt/adventurelog/frontend
-  pnpm install
-  pnpm run build
+  pnpm install &>/dev/null
+  pnpm run build &>/dev/null
   echo "${RELEASE}" >/opt/${APP}_version.txt
   msg_ok "Updated ${APP}"
 

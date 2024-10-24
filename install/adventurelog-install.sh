@@ -89,14 +89,14 @@ sed -i -e "s|PGHOST=''|PGHOST='localhost'|" \
        -e "s|SECRET_KEY=.*|SECRET_KEY='$SECRET_KEY'|" \
        -e "s|DEBUG=True|DEBUG=False|" .env
 cd /opt/adventurelog/backend/server
-pip install --upgrade pip
-pip install -r requirements.txt
-python3 manage.py collectstatic --noinput --verbosity 2
-python3 manage.py migrate
+$STD pip install --upgrade pip
+$STD pip install -r requirements.txt
+$STD python3 manage.py collectstatic --noinput --verbosity 2
+$STD python3 manage.py migrate
 cd /opt/adventurelog/frontend
 mv .env.example .env
-pnpm install
-pnpm run build
+$STD pnpm install
+$STD pnpm run build
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed AdventureLog"
 
@@ -129,8 +129,8 @@ EnvironmentFile=/opt/adventurelog/frontend/.env
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable --now adventurelog-backend.service
-systemctl enable --now adventurelog-frontend.service
+systemctl enable -q --now adventurelog-backend.service
+systemctl enable -q --now adventurelog-frontend.service
 msg_ok "Created Service"
 
 motd_ssh
