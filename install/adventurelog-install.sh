@@ -86,7 +86,6 @@ FRONTEND_URL='http://$(hostname -I | awk '{print $1}'):3000'
 CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000,http://$(hostname -I | awk '{print $1}'):3000'
 DJANGO_ADMIN_USERNAME='${DJANGO_ADMIN_USER}'
 DJANGO_ADMIN_PASSWORD='${DJANGO_ADMIN_PASS}'
-DJANGO_ADMIN_EMAIL='${DJANGO_ADMIN_EMAIL}'
 DISABLE_REGISTRATION=False
 # EMAIL_BACKEND='email'
 # EMAIL_HOST='smtp.gmail.com'
