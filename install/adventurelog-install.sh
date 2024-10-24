@@ -86,11 +86,10 @@ PGDATABASE='${DB_NAME}'
 PGUSER='${DB_USER}'
 PGPASSWORD='${DB_PASS}'
 SECRET_KEY='${SECRET_KEY}'
-PUBLIC_URL='http://127.0.0.1:8000'
+PUBLIC_URL='http://$(hostname -I | awk '{print $1}'):8000'
 DEBUG=False
-FRONTEND_URL='http://localhost:8080'
-EMAIL_BACKEND='console'
-# CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000'
+FRONTEND_URL='http://$(hostname -I | awk '{print $1}'):3000'
+CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000,http://$(hostname -I | awk '{print $1}'):3000'
 DJANGO_ADMIN_USERNAME='${DJANGO_ADMIN_USER}'
 DJANGO_ADMIN_PASSWORD='${DJANGO_ADMIN_PASS}'
 DJANGO_ADMIN_EMAIL='${DJANGO_ADMIN_EMAIL}'
@@ -121,13 +120,13 @@ else:
     print("Superuser already exists.")
 EOF
 cat <<EOF > /opt/adventurelog/frontend/.env
-PUBLIC_SERVER_URL=http://127.0.0.1:8000
+PUBLIC_SERVER_URL=http://$(hostname -I | awk '{print $1}'):8000
 BODY_SIZE_LIMIT=Infinity
-ORIGIN='http://localhost:8080'
+ORIGIN='http://$(hostname -I | awk '{print $1}'):3000'
 EOF
 cd /opt/adventurelog/frontend
-$STD pnpm install
-$STD pnpm run build
+$STD pnpm i
+$STD pnpm build
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed AdventureLog"
 
@@ -139,7 +138,7 @@ After=network.target postgresql.service
 
 [Service]
 WorkingDirectory=/opt/adventurelog/backend/server
-ExecStart=python3 manage.py runserver 127.0.0.1:8000
+ExecStart=python3 manage.py runserver 0.0.0.0:8000
 Restart=always
 EnvironmentFile=/opt/adventurelog/backend/server/.env
 
