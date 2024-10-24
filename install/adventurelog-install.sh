@@ -86,7 +86,8 @@ sed -i -e "s|PGHOST=''|PGHOST='localhost'|" \
        -e "s|PGUSER=''|PGUSER='$DB_USER'|" \
        -e "s|PGPASSWORD=''|PGPASSWORD='$DB_PASS'|" \
        -e "s|SECRET_KEY=.*|SECRET_KEY='$SECRET_KEY'|" \
-       -e "s|DEBUG=True|DEBUG=False|" .env
+       -e "s|DEBUG=True|DEBUG=False|" \
+       -e "s|CSRF_TRUSTED_ORIGINS=.*|CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000'|" .env
 cd /opt/adventurelog/backend/server
 $STD pip install --upgrade pip
 $STD pip install -r requirements.txt
