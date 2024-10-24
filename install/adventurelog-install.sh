@@ -35,7 +35,7 @@ echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.co
 msg_ok "Set up Node.js Repository"
 
 msg_info "Setting up PostgreSQL Repository"
-curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
 echo "deb https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" >/etc/apt/sources.list.d/pgdg.list
 msg_ok "Set up PostgreSQL Repository"
 
@@ -56,7 +56,7 @@ DJANGO_ADMIN_PASS="$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-13)"
 DJANGO_ADMIN_EMAIL="django@localhost.com"
 sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS';"
 sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER ENCODING 'UTF8' TEMPLATE template0;"
-sudo -u postgres psql -c "CREATE EXTENSION postgis; $DB_NAME"
+sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS postgis;" $DB_NAME
 sudo -u postgres psql -c "ALTER ROLE $DB_USER SET client_encoding TO 'utf8';"
 sudo -u postgres psql -c "ALTER ROLE $DB_USER SET default_transaction_isolation TO 'read committed';"
 sudo -u postgres psql -c "ALTER ROLE $DB_USER SET timezone TO 'UTC';"
