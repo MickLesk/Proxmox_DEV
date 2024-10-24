@@ -17,8 +17,6 @@ update_os
 
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
-  postgresql-16 \
-  postgresql-16-postgis \
   gpg \
   curl \
   sudo \
@@ -36,13 +34,19 @@ curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dea
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
 msg_ok "Set up Node.js Repository"
 
+msg_info "Setting up PostgreSQL Repository"
+curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+echo "deb https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" >/etc/apt/sources.list.d/pgdg.list
+msg_ok "Set up PostgreSQL Repository"
+
 msg_info "Installing Node.js"
 $STD apt-get update
 $STD apt-get install -y nodejs
 $STD npm install -g pnpm
 msg_ok "Installed Node.js"
 
-msg_info "Setting up PostgreSQL"
+msg_info "Install/Set up PostgreSQL Database"
+$STD apt-get install -y postgresql-16 postgresql-16-postgis
 DB_NAME="adventurelog_db"
 DB_USER="adventurelog_user"
 DB_PASS="$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-13)"
