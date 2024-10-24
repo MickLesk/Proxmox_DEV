@@ -80,15 +80,26 @@ RELEASE=$(curl -s https://api.github.com/repos/seanmorley15/AdventureLog/release
 wget -q "https://github.com/seanmorley15/AdventureLog/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
 mv AdventureLog-${RELEASE} /opt/adventurelog
-cd /opt/adventurelog/backend/server
-mv .env.example .env
-sed -i -e "s|PGHOST=''|PGHOST='localhost'|" \
-       -e "s|PGDATABASE=''|PGDATABASE='$DB_NAME'|" \
-       -e "s|PGUSER=''|PGUSER='$DB_USER'|" \
-       -e "s|PGPASSWORD=''|PGPASSWORD='$DB_PASS'|" \
-       -e "s|SECRET_KEY=.*|SECRET_KEY='$SECRET_KEY'|" \
-       -e "s|DEBUG=True|DEBUG=False|" \
-       -e "s|CSRF_TRUSTED_ORIGINS=.*|CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000'|" .env
+cat <<EOF > /opt/adventurelog/backend/server/.env
+PGHOST='localhost'
+PGDATABASE='$DB_NAME'
+PGUSER='$DB_USER'
+PGPASSWORD='$DB_PASS'
+SECRET_KEY='$SECRET_KEY'
+PUBLIC_URL='http://127.0.0.1:8000'
+DEBUG=False
+FRONTEND_URL='http://localhost:3000'
+EMAIL_BACKEND='console'
+CSRF_TRUSTED_ORIGINS='http://127.0.0.1:3000,http://localhost:3000'
+# EMAIL_BACKEND='email'
+# EMAIL_HOST='smtp.gmail.com'
+# EMAIL_USE_TLS=False
+# EMAIL_PORT=587
+# EMAIL_USE_SSL=True
+# EMAIL_HOST_USER='user'
+# EMAIL_HOST_PASSWORD='password'
+# DEFAULT_FROM_EMAIL='user@example.com'
+EOF
 cd /opt/adventurelog/backend/server
 $STD pip install --upgrade pip
 $STD pip install -r requirements.txt
