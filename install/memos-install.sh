@@ -48,16 +48,15 @@ set -o pipefail
 msg_ok "Installed Golang"
 
 msg_info "Installing Memos (Patience)"
-#RELEASE=$(curl -s https://api.github.com/repos/usememos/memos/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-#export BUF_TOKEN=7e6b142af8b96e87f9ad11e36559197c78b4a2c4ad9750cb4d14b5ab4344ae76
-#cd /opt
-#wget -q "https://github.com/usememos/memos/archive/refs/tags/${RELEASE}.zip"
-#unzip -q ${RELEASE}.zip 
-#mv memos-${RELEASE:1} /opt/memos2
+RELEASE=$(curl -s https://api.github.com/repos/usememos/memos/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+cd /opt
+wget -q "https://github.com/usememos/memos/archive/refs/tags/${RELEASE}.zip"
+unzip -q ${RELEASE}.zip 
+mv memos-${RELEASE:1} /opt/memos
 #rm -R ${RELEASE}.zip 
-#cd /opt/memos2/web
+#cd /opt/memos/web
 mkdir -p /opt/memos_data
-$STD sudo git clone https://github.com/usememos/memos.git /opt/memos
+#$STD sudo git clone https://github.com/usememos/memos.git /opt/memos
 cd /opt/memos/web
 #$STD corepack enable 
 $STD pnpm i --frozen-lockfile
@@ -67,11 +66,11 @@ mkdir -p /opt/memos/server/dist
 cp -r web/dist/* /opt/memos/server/dist/
 cp -r web/dist/* /opt/memos/server/router/frontend/dist/
 $STD go build -o /opt/memos/memos -tags=embed bin/memos/main.go
-$STD sudo chown -R root:root /opt/memos
-$STD sudo chmod 755 /opt/memos/memos
-$STD sudo chown -R root:root /opt/memos_data
-$STD sudo chmod 777 /opt/memos_data
-#echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
+#$STD sudo chown -R root:root /opt/memos
+#$STD sudo chmod 755 /opt/memos/memos
+#$STD sudo chown -R root:root /opt/memos_data
+#$STD sudo chmod 777 /opt/memos_data
+echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Memos"
 
 msg_info "Creating Service"
