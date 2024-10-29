@@ -56,14 +56,14 @@ function update_script() {
 header_info
 if [[ ! -d /opt/memos ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 msg_info "Updating $APP (Patience)"
-systemctl stop memos
 cd /opt/memos
-if ! git pull; then
-  echo "Already up to date."
-  systemctl start memos
-  echo "No update required."
+output=$(git pull --no-rebase)
+if echo "$output" | grep -q "Already up to date."
+then
+  msg_ok "$APP is already up to date."
   exit
 fi
+systemctl stop memos
 cd /opt/memos/web 
 pnpm i --frozen-lockfile &>/dev/null
 pnpm build &>/dev/null
