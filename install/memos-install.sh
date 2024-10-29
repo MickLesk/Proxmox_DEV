@@ -58,13 +58,16 @@ msg_info "Installing Memos (Patience)"
 #cd /opt/memos2/web
 sudo git clone https://github.com/usememos/memos.git /opt/memos
 cd /opt/memos/web
-sudo npm install --global pnpm
-sudo pnpm install --frozen-lockfile
-sudo pnpm build
-cp -r /opt/memos/web/dist /opt/memos/server/router/frontend/dist
-cd /opt/memos
-go build -o /opt/memos/memos ./bin/memos/main.go
-mkdir -p /opt/memos_data
+pnpm install --frozen-lockfile
+pnpm build
+cd ..
+mkdir -p /opt/memos/server/dist
+cp -r web/dist/* /opt/memos/server/dist/
+go build -o /opt/memos/memos -tags=embed bin/memos/main.go
+sudo chown -R root:root /opt/memos
+sudo chmod 755 /opt/memos/memos
+sudo chown -R root:root /opt/memos_data
+sudo chmod 777 /opt/memos_data
 #echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Memos"
 
@@ -77,7 +80,7 @@ After=network.target
 [Service]
 ExecStart=/opt/memos/memos
 Environment="MEMOS_MODE=prod"
-Environment="MEMOS_PORT=5230"
+Environment="MEMOS_PORT=9030"
 Environment="MEMOS_DATA=/opt/memos_data"
 Environment="MEMOS_ADDR=0.0.0.0"
 WorkingDirectory=/opt/memos
