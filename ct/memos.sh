@@ -55,42 +55,28 @@ function default_settings() {
 function update_script() {
 header_info
 if [[ ! -d /opt/memos ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
-  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
-  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
-fi
-RELEASE=$(curl -s https://api.github.com/repos/usememos/memos/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
-  msg_info "Stopping ${APP}"
-  systemctl stop memos
-  msg_ok "${APP} Stopped"
-  
-  msg_info "Updating ${APP} to ${RELEASE}"
-  cd /opt
-  wget -q "https://github.com/usememos/memos/archive/refs/tags/${RELEASE}.zip"
-  unzip -q ${RELEASE}.zip 
-  mv jellyseerr-${RELEASE:1} /opt/memos
-  cd /opt/memos/web
-  pnpm i --frozen-lockfile &>/dev/null
-  pnpm build &>/dev/null
-  cp -r /opt/memos/web/dist /opt/memos/server/router/frontend
-  go build -o memos ./bin/memos/main.go
-  echo "${RELEASE}" >/opt/${APP}_version.txt
-  msg_ok "Updated ${APP}"
-
-  msg_info "Starting ${APP}"
+msg_info "Updating $APP (Patience)"
+systemctl stop memos
+cd /opt/memos
+if ! git pull; then
+  echo "Already up to date."
   systemctl start memos
-  msg_ok "Started ${APP}"
-
-  msg_info "Cleaning Up"
-  rm -R ${RELEASE}.zip 
-  msg_ok "Cleaned"
-  msg_ok "Updated Successfully"
-else
-  msg_ok "No update required. ${APP} is already at ${RELEASE}"
+  echo "No update required."
+  exit
 fi
+cd /opt/memos/web 
+pnpm i --frozen-lockfile &>/dev/null
+pnpm build &>/dev/null
+cd /opt/memos
+mkdir -p /opt/memos/server/dist
+cp -r web/dist/* /opt/memos/server/dist/
+cp -r web/dist/* /opt/memos/server/router/frontend/dist/ 
+go build -o /opt/memos/memos -tags=embed bin/memos/main.go &>/dev/null
+systemctl start memos
+msg_ok "Updated $APP"
 exit
 }
+
 
 start
 build_container
