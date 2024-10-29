@@ -58,7 +58,6 @@ mkdir -p /opt/memos/server/dist
 cp -r web/dist/* /opt/memos/server/dist/
 cp -r web/dist/* /opt/memos/server/router/frontend/dist/
 $STD go build -o /opt/memos/memos -tags=embed bin/memos/main.go
-echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Memos"
 
 msg_info "Creating Service"
