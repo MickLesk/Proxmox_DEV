@@ -59,16 +59,16 @@ msg_info "Installing Memos (Patience)"
 mkdir -p /opt/memos_data
 sudo git clone https://github.com/usememos/memos.git /opt/memos
 cd /opt/memos/web
-pnpm install --frozen-lockfile
-pnpm build
-cd ..
+$STD pnpm install --frozen-lockfile
+$STD pnpm build
+cd /opt/memos
 mkdir -p /opt/memos/server/dist
 cp -r web/dist/* /opt/memos/server/dist/
-go build -o /opt/memos/memos -tags=embed bin/memos/main.go
-sudo chown -R root:root /opt/memos
-sudo chmod 755 /opt/memos/memos
-sudo chown -R root:root /opt/memos_data
-sudo chmod 777 /opt/memos_data
+$STD go build -o /opt/memos/memos -tags=embed bin/memos/main.go
+$STD sudo chown -R root:root /opt/memos
+$STD sudo chmod 755 /opt/memos/memos
+$STD sudo chown -R root:root /opt/memos_data
+$STD sudo chmod 777 /opt/memos_data
 #echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Memos"
 
