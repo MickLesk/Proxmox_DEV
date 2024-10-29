@@ -56,6 +56,7 @@ msg_info "Installing Memos (Patience)"
 #mv memos-${RELEASE:1} /opt/memos2
 #rm -R ${RELEASE}.zip 
 #cd /opt/memos2/web
+mkdir -p /opt/memos_data
 sudo git clone https://github.com/usememos/memos.git /opt/memos
 cd /opt/memos/web
 pnpm install --frozen-lockfile
