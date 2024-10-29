@@ -48,15 +48,15 @@ set -o pipefail
 msg_ok "Installed Golang"
 
 msg_info "Installing Memos (Patience)"
-RELEASE=$(curl -s https://api.github.com/repos/usememos/memos/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-cd /opt
-wget -q "https://github.com/usememos/memos/archive/refs/tags/${RELEASE}.zip"
-unzip -q ${RELEASE}.zip 
-mv memos-${RELEASE:1} /opt/memos
+#RELEASE=$(curl -s https://api.github.com/repos/usememos/memos/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+#cd /opt
+#wget -q "https://github.com/usememos/memos/archive/refs/tags/${RELEASE}.zip"
+#unzip -q ${RELEASE}.zip 
+#mv memos-${RELEASE:1} /opt/memos
 #rm -R ${RELEASE}.zip 
 #cd /opt/memos/web
 mkdir -p /opt/memos_data
-#$STD sudo git clone https://github.com/usememos/memos.git /opt/memos
+$STD sudo git clone https://github.com/usememos/memos.git /opt/memos
 cd /opt/memos/web
 #$STD corepack enable 
 $STD pnpm i --frozen-lockfile
