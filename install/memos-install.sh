@@ -83,7 +83,6 @@ ExecStart=/opt/memos/memos
 Environment="MEMOS_MODE=prod"
 Environment="MEMOS_PORT=9030"
 Environment="MEMOS_DATA=/opt/memos_data"
-Environment="MEMOS_ADDR=0.0.0.0"
 WorkingDirectory=/opt/memos
 Restart=always
 
