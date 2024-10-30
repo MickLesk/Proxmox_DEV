@@ -24,7 +24,7 @@ $STD apt-get install -y \
   gnupg2 \
   ca-certificates \
   lsb-release \
-  php8.2-{fpm,bcmath,ctype,curl,exif,gd,iconv,intl,mbstring,redis,tokenizer,xml,zip,pgsql,pdo-pgsql,bz2,sqlite3} \
+  php8.3-{fpm,bcmath,ctype,curl,exif,gd,iconv,intl,mbstring,redis,tokenizer,xml,zip,pgsql,pdo-pgsql,bz2,sqlite3} \
   composer \
   redis-server \
   ffmpeg \
@@ -57,28 +57,23 @@ msg_ok "Redis Socket configured"
 #systemctl restart php8.2-fpm
 #msg_ok "successfully configured PHP-FPM"
 
-msg_info "Setup Composer"
-curl -sS https://getcomposer.org/installer | php
-php composer.phar install --no-dev
-msg_ok "Composer setup"
-
 msg_info "Setup Postgres Database"
 DB_NAME=pixelfed_db
 DB_USER=pixelfed_user
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
 curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
 echo "deb https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" >/etc/apt/sources.list.d/pgdg.list
-$STD apt-get update
-$STD apt-get install -y postgresql-17
-$STD sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS';"
-$STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER TEMPLATE template0;"
-$STD sudo -u postgres psql -c "ALTER DATABASE $DB_NAME OWNER TO $DB_USER;"
-$STD sudo -u postgres psql -c "GRANT CREATE ON SCHEMA public TO $DB_USER;" 
+apt-get update
+apt-get install -y postgresql-17
+sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS';"
+sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER TEMPLATE template0;"
+sudo -u postgres psql -c "ALTER DATABASE $DB_NAME OWNER TO $DB_USER;"
+sudo -u postgres psql -c "GRANT CREATE ON SCHEMA public TO $DB_USER;" 
 echo "" >>~/pixelfed.creds
 echo -e "Pixelfed Database Name: $DB_NAME" >>~/pixelfed.creds
 echo -e "Pixelfed Database User: $DB_USER" >>~/pixelfed.creds
 echo -e "Pixelfed Database Password: $DB_PASS" >>~/pixelfed.creds
-export $(cat /opt/pixelfed/.env |grep "^[^#]" | xargs)
+#export $(cat /opt/pixelfed/.env |grep "^[^#]" | xargs)
 msg_ok "Set up PostgreSQL Database successfully"
 
 msg_info "Installing Pixelfed (Patience)"
@@ -93,7 +88,7 @@ cd /opt/pixelfed
 #sudo find . -type f -exec chmod 644 {} \;  
 chown -R www-data:www-data /opt/pixelfed
 chmod -R 755 /opt/pixelfed
-php composer.phar install --no-dev --no-ansi --no-interaction --optimize-autoloader
+COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-ansi --no-interaction --optimize-autoloader
 
 msg_info "Setup envoirement & PHP Database Migration"
 cp .env.example .env
@@ -101,7 +96,7 @@ sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" .env
 sed -i "s/DB_PORT=.*/DB_PORT=5432/" .env
 sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" .env
 sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" .env
-sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASSWORD/" .env
+sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" .env
 sed -i "s/REDIS_HOST=.*/REDIS_HOST=127.0.0.1/" .env
 sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$REDIS_PASS/" .env
 sed -i "s/APP_URL=.*/APP_URL=http:\/\/localhost/" .env  # localhost URL
