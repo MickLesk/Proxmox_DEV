@@ -5,7 +5,7 @@
 # Co-Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
-# Source: https://github.com/diced/zipline
+# Source: https://github.com/documenso/documenso
 
 source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
 color
@@ -53,7 +53,7 @@ $STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET timezone TO 'UTC'"
 } >> ~/documenso.creds
 msg_ok "Set up PostgreSQL"
 
-msg_info "Installing Zipline (Patience)"
+msg_info "Installing Documenso (Patience)"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/documenso/documenso/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/documenso/documenso/archive/refs/tags/v${RELEASE}.zip"
@@ -69,7 +69,7 @@ npm i
 npm run build:web
 npm run prisma:migrate-deploy
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
-msg_ok "Installed Zipline"
+msg_ok "Installed Documenso"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/documenso.service
