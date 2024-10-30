@@ -20,11 +20,8 @@ $STD apt-get install -y \
   gpg \
   curl \
   sudo \
-  postgresql \
-  python3 \
-  python3-pip \
-  python3-venv \
-  build-essential
+  unzip \
+  postgresql 
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Node.js Repository"
