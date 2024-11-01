@@ -69,8 +69,6 @@ export NODE_OPTIONS="--max-old-space-size=3072"
 export TURBO_CACHE=1
 $STD npm install
 echo "install done"
-$STD npm run prebuild
-echo "prebuild done"
 $STD npm run build -- --filter=@documenso/web
 echo "run build done"
 $STD npm run prisma:migrate-deploy
