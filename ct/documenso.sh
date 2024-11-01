@@ -20,7 +20,7 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Documenso"
-var_disk="7"
+var_disk="10"
 var_cpu="4"
 var_ram="4096"
 var_os="debian"
