@@ -66,9 +66,12 @@ sed -i "s|NEXTAUTH_SECRET=.*|NEXTAUTH_SECRET='$(openssl rand -base64 32 | tr -dc
 sed -i "s|NEXT_PUBLIC_WEBAPP_URL=.*|NEXT_PUBLIC_WEBAPP_URL='http://localhost:9000'|" /opt/documenso/.env
 sed -i "s|NEXT_PRIVATE_DATABASE_URL=.*|NEXT_PRIVATE_DATABASE_URL=\"postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME\"|" /opt/documenso/.env
 export NODE_OPTIONS="--max-old-space-size=3072"
-$STD npm ci
-echo "ci done"
-$STD npm run build:web
+export TURBO_CACHE=1
+$STD npm install
+echo "install done"
+$STD npm run prebuild
+echo "prebuild done"
+$STD npm run build -- --filter=@documenso/web
 echo "run build done"
 $STD npm run prisma:migrate-deploy
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
