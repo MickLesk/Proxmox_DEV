@@ -65,9 +65,9 @@ sed -i "s|NEXTAUTH_URL=.*|NEXTAUTH_URL='http://localhost:9000'|" /opt/documenso/
 sed -i "s|NEXTAUTH_SECRET=.*|NEXTAUTH_SECRET='$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | cut -c1-32)'|" /opt/documenso/.env
 sed -i "s|NEXT_PUBLIC_WEBAPP_URL=.*|NEXT_PUBLIC_WEBAPP_URL='http://localhost:9000'|" /opt/documenso/.env
 sed -i "s|NEXT_PRIVATE_DATABASE_URL=.*|NEXT_PRIVATE_DATABASE_URL=\"postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME\"|" /opt/documenso/.env
-npm i
-npm run build:web
-npm run prisma:migrate-deploy
+$STD npm i
+$STD npm run build:web
+$STD npm run prisma:migrate-deploy
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Documenso"
 
