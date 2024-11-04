@@ -27,7 +27,6 @@ header_info
 echo "Loading..."
 NODE=$(hostname)
 
-# Funktion zur Aktualisierung der Konfiguration in den Containern
 function update_container() {
   container=$1
   os=$(pct config "$container" | awk '/^ostype/ {print $2}')
@@ -35,12 +34,9 @@ function update_container() {
   if [[ "$os" == "ubuntu" || "$os" == "debian" ]]; then
     echo -e "${BL}[Info]${GN} Checking /usr/bin/update in ${BL}$container${CL} (OS: ${GN}$os${CL})"
 
-    # Überprüfe, ob die Datei existiert, bevor sed ausgeführt wird
     if pct exec "$container" -- [ -e /usr/bin/update ]; then
-      # Führe das sed-Kommando aus
       pct exec "$container" -- bash -c "sed -i 's/tteck\\/Proxmox/community-scripts\\/ProxmoxVE/g' /usr/bin/update"
 
-      # Überprüfe, ob Änderungen vorgenommen wurden
       if pct exec "$container" -- grep -q "community-scripts/ProxmoxVE" /usr/bin/update; then
         echo -e "${GN}[Success]${CL} /usr/bin/update updated in ${BL}$container${CL}.\n"
       else
@@ -55,10 +51,9 @@ function update_container() {
 }
 
 header_info
-# Iteriere durch alle Container und führe die Aktualisierung durch
 for container in $(pct list | awk '{if(NR>1) print $1}'); do
   update_container "$container"
 done
 
 header_info
-echo -e "${GN}The process is complete. The specified updates have been applied to the containers.${CL}\n"
+echo -e "${GN}The process is complete. The repositories have been switched to community-scripts/ProxmoxVE.${CL}\n"
