@@ -18,26 +18,14 @@ EOF
 }
 
 set -eEuo pipefail
-YW=$(echo "\033[33m")
 BL=$(echo "\033[36m")
 RD=$(echo "\033[01;31m")
 GN=$(echo "\033[1;92m")
 CL=$(echo "\033[m")
+
 header_info
 echo "Loading..."
 NODE=$(hostname)
-
-# Menü zur Auswahl der zu aktualisierenden Container
-EXCLUDE_MENU=()
-MSG_MAX_LENGTH=0
-while read -r TAG ITEM; do
-  OFFSET=2
-  ((${#ITEM} + OFFSET > MSG_MAX_LENGTH)) && MSG_MAX_LENGTH=${#ITEM}+OFFSET
-  EXCLUDE_MENU+=("$TAG" "$ITEM " "OFF")
-done < <(pct list | awk 'NR>1')
-
-# Exklusive Container auswählen
-excluded_containers=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Proxmox VE LXC Updater" --checklist "\nSelect containers to skip:\n" 16 $((MSG_MAX_LENGTH + 23)) 6 "${EXCLUDE_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
 
 # Funktion zur Aktualisierung der Konfiguration in den Containern
 function update_container() {
@@ -45,11 +33,19 @@ function update_container() {
   os=$(pct config "$container" | awk '/^ostype/ {print $2}')
 
   if [[ "$os" == "ubuntu" || "$os" == "debian" ]]; then
-    echo -e "${BL}[Info]${GN} Updating /usr/bin/update in ${BL}$container${CL} (OS: ${GN}$os${CL})\n"
-    
+    echo -e "${BL}[Info]${GN} Checking /usr/bin/update in ${BL}$container${CL} (OS: ${GN}$os${CL})"
+
     # Überprüfe, ob die Datei existiert, bevor sed ausgeführt wird
     if pct exec "$container" -- [ -e /usr/bin/update ]; then
+      # Führe das sed-Kommando aus
       pct exec "$container" -- bash -c "sed -i 's/tteck\\/Proxmox/community-scripts\\/ProxmoxVE/g' /usr/bin/update"
+
+      # Überprüfe, ob Änderungen vorgenommen wurden
+      if pct exec "$container" -- grep -q "community-scripts/ProxmoxVE" /usr/bin/update; then
+        echo -e "${GN}[Success]${CL} /usr/bin/update updated in ${BL}$container${CL}.\n"
+      else
+        echo -e "${RD}[No Change]${CL} No updates made to /usr/bin/update in ${BL}$container${CL}.\n"
+      fi
     else
       echo -e "${RD}[Error]${CL} /usr/bin/update not found in container ${BL}$container${CL}.\n"
     fi
@@ -59,14 +55,9 @@ function update_container() {
 }
 
 header_info
+# Iteriere durch alle Container und führe die Aktualisierung durch
 for container in $(pct list | awk '{if(NR>1) print $1}'); do
-  # Überprüfen, ob der Container in den Exklusionen enthalten ist
-  if [[ " ${excluded_containers} " =~ " ${container} " ]]; then
-    echo -e "${BL}[Info]${GN} Skipping ${BL}$container${CL}\n"
-    sleep 1
-  else
-    update_container $container
-  fi
+  update_container "$container"
 done
 
 header_info
