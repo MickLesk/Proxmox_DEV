@@ -35,12 +35,18 @@ function update_container() {
     echo -e "${BL}[Info]${GN} Checking /usr/bin/update in ${BL}$container${CL} (OS: ${GN}$os${CL})"
 
     if pct exec "$container" -- [ -e /usr/bin/update ]; then
-      pct exec "$container" -- bash -c "sed -i 's/tteck\\/Proxmox/community-scripts\\/ProxmoxVE/g' /usr/bin/update"
-
       if pct exec "$container" -- grep -q "community-scripts/ProxmoxVE" /usr/bin/update; then
-        echo -e "${GN}[Success]${CL} /usr/bin/update updated in ${BL}$container${CL}.\n"
+        echo -e "${RD}[No Change]${CL} /usr/bin/update is already up to date in ${BL}$container${CL}.\n"
+      elif pct exec "$container" -- grep -q "tteck" /usr/bin/update; then
+        echo -e "${RD}[Warning]${CL} /usr/bin/update in ${BL}$container${CL} contains a different entry (${RD}tteck${CL}). No changes made.\n"
       else
-        echo -e "${RD}[No Change]${CL} No updates made to /usr/bin/update in ${BL}$container${CL}.\n"
+        pct exec "$container" -- bash -c "sed -i 's/tteck\\/Proxmox/community-scripts\\/ProxmoxVE/g' /usr/bin/update"
+
+        if pct exec "$container" -- grep -q "community-scripts/ProxmoxVE" /usr/bin/update; then
+          echo -e "${GN}[Success]${CL} /usr/bin/update updated in ${BL}$container${CL}.\n"
+        else
+          echo -e "${RD}[Error]${CL} /usr/bin/update in ${BL}$container${CL} could not be updated properly.\n"
+        fi
       fi
     else
       echo -e "${RD}[Error]${CL} /usr/bin/update not found in container ${BL}$container${CL}.\n"
