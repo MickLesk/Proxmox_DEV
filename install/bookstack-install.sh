@@ -68,8 +68,6 @@ msg_ok "Installed Bookstack"
 msg_info "Creating Service"
 cat <<EOF >/etc/apache2/sites-available/bookstack.conf
 <VirtualHost *:80>
-  ServerName bookstacklocal
-
   ServerAdmin webmaster@localhost
   DocumentRoot /opt/bookstack/public/
 
