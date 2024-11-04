@@ -4,6 +4,7 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
+# Source: https://github.com/BookStackApp/BookStack
 
 function header_info {
 clear
