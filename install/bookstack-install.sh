@@ -54,13 +54,15 @@ sudo sed -i "s|APP_URL=.*|APP_URL=http://127.0.0.1/|g" /opt/bookstack/.env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/bookstack/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/bookstack/.env
 sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/bookstack/.env
-$STD COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
+$STD COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-plugins 
 $STD php artisan key:generate --no-interaction --force
 $STD php artisan migrate --no-interaction --force
-chown www-data:www-data -R /opt/bootstrap/cache /opt/public/uploads /opt/bookstack/storage 
-chmod -R 755 /opt/bootstrap/cache /opt/public/uploads /opt/bookstack/storage 
+chown www-data:www-data -R /opt/bookstack /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads /opt/bookstack/storage 
+chmod -R 755 /opt/bookstack /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads /opt/bookstack/storage 
 chmod -R 775 /opt/bookstack/storage /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads
 chmod -R 640 /opt/bookstack/.env
+$STD a2enmod rewrite
+$STD a2enmod php8.2
 msg_ok "Installed Bookstack"
 
 msg_info "Creating Service"
