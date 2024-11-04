@@ -51,7 +51,7 @@ unzip -q v${RELEASE}.zip
 mv BookStack-${RELEASE} /opt/bookstack
 cd /opt/bookstack
 cp .env.example .env
-sudo sed -i "s|APP_URL=.*|APP_URL=http://$LOCAL_IP/|g" /opt/bookstack/.env
+sudo sed -i "s|APP_URL=.*|APP_URL=http://$LOCAL_IP|g" /opt/bookstack/.env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/bookstack/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/bookstack/.env
 sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/bookstack/.env
