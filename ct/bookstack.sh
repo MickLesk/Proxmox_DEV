@@ -8,13 +8,11 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 function header_info {
 clear
 cat <<"EOF"
-______             _        _             _    
-| ___ \           | |      | |           | |   
-| |_/ / ___   ___ | | _____| |_ __ _  ___| | __
-| ___ \/ _ \ / _ \| |/ / __| __/ _` |/ __| |/ /
-| |_/ / (_) | (_) |   <\__ \ || (_| | (__|   < 
-\____/ \___/ \___/|_|\_\___/\__\__,_|\___|_|\_\
-                                               
+    ____              __        __             __  
+   / __ )____  ____  / /_______/ /_____ ______/ /__
+  / __  / __ \/ __ \/ //_/ ___/ __/ __ `/ ___/ //_/
+ / /_/ / /_/ / /_/ / ,< (__  ) /_/ /_/ / /__/ ,<   
+/_____/\____/\____/_/|_/____/\__/\__,_/\___/_/|_|  
 EOF
 }
 header_info
@@ -55,28 +53,46 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -d /opt/bookstack ]]; then 
-	msg_error "No ${APP} Installation Found!"; 
-	exit; 
+if [[ ! -d /opt/bookstack ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
+  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
+  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
-msg_info "Updating ${APP} LXC"
-cd /opt/bookstack
-git config --global --add safe.directory /opt/bookstack >/dev/null 2>&1
-git pull origin release >/dev/null 2>&1
-composer install --no-interaction --no-dev >/dev/null 2>&1
-php artisan migrate --force >/dev/null 2>&1
-php artisan cache:clear
-php artisan config:clear
-php artisan view:clear
-msg_ok "Updated Successfully"
-exit
-msg_error "There is currently no update path available."
-}
+RELEASE=$(curl -s https://api.github.com/repos/BookStackApp/BookStack/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
+  msg_info "Stopping Apache2"
+  systemctl stop apache2
+  msg_ok "Services Stopped"
 
+  msg_info "Updating ${APP} to ${RELEASE}"
+  cp /opt/bookstack/.env /opt/.env
+  wget -q "https://github.com/BookStackApp/BookStack/archive/refs/tags/v${RELEASE}.zip"
+  unzip -q v${RELEASE}.zip
+  mv BookStack-${RELEASE} /opt/bookstack
+  mv /opt/.env /opt/bookstack/.env
+  COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev  &>/dev/null
+  php artisan key:generate &>/dev/null
+  php artisan migrate &>/dev/null
+  echo "${RELEASE}" >/opt/${APP}_version.txt
+  msg_ok "Updated ${APP}"
+
+  msg_info "Starting Apache2"
+  systemctl start apache2
+  msg_ok "Started Apache2"
+
+  msg_info "Cleaning Up"
+  rm -rf v${RELEASE}.zip
+  msg_ok "Cleaned"
+  msg_ok "Updated Successfully"
+else
+  msg_ok "No update required. ${APP} is already at ${RELEASE}"
+fi
+exit
+}
 start
 build_container
 description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:80${CL} \n"
+         ${BL}http://${IP}${CL} \n"

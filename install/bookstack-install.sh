@@ -20,7 +20,6 @@ $STD apt-get install -y --no-install-recommends \
   apache2 \
   curl \
   sudo \
-  git \
   php8.2-{mbstring,gd,fpm,curl,intl,ldap,tidy,bz2,mysql,zip,xml} \
   composer \
   libapache2-mod-php \
