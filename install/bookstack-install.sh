@@ -54,9 +54,9 @@ sudo sed -i "s|APP_URL=.*|APP_URL=http://127.0.0.1/|g" /opt/bookstack/.env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/bookstack/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/bookstack/.env
 sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/bookstack/.env
-COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
-php artisan key:generate 
-php artisan migrate 
+$STD COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
+$STD php artisan key:generate --no-interaction --force
+$STD php artisan migrate --no-interaction --force
 chown www-data:www-data -R bootstrap/cache public/uploads storage 
 chmod -R 755 bootstrap/cache public/uploads storage 
 chmod -R 775 /opt/bookstack/storage /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads
