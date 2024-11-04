@@ -67,6 +67,8 @@ sed -i "s|NEXT_PUBLIC_WEBAPP_URL=.*|NEXT_PUBLIC_WEBAPP_URL='http://localhost:900
 sed -i "s|NEXT_PRIVATE_DATABASE_URL=.*|NEXT_PRIVATE_DATABASE_URL=\"postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME\"|" /opt/documenso/.env
 export NODE_OPTIONS="--max-old-space-size=3072"
 export TURBO_CACHE=1
+export NEXT_TELEMETRY_DISABLED=1
+
 $STD npm install
 echo "install done"
 npm run build
