@@ -43,6 +43,7 @@ $STD sudo mysql -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; F
 msg_ok "Set up database"
 
 msg_info "Setup Bookstack (Patience)"
+LOCAL_IP="$(hostname -I | awk '{print $1}')"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/BookStackApp/BookStack/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/BookStackApp/BookStack/archive/refs/tags/v${RELEASE}.zip"
@@ -50,13 +51,13 @@ unzip -q v${RELEASE}.zip
 mv BookStack-${RELEASE} /opt/bookstack
 cd /opt/bookstack
 cp .env.example .env
-sudo sed -i "s|APP_URL=.*|APP_URL=http://127.0.0.1/|g" /opt/bookstack/.env
+sudo sed -i "s|APP_URL=.*|APP_URL=http://$LOCAL_IP/|g" /opt/bookstack/.env
 sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/bookstack/.env
 sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/bookstack/.env
 sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/bookstack/.env
-COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-plugins 
-php artisan key:generate --no-interaction --force
-php artisan migrate --no-interaction --force
+$STD COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-plugins 
+$STD php artisan key:generate --no-interaction --force
+$STD php artisan migrate --no-interaction --force
 chown www-data:www-data -R /opt/bookstack /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads /opt/bookstack/storage 
 chmod -R 755 /opt/bookstack /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads /opt/bookstack/storage 
 chmod -R 775 /opt/bookstack/storage /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads
