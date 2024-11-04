@@ -36,7 +36,8 @@ while read -r TAG ITEM; do
   EXCLUDE_MENU+=("$TAG" "$ITEM " "OFF")
 done < <(pct list | awk 'NR>1')
 
-excluded_containers=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Proxmox VE Repo Updater" --checklist "\nSelect containers to skip:\n" 16 $((MSG_MAX_LENGTH + 23)) 6 "${EXCLUDE_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
+# Exklusive Container auswählen
+excluded_containers=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Proxmox VE LXC Updater" --checklist "\nSelect containers to skip:\n" 16 $((MSG_MAX_LENGTH + 23)) 6 "${EXCLUDE_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
 
 # Funktion zur Aktualisierung der Konfiguration in den Containern
 function update_container() {
@@ -46,8 +47,12 @@ function update_container() {
   if [[ "$os" == "ubuntu" || "$os" == "debian" ]]; then
     echo -e "${BL}[Info]${GN} Updating /usr/bin/update in ${BL}$container${CL} (OS: ${GN}$os${CL})\n"
     
-    # Führe die sed-Anweisung für die Konfiguration durch
-    pct exec "$container" -- bash -c "sed -i 's/tteck\\/Proxmox/community-scripts\\/ProxmoxVE/g' /usr/bin/update"
+    # Überprüfe, ob die Datei existiert, bevor sed ausgeführt wird
+    if pct exec "$container" -- [ -e /usr/bin/update ]; then
+      pct exec "$container" -- bash -c "sed -i 's/tteck\\/Proxmox/community-scripts\\/ProxmoxVE/g' /usr/bin/update"
+    else
+      echo -e "${RD}[Error]${CL} /usr/bin/update not found in container ${BL}$container${CL}.\n"
+    fi
   else
     echo -e "${BL}[Info]${GN} Skipping ${BL}$container${CL} (not Debian/Ubuntu)\n"
   fi
@@ -55,7 +60,8 @@ function update_container() {
 
 header_info
 for container in $(pct list | awk '{if(NR>1) print $1}'); do
-  if [[ " ${excluded_containers[@]} " =~ " $container " ]]; then
+  # Überprüfen, ob der Container in den Exklusionen enthalten ist
+  if [[ " ${excluded_containers} " =~ " ${container} " ]]; then
     echo -e "${BL}[Info]${GN} Skipping ${BL}$container${CL}\n"
     sleep 1
   else
