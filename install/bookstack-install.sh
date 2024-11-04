@@ -57,8 +57,8 @@ sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" /opt/bookstack/.env
 $STD COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
 $STD php artisan key:generate --no-interaction --force
 $STD php artisan migrate --no-interaction --force
-chown www-data:www-data -R bootstrap/cache public/uploads storage 
-chmod -R 755 bootstrap/cache public/uploads storage 
+chown www-data:www-data -R /opt/bootstrap/cache /opt/public/uploads /opt/bookstack/storage 
+chmod -R 755 /opt/bootstrap/cache /opt/public/uploads /opt/bookstack/storage 
 chmod -R 775 /opt/bookstack/storage /opt/bookstack/bootstrap/cache /opt/bookstack/public/uploads
 chmod -R 640 /opt/bookstack/.env
 msg_ok "Installed Bookstack"
