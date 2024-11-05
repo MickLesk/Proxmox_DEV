@@ -63,6 +63,10 @@ if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
 fi
 RELEASE=$(curl -s https://dl.vikunja.io/vikunja/ | grep -oP 'href="/vikunja/\K[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
 if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
+  msg_info "Stopping Services"
+  systemctl stop vikunja
+  msg_ok "Services Stopped"
+
   msg_info "Remove Old Installation"
   rm -rf /opt/*
   msg_ok "Removed Old Installation"
@@ -70,9 +74,13 @@ if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_v
   msg_info "Updating ${APP} to ${RELEASE}"
   cd /opt
   wget -q "https://dl.vikunja.io/vikunja/$RELEASE/vikunja-$RELEASE-amd64.deb"
-  DEBIAN_FRONTEND=noninteractive dpkg -i vikunja-$RELEASE-amd64.deb
+  DEBIAN_FRONTEND=noninteractive dpkg -i vikunja-$RELEASE-amd64.deb &>/dev/null
   echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
   msg_ok "Updated ${APP}"
+
+  msg_info "Starting Services"
+  systemctl start vikunja
+  msg_ok "Started Services"
 
   msg_info "Cleaning Up"
   rm -rf /opt/vikunja-$RELEASE-amd64.deb
@@ -89,4 +97,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}${CL} \n"
+         ${BL}http://${IP}:3456${CL} \n"
