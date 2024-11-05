@@ -40,17 +40,29 @@ spinner() {
     local spinner_chars="/-\|"
     local spinner_index=0
     local delay=0.1
-
-    # Verstecke den Cursor
     printf "\e[?25l"
-
-    # Endlosschleife, um den Spinner anzuzeigen
     while true; do
-        # Zeige den aktuellen Spinner-Charakter an und aktualisiere ihn
         printf "\r \e[36m%s\e[0m" "${spinner_chars:spinner_index++ % ${#spinner_chars}:1}"
         sleep "$delay"
     done
 }
+
+dots() {
+    local frames=('  .     ' '  ..    ' '  ...   ' '  ....  ' '  ..... ' '  ......' '  ....... ')
+    local interval=0.4
+    local count=0
+    local total_frames=${#frames[@]}
+    tput civis
+    while true; do
+        printf "\r\e[36mProcessing%s\e[0m" "${frames[$count]}"
+        ((count++))
+        if [ $count -ge $total_frames ]; then
+            count=0
+        fi
+        sleep $interval
+    done
+}
+
 
 # This function displays an informational message with a yellow color.
 msg_info() {
