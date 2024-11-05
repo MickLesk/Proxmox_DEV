@@ -472,13 +472,6 @@ advanced_settings() {
   else
     clear
     header_info
-    if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "SETTINGS" --yesno "Use Default Settings?" --no-button Advanced 10 58); then
-      header_info
-      echo -e "${BL}Using Default Settings${CL}"
-      default_settings
-      ADVANCED_SETTINGS=false 
-    else
-    header_info
     echo -e "${RD}Using Advanced Settings${CL}"
     advanced_settings
     ADVANCED_SETTINGS=true  
@@ -499,18 +492,16 @@ NEXTID=$(pvesh get /cluster/nextid)
 timezone=$(cat /etc/timezone)
 
 header_info
-
-if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "SETTINGS" --yesno "Use Default Settings?" --no-button Advanced 10 58); then
-  header_info
-  echo -e "${BL}Using Default Settings${CL}"
-  default_settings
-  ADVANCED_SETTINGS=false
-else
-  header_info
-  echo -e "${RD}Using Advanced Settings${CL}"
-  advanced_settings
-  ADVANCED_SETTINGS=true
-fi
+ if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "SETTINGS" --yesno "Use Default Settings?" --no-button Advanced 10 58); then
+    header_info
+    echo -e "${BL}Using Default Settings${CL}"
+    default_settings
+  else
+    header_info
+    echo -e "${RD}Using Advanced Settings${CL}"
+    advanced_settings
+  fi
+}
 
 
 start() {
