@@ -37,15 +37,20 @@ error_handler() {
 }
 
 # This function displays a spinner.
+# This function displays a modern dot-based spinner.
 spinner() {
-    local chars="/-\|"
-    local spin_i=0
-    printf "\e[?25l"
+    local dots="." 
+    local delay=0.3
+    local count=0
+    printf "\e[?25l"  # Verstecke den Cursor
     while true; do
-        printf "\r \e[36m%s\e[0m" "${chars:spin_i++%${#chars}:1}"
-        sleep 0.1
+        # Berechne den aktuellen Punktstatus und zeige an
+        printf "\r\e[36mProcessing%s\e[0m" "${dots:0:((count % 3) + 1)}"
+        ((count++))
+        sleep "$delay"
     done
 }
+
 
 # This function displays an informational message with a yellow color.
 msg_info() {
