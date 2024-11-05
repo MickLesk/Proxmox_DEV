@@ -61,6 +61,10 @@ apt-get -y upgrade &>/dev/null
 msg_ok "Updated Successfully"
 exit
 }
+msg_info "Setting Container to Normal Resources"
+pct set $CTID -memory 1024
+pct set $CTID -cores 1
+msg_ok "Set Container to Normal Resources"
 
 start
 build_container
