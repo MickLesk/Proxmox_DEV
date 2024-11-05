@@ -466,7 +466,6 @@ advanced_settings() {
     VERB="no"
   fi
   echo -e "${DGN}Enable Verbose Mode: ${BGN}$VERB${CL}"
-
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create ${APP} LXC?" 10 58); then
     echo -e "${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
   else
@@ -474,9 +473,8 @@ advanced_settings() {
     header_info
     echo -e "${RD}Using Advanced Settings${CL}"
     advanced_settings
-    ADVANCED_SETTINGS=true  
-    fi
-
+  fi
+}
 install_script() {
   pve_check
   shell_check
