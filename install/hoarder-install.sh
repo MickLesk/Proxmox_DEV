@@ -35,7 +35,7 @@ curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dea
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
 $STD apt-get update
 $STD apt-get install -y nodejs
-$STD npm install -g pnpm@9.7.1
+$STD npm install -g pnpm
 export NODE_OPTIONS="--max_old_space_size=4096"
 msg_ok "Installed Node.js"
 
@@ -44,11 +44,11 @@ DB_NAME=hoarder_db
 DB_USER=hoarder_user
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
 HOARDER_SECRET="$(openssl rand -base64 32 | cut -c1-24)"
-$STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
-$STD sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
-$STD sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" 
-$STD sudo -u postgres psql -c "ALTER DATABASE $DB_NAME OWNER TO $DB_USER;"
-$STD sudo -u postgres psql -c "ALTER USER $DB_USER WITH SUPERUSER;"
+sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
+sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" 
+sudo -u postgres psql -c "ALTER DATABASE $DB_NAME OWNER TO $DB_USER;"
+sudo -u postgres psql -c "ALTER USER $DB_USER WITH SUPERUSER;"
 echo "" >>~/hoarder.creds
 echo -e "Hoarder Database User: $DB_USER" >>~/hoarder.creds
 echo -e "Hoarder Database Password: $DB_PASS" >>~/hoarder.creds
@@ -62,12 +62,15 @@ RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/late
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
-cd hoarder
-$STD pnpm install --filter @hoarder/client... --config.dedupe-peer-dependents=false --frozen-lockfile
-$STD pnpm build:static
-$STD pnpm install --filter @hoarder/server... --config.dedupe-peer-dependents=false
-mkdir -p ./src/server/public
-$STD pnpm build:server
+cd /opt/hoarder/packages/db
+pnpm dlx @vercel/ncc build migrate.ts -o /db_migrations
+cp -R drizzle /db_migrations
+cd /opt/hoarder/apps/web
+pnpm exec next build --experimental-build-mode compile
+cd /opt/hoarder
+pnpm deploy --node-linker=isolated --filter @hoarder/workers --prod /prod/workers
+cd /opt/hoarder/apps/cli
+pnpm build
 echo "${RELEASE}" >"/opt/hoarder_version.txt"
 cat <<EOF >/opt/hoarder/src/server/.env
 DATABASE_URL="postgresql://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME?schema=public"
