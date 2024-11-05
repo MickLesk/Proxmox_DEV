@@ -178,9 +178,9 @@ advanced_settings() {
       else
         exit-script
       fi
-    done
-    ADVANCED_SETTINGS=true 
+    done 
   fi
+  ADVANCED_SETTINGS=true 
 
   if [ "$var_os" == "debian" ]; then
     var_version=""
