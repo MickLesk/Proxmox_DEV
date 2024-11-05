@@ -41,15 +41,24 @@ error_handler() {
 spinner() {
     local dots="." 
     local delay=0.3
-    local count=0
-    printf "\e[?25l"  # Verstecke den Cursor
+    local count=0  # Initialisiere den Zähler mit 0
+
+    # Verstecke den Cursor
+    printf "\e[?25l"
+
+    # Schleife für die Animation
     while true; do
-        # Berechne den aktuellen Punktstatus und zeige an
+        # Berechne den aktuellen Punktstatus und zeige ihn an
         printf "\r\e[36mProcessing%s\e[0m" "${dots:0:((count % 3) + 1)}"
+        
+        # Erhöhe den Zähler korrekt
         ((count++))
+
+        # Warten
         sleep "$delay"
     done
 }
+
 
 
 # This function displays an informational message with a yellow color.
