@@ -35,31 +35,22 @@ error_handler() {
   local error_message="${RD}[ERROR]${CL} in line ${RD}$line_number${CL}: exit code ${RD}$exit_code${CL}: while executing command ${YW}$command${CL}"
   echo -e "\n$error_message\n"
 }
-
 # This function displays a spinner.
-# This function displays a modern dot-based spinner.
 spinner() {
-    local dots="." 
-    local delay=0.3
-    local count=0  # Initialisiere den Zähler mit 0
+    local spinner_chars="/-\|"
+    local spinner_index=0
+    local delay=0.1
 
     # Verstecke den Cursor
     printf "\e[?25l"
 
-    # Schleife für die Animation
+    # Endlosschleife, um den Spinner anzuzeigen
     while true; do
-        # Berechne den aktuellen Punktstatus und zeige ihn an
-        printf "\r\e[36mProcessing%s\e[0m" "${dots:0:((count % 3) + 1)}"
-        
-        # Erhöhe den Zähler korrekt
-        ((count++))
-
-        # Warten
+        # Zeige den aktuellen Spinner-Charakter an und aktualisiere ihn
+        printf "\r \e[36m%s\e[0m" "${spinner_chars:spinner_index++ % ${#spinner_chars}:1}"
         sleep "$delay"
     done
 }
-
-
 
 # This function displays an informational message with a yellow color.
 msg_info() {
