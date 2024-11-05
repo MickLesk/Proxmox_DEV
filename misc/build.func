@@ -180,7 +180,7 @@ advanced_settings() {
       fi
     done 
   fi
-  ADVANCED_SETTINGS=true 
+  ADVANCED_SETTINGS="true" 
 
   if [ "$var_os" == "debian" ]; then
     var_version=""
