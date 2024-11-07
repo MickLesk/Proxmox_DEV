@@ -108,12 +108,16 @@ case $version in
         exit 1
         ;;
     esac
+    ;;
+  *)
+    echo -e "\e[31m[ERROR] Invalid Tomcat version selected. Please enter 9, 10.1 or 11.\e[0m"
+    exit 1
+    ;;
+esac
 
 msg_info "Installing Tomcat $TOMCAT_VERSION"
-
 LATEST_VERSION=$(curl -s "https://dlcdn.apache.org/tomcat/tomcat-$TOMCAT_VERSION/" | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+(-M[0-9]+)?/' | sort -V | tail -n 1)
 LATEST_VERSION=${LATEST_VERSION%/}
-
 TOMCAT_URL="https://dlcdn.apache.org/tomcat/tomcat-$TOMCAT_VERSION/$LATEST_VERSION/bin/apache-tomcat-$LATEST_VERSION.tar.gz"
 
 wget -qO /tmp/tomcat.tar.gz "$TOMCAT_URL"
