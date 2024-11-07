@@ -19,7 +19,7 @@ $STD apt-get install -y \
   curl \
   sudo \
   mc \
-  lsb-release \
+  lsb-release 
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Adoptium Repository"
