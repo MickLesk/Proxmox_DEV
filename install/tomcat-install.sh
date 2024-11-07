@@ -14,12 +14,12 @@ network_check
 update_os
 
 msg_info "Installing Dependencies"
-$STD apt-get install -y curl
-$STD apt-get install -y sudo
-$STD apt-get install -y mc
-$STD apt-get install -y lsb-base
-$STD apt-get install -y lsb-release
-$STD apt-get install -y gnupg2
+$STD apt-get install -y \
+  gnupg2 \
+  curl \
+  sudo \
+  mc \
+  lsb-release \
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Adoptium Repository"
