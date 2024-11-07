@@ -22,7 +22,6 @@ $STD apt-get install -y lsb-release
 $STD apt-get install -y gnupg2
 msg_ok "Installed Dependencies"
 
-# Choose Tomcat version
 read -r -p "Which Tomcat version would you like to install? (9, 10.1, 11): " version
 case $version in
   9)
@@ -44,7 +43,7 @@ case $version in
         ;;
     esac
     ;;
-  10.1)
+  10|10.1)
     TOMCAT_VERSION="10.1"
     echo "Which JDK version would you like to use? (11, 17): "
     read -r jdk_version
@@ -75,22 +74,24 @@ case $version in
 esac
 
 msg_info "Installing Tomcat $TOMCAT_VERSION"
-TOMCAT_URL="https://dlcdn.apache.org/tomcat/tomcat-$TOMCAT_VERSION/latest/apache-tomcat-$TOMCAT_VERSION*.tar.gz"
+
+LATEST_VERSION=$(curl -s "https://dlcdn.apache.org/tomcat/tomcat-$TOMCAT_VERSION/" | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+(-M[0-9]+)?/' | sort -V | tail -n 1)
+LATEST_VERSION=${LATEST_VERSION%/}
+
+TOMCAT_URL="https://dlcdn.apache.org/tomcat/tomcat-$TOMCAT_VERSION/$LATEST_VERSION/bin/apache-tomcat-$LATEST_VERSION.tar.gz"
+
 wget -qO /tmp/tomcat.tar.gz "$TOMCAT_URL"
 catch_errors
 
 tar -xzf /tmp/tomcat.tar.gz -C /opt/
 catch_errors
 
-# Create a symbolic link
-ln -s /opt/apache-tomcat-$TOMCAT_VERSION.* /opt/tomcat
+ln -s /opt/apache-tomcat-$LATEST_VERSION /opt/tomcat
 catch_errors
 
-# Set permissions
-chown -R $(whoami):$(whoami) /opt/apache-tomcat-$TOMCAT_VERSION.*
+chown -R $(whoami):$(whoami) /opt/apache-tomcat-$LATEST_VERSION
 catch_errors
 
-# Set up Tomcat as a service
 cat <<EOT > /etc/systemd/system/tomcat.service
 [Unit]
 Description=Apache Tomcat Web Application Container
@@ -110,11 +111,10 @@ ExecStop=/opt/tomcat/bin/shutdown.sh
 WantedBy=multi-user.target
 EOT
 
-# Enable and start the service
 systemctl daemon-reload
 systemctl enable tomcat
 systemctl start tomcat
-msg_ok "Tomcat $TOMCAT_VERSION installed and started"
+msg_ok "Tomcat $LATEST_VERSION installed and started"
 
 msg_info "Cleaning up"
 rm -f /tmp/tomcat.tar.gz
