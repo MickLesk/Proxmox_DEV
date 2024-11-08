@@ -48,16 +48,39 @@ function default_settings() {
   MAC=""
   VLAN=""
   SSH="no"
-  VERB="yes"
+  VERB="no"
   echo_default
 }
 
 function update_script() {
 header_info
-if [[ ! -d /opt/tomcat ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if [[ ! -d /opt/roundcubemail ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
   read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
   [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
+fi
+RELEASE=$(curl -s https://api.github.com/repos/roundcube/roundcubemail/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
+  msg_info "Updating ${APP} to ${RELEASE}"
+  cd /opt
+  wget -q "https://github.com/roundcube/roundcubemail/releases/download/${RELEASE}/roundcubemail-${RELEASE}-complete.tar.gz"
+  tar -xf roundcubemail-${RELEASE}-complete.tar.gz
+  mv roundcubemail-${RELEASE} /opt/roundcubemail
+  cd /opt/roundcubemail
+  COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
+  chown -R www-data:www-data temp/ logs/
+  msg_ok "Updated ${APP}"
+
+  msg_info "Reload Apache2"
+  systemctl reload apache2
+  msg_ok "Apache2 Reloaded"
+
+  msg_info "Cleaning Up"
+  rm -rf /opt/roundcubemail-${RELEASE}-complete.tar.gz
+  msg_ok "Cleaned"
+  msg_ok "Updated Successfully"
+else
+  msg_ok "No update required. ${APP} is already at ${RELEASE}"
 fi
 exit
 }
@@ -68,4 +91,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} should be reachable by going to the following URL.
-         ${BL}http://${IP} ${CL} \n"
+         ${BL}http://${IP}/ ${CL} \n"
