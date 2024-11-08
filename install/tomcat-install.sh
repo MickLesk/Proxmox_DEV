@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Copyright (c) 2021-2024 tteck
-# Author: tteck (tteckster)
+# Author: MickLesk (CanbiZ)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
@@ -121,7 +121,7 @@ TOMCAT_URL="https://dlcdn.apache.org/tomcat/tomcat-$TOMCAT_VERSION/v$LATEST_VERS
 wget -qO /tmp/tomcat.tar.gz "$TOMCAT_URL"
 mkdir -p /opt/tomcat-$TOMCAT_VERSION 
 tar -xzf /tmp/tomcat.tar.gz -C /opt/tomcat-$TOMCAT_VERSION
-chown -R $(whoami):$(whoami) /opt/tomcat-$LATEST_VERSION
+chown -R root:root /opt/tomcat-$LATEST_VERSION
 
 cat <<EOT > /etc/systemd/system/tomcat.service
 [Unit]
