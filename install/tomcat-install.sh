@@ -116,14 +116,12 @@ case $version in
 esac
 
 msg_info "Installing Tomcat $TOMCAT_VERSION"
-LATEST_VERSION=$(curl -s "https://dlcdn.apache.org/tomcat/tomcat-$TOMCAT_VERSION/" | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+(-M[0-9]+)?/' | sort -V | tail -n 1)
-LATEST_VERSION=${LATEST_VERSION%/}
-TOMCAT_URL="https://dlcdn.apache.org/tomcat/tomcat-$TOMCAT_VERSION/$LATEST_VERSION/bin/apache-tomcat-$LATEST_VERSION.tar.gz"
-
+LATEST_VERSION=$(curl -s "https://dlcdn.apache.org/tomcat/tomcat-$TOMCAT_VERSION/" | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+(-M[0-9]+)?/' | sort -V | tail -n 1 | sed 's/\/$//; s/v//')
+TOMCAT_URL="https://dlcdn.apache.org/tomcat/tomcat-$TOMCAT_VERSION/v$LATEST_VERSION/bin/apache-tomcat-$LATEST_VERSION.tar.gz"
 wget -qO /tmp/tomcat.tar.gz "$TOMCAT_URL"
-tar -xzf /tmp/tomcat.tar.gz -C /opt/
-ln -s /opt/apache-tomcat-$LATEST_VERSION /opt/tomcat
-chown -R $(whoami):$(whoami) /opt/apache-tomcat-$LATEST_VERSION
+mkdir -p /opt/tomcat-$TOMCAT_VERSION 
+tar -xzf /tmp/tomcat.tar.gz -C /opt/tomcat-$TOMCAT_VERSION
+chown -R $(whoami):$(whoami) /opt/tomcat-$LATEST_VERSION
 
 cat <<EOT > /etc/systemd/system/tomcat.service
 [Unit]
@@ -135,18 +133,16 @@ Type=simple
 User=$(whoami)
 Group=$(whoami)
 Environment=JAVA_HOME=/usr/lib/jvm/java-${jdk_version}-openjdk-amd64
-Environment=CATALINA_HOME=/opt/tomcat
-Environment=CATALINA_BASE=/opt/tomcat
-ExecStart=/opt/tomcat/bin/startup.sh
-ExecStop=/opt/tomcat/bin/shutdown.sh
+Environment=CATALINA_HOME=/opt/tomcat-$TOMCAT_VERSION
+Environment=CATALINA_BASE=/opt/tomcat-$TOMCAT_VERSION
+ExecStart=/opt/tomcat-$TOMCAT_VERSION/bin/startup.sh
+ExecStop=/opt/tomcat-$TOMCAT_VERSION/bin/shutdown.sh
 
 [Install]
 WantedBy=multi-user.target
 EOT
 
-systemctl daemon-reload
-systemctl enable tomcat
-systemctl start tomcat
+systemctl enable -q --now tomcat
 msg_ok "Tomcat $LATEST_VERSION installed and started"
 
 msg_info "Cleaning up"
