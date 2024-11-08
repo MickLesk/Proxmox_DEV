@@ -60,6 +60,8 @@ if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
   [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
 
+}
+
 start
 build_container
 description
