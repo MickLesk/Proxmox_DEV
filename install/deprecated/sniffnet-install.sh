@@ -18,18 +18,13 @@ update_os
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y --no-install-recommends \
   libpcap-dev \
-  dnsutils \
-  iputils-ping \
   libasound2-dev \
   libfontconfig1-dev \
   libgtk-3-dev \
   build-essential \
   unzip \
-  pkg-config \
   curl \
   sudo \
-  git \
-  make \
   mc
 msg_ok "Installed Dependencies"
 
@@ -40,14 +35,13 @@ msg_ok "Installed Rust"
 
 msg_info "Installing Sniffnet (Patience)" 
 cd /opt
-RELEASE=$(curl -s https://api.github.com/repos/GyulyVGC/sniffnet/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-$STD wget -q --no-check-certificate "https://codeload.github.com/GyulyVGC/sniffnet/zip/refs/tags/${RELEASE}"
-$STD unzip -q ${RELEASE}
-CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
-mv "sniffnet-${CLEAN_RELEASE}" sniffnet
-rm -R ${RELEASE} 
+RELEASE=$(curl -s https://api.github.com/repos/GyulyVGC/sniffnet/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+wget -q "https://github.com/GyulyVGC/sniffnet/archive/refs/tags/v${RELEASE}.zip"
+unzip -q v${RELEASE}.zip
+mv sniffnet-${RELEASE} /opt/sniffnet
 cd sniffnet
 cargo build -q --release
+echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Sniffnet"
 
 msg_info "Creating Service"

@@ -70,7 +70,7 @@ $STD wget https://github.com/koel/koel/releases/download/${RELEASE}/koel-${RELEA
 unzip -q koel-${RELEASE}.zip
 mkdir -p /opt/koel_media
 mkdir -p /opt/koel_sync
-sudo chown -R www-data:www-data .
+sudo chown -R www-data:www-data /opt/*
 cd koel
 $STD composer update --no-interaction
 $STD composer install --no-interaction
