@@ -35,7 +35,7 @@ echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.co
 curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
 sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
    --dearmor
-echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+$STD echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
 $STD apt-get update
 msg_ok "Set up Repositories"
 
@@ -115,7 +115,7 @@ cat <<EOF >/opt/nodebb/config.json
 }
 EOF
 #$STD ./nodebb setup
-echo "${CLEAN_RELEASE}" >/opt/${APPLICATION}_version.txt
+echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed NodeBB"
 
 msg_info "Creating Services"
