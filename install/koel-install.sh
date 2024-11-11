@@ -37,10 +37,12 @@ $STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER ENCO
 $STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET client_encoding TO 'utf8';"
 $STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET default_transaction_isolation TO 'read committed';"
 $STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET timezone TO 'UTC'"
-echo "" >>~/koel.creds
-echo "Koel Database User: $DB_USER" >>~/koel.creds
-echo "Koel Database Password: $DB_PASS" >>~/koel.creds
-echo "Koel Database Name: $DB_NAME" >>~/koel.creds
+{
+    echo "Koel-Credentials"
+    echo "Koel Database User: $DB_USER"
+    echo "Koel Database Password: $DB_PASS"
+    echo "Koel Database Name: $DB_NAME"
+} >> ~/koel.creds
 msg_ok "Set up PostgreSQL database"
 
 msg_info "Setting up Node.js/Yarn"
@@ -72,15 +74,18 @@ cd koel
 sudo chown -R www-data:www-data .
 $STD composer update --no-interaction
 $STD composer install --no-interaction
-sudo sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" /opt/koel/.env
-sudo sed -i "s/DB_HOST=.*/DB_HOST=localhost/" /opt/koel/.env
-sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" /opt/koel/.env
-sudo sed -i "s/DB_PORT=.*/DB_PORT=5432/" /opt/koel/.env
-sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" /opt/koel/.env
-sudo sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" /opt/koel/.env
-sudo sed -i 's|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|' /opt/koel/.env
-sudo sed -i 's|FFMPEG_PATH=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|' /opt/koel/.env
+sudo sed -i -e "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" \
+           -e "s/DB_HOST=.*/DB_HOST=localhost/" \
+           -e "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" \
+           -e "s/DB_PORT=.*/DB_PORT=5432/" \
+           -e "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" \
+           -e "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" \
+           -e "s|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|" \
+           -e "s|FFMPEG_PATH=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|" /opt/koel/.env
 $STD php artisan koel:init --no-interaction
+sed -i -e "s/^upload_max_filesize = .*/upload_max_filesize = 200M/" \
+       -e "s/^post_max_size = .*/post_max_size = 200M/" \
+       -e "s/^memory_limit = .*/memory_limit = 200M/" /etc/php/8.3/fpm/php.ini
 msg_ok "Installed Koel"
 
 msg_info "Set up web services"
@@ -96,7 +101,7 @@ server {
     gzip_comp_level 9;
 
     send_timeout    3600;
-    client_max_body_size 50M;
+    client_max_body_size 200M;
 
     location / {
         try_files \$uri \$uri/ /index.php?\$args;
@@ -124,11 +129,11 @@ sudo systemctl restart nginx
 msg_ok "Created Services"
 
 msg_info "Adding Cronjob (Daily Midnight)"
-mkdir -p /opt/koel_sync_logs
-cat <<EOF >/opt/koel/koel.cron
-0 0 * * * cd /opt/koel/ && /usr/bin/php artisan koel:sync >/opt/koel_sync_logs/koel.sync.log 2>&1
+mkdir -p /opt/koel_sync
+cat <<EOF >/opt/koel_sync/koel_sync.cron
+0 0 * * * cd /opt/koel/ && /usr/bin/php artisan koel:sync >/opt/koel_sync/koel_sync.log 2>&1
 EOF
-crontab /opt/koel/koel.cron
+crontab /opt/koel_sync/koel_sync.cron
 msg_ok "Cronjob successfully added"
 
 motd_ssh
