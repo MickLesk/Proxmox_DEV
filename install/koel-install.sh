@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2024 tteck
+# Copyright (c) 2021-2024 communtiy-scripts ORG
 # Author: MickLesk (Canbiz)
 # License: MIT
-# https://github.com/tteck/Proxmox/raw/main/LICENSE
+# https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 
 source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
 color
@@ -21,10 +21,7 @@ $STD apt-get install -y --no-install-recommends \
   gnupg2 \
   lsb-release \
   ffmpeg \
-  wget \
   curl \
-  git \
-  zip \
   unzip \
   sudo \
   make \
@@ -67,9 +64,9 @@ msg_info "Installing Koel(Patience)"
 $STD wget -O composer-setup.php https://getcomposer.org/installer
 $STD php composer-setup.php --install-dir=/usr/local/bin --filename=composer --quiet
 cd /opt
-KOEL_VERSION=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
-$STD wget https://github.com/koel/koel/releases/download/${KOEL_VERSION}/koel-${KOEL_VERSION}.zip
-unzip -q koel-${KOEL_VERSION}.zip
+RELEASE=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
+$STD wget https://github.com/koel/koel/releases/download/${RELEASE}/koel-${RELEASE}.zip
+unzip -q koel-${RELEASE}.zip
 mkdir -p /opt/koel_media
 cd koel
 sudo chown -R www-data:www-data .
@@ -138,7 +135,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-rm -R "/opt/koel-${KOEL_VERSION}.zip" 
+rm -R "/opt/koel-${RELEASE}.zip" 
 $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"
