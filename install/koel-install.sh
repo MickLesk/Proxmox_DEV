@@ -24,7 +24,6 @@ $STD apt-get install -y --no-install-recommends \
   curl \
   unzip \
   sudo \
-  make \
   mc 
  msg_ok "Installed Dependencies"
 
@@ -70,8 +69,9 @@ RELEASE=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "titl
 $STD wget https://github.com/koel/koel/releases/download/${RELEASE}/koel-${RELEASE}.zip
 unzip -q koel-${RELEASE}.zip
 mkdir -p /opt/koel_media
-cd koel
+mkdir -p /opt/koel_sync
 sudo chown -R www-data:www-data .
+cd koel
 $STD composer update --no-interaction
 $STD composer install --no-interaction
 sudo sed -i -e "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" \
@@ -129,11 +129,11 @@ sudo systemctl restart nginx
 msg_ok "Created Services"
 
 msg_info "Adding Cronjob (Daily Midnight)"
-mkdir -p /opt/koel_sync
 cat <<EOF >/opt/koel_sync/koel_sync.cron
 0 0 * * * cd /opt/koel/ && /usr/bin/php artisan koel:sync >/opt/koel_sync/koel_sync.log 2>&1
 EOF
 crontab /opt/koel_sync/koel_sync.cron
+
 msg_ok "Cronjob successfully added"
 
 motd_ssh
