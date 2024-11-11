@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2024 tteck
-# Author: tteck (tteckster)
+# Copyright (c) 2021-2024 community-scripts ORG
+# Author: MickLesk
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
@@ -24,7 +24,6 @@ $STD apt-get install -y \
   libapache2-mod-php \
   php8.2-{mbstring,gd,intl,pdo,mysql,tokenizer,zip,xml} 
 msg_ok "Installed Dependencies"
-OnP96wIe5pF9p
 
 msg_info "Installing Database"
 apt-get install -y mariadb-server
@@ -47,28 +46,25 @@ cp .env.example .env
 $STD php artisan key:generate
 msg_ok "Installed Heimdall Dashboard ${RELEASE}"
 
-msg_info "Creating Service"
-service_path="/etc/systemd/system/heimdall.service"
+msg_info "Creating Kimai Service"
+service_path="/etc/systemd/system/kimai.service"
 echo "[Unit]
-Description=Heimdall
+Description=Kimai
 After=network.target
 
 [Service]
 Restart=always
 RestartSec=5
 Type=simple
-User=root
-WorkingDirectory=/opt/Heimdall
-ExecStart="/usr/bin/php" artisan serve --port 7990 --host 0.0.0.0
+User=www-data
+WorkingDirectory=/opt/kimai
+ExecStart=/usr/bin/php bin/console server:run --env=prod --host=0.0.0.0 --port=8001
 TimeoutStopSec=30
 
 [Install]
 WantedBy=multi-user.target" >$service_path
-systemctl enable -q --now heimdall.service
-cd /opt/Heimdall
-COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload &>/dev/null
-systemctl restart heimdall.service
-msg_ok "Created Service"
+systemctl enable -q --now kimai.service
+msg_ok "Created Kimai Service"
 
 motd_ssh
 customize
