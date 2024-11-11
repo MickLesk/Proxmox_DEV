@@ -35,17 +35,34 @@ error_handler() {
   local error_message="${RD}[ERROR]${CL} in line ${RD}$line_number${CL}: exit code ${RD}$exit_code${CL}: while executing command ${YW}$command${CL}"
   echo -e "\n$error_message\n"
 }
-
 # This function displays a spinner.
 spinner() {
-    local chars="/-\|"
-    local spin_i=0
+    local spinner_chars="/-\|"
+    local spinner_index=0
+    local delay=0.1
     printf "\e[?25l"
     while true; do
-        printf "\r \e[36m%s\e[0m" "${chars:spin_i++%${#chars}:1}"
-        sleep 0.1
+        printf "\r \e[36m%s\e[0m" "${spinner_chars:spinner_index++ % ${#spinner_chars}:1}"
+        sleep "$delay"
     done
 }
+
+dots() {
+    local frames=('  .     ' '  ..    ' '  ...   ' '  ....  ' '  ..... ' '  ......' '  ....... ')
+    local interval=0.4
+    local count=0
+    local total_frames=${#frames[@]}
+    tput civis
+    while true; do
+        printf "\r\e[36mProcessing%s\e[0m" "${frames[$count]}"
+        ((count++))
+        if [ $count -ge $total_frames ]; then
+            count=0
+        fi
+        sleep $interval
+    done
+}
+
 
 # This function displays an informational message with a yellow color.
 msg_info() {
@@ -178,7 +195,7 @@ advanced_settings() {
       else
         exit-script
       fi
-    done
+    done 
   fi
 
   if [ "$var_os" == "debian" ]; then
@@ -466,7 +483,6 @@ advanced_settings() {
     VERB="no"
   fi
   echo -e "${DGN}Enable Verbose Mode: ${BGN}$VERB${CL}"
-
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create ${APP} LXC?" 10 58); then
     echo -e "${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
   else
@@ -476,7 +492,6 @@ advanced_settings() {
     advanced_settings
   fi
 }
-
 install_script() {
   pve_check
   shell_check
@@ -484,12 +499,12 @@ install_script() {
   arch_check
   ssh_check
 
-  if systemctl is-active -q ping-instances.service; then
+if systemctl is-active -q ping-instances.service; then
     systemctl -q stop ping-instances.service
   fi
   NEXTID=$(pvesh get /cluster/nextid)
   timezone=$(cat /etc/timezone)
-  header_info
+
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "SETTINGS" --yesno "Use Default Settings?" --no-button Advanced 10 58); then
     header_info
     echo -e "${BL}Using Default Settings${CL}"
@@ -500,6 +515,7 @@ install_script() {
     advanced_settings
   fi
 }
+
 
 start() {
   if command -v pveversion >/dev/null 2>&1; then
