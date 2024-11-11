@@ -55,12 +55,14 @@ MONGO_ADMIN_PWD="$(openssl rand -base64 18 | cut -c1-13)"
 NODEBB_USER="nodebb"
 NODEBB_PWD="$(openssl rand -base64 18 | cut -c1-13)"
 NODEBB_SECRET=$(uuidgen)
-echo "" >>~/nodebb.creds
-echo -e "Mongo-Database User:$MONGO_ADMIN_USER" >>~/nodebb.creds
-echo -e "Mongo-Database Password: $MONGO_ADMIN_PWD" >>~/nodebb.creds
-echo -e "NodeBB User: $NODEBB_USER" >>~/nodebb.creds
-echo -e "NodeBB Password: $NODEBB_PWD" >>~/nodebb.creds
-echo -e "NodeBB Secret: $NODEBB_SECRET" >>~/nodebb.creds
+{
+    echo "NodeBB-Credentials"
+    echo "Mongo Database User: $MONGO_ADMIN_USER"
+    echo "Mongo Database Password: $MONGO_ADMIN_PWD"
+    echo "NodeBB User: $NODEBB_USER"
+	echo "NodeBB Password: $NODEBB_PWD"
+	echo "NodeBB Secret: $NODEBB_SECRET"
+} >> ~/nodebb.creds
 
 $STD mongosh <<EOF
 use admin
@@ -87,11 +89,11 @@ sudo systemctl restart mongod
 msg_ok "MongoDB successfully configurated" 
 
 msg_info "Install NodeBB" 
-RELEASE=$(curl -s https://api.github.com/repos/NodeBB/NodeBB/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-wget -q "https://github.com/NodeBB/NodeBB/archive/refs/tags/${RELEASE}.zip"
-unzip -q ${RELEASE}.zip
-CLEAN_RELEASE=$(echo $RELEASE | sed 's/^v//')
-mv NodeBB-${CLEAN_RELEASE} /opt/nodebb
+cd /opt
+RELEASE=$(curl -s https://api.github.com/repos/NodeBB/NodeBB/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+wget -q "https://github.com/NodeBB/NodeBB/archive/refs/tags/v${RELEASE}.zip"
+unzip -q v${RELEASE}.zip
+mv NodeBB-${RELEASE} /opt/nodebb
 cd /opt/nodebb
 NODEBB_USER=$(grep "NodeBB User" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
 NODEBB_PWD=$(grep "NodeBB Password" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
@@ -116,7 +118,7 @@ EOF
 echo "${CLEAN_RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed NodeBB"
 
-#msg_info "Creating Services"
+msg_info "Creating Services"
 cat <<EOF >/etc/systemd/system/nodebb.service
 [Unit]
 Description=NodeBB
@@ -136,13 +138,13 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 systemctl enable -q --now nodebb
-#msg_ok "Created Service"
+msg_ok "Created Service"
 
 motd_ssh
 customize
 
 msg_info "Cleaning up"
-rm -R /opt/${RELEASE}.zip 
+rm -R /opt/v${RELEASE}.zip
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
