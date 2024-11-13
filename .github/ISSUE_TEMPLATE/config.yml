@@ -8,6 +8,7 @@ contact_links:
       about: This issue tracker is not for support questions. Please refer to the community's help.
     - name: 🌟 Feature request
       url: https://github.com/community-scripts/ProxmoxVE/discussions/new?category=request-script
+      about: Please use our GitHub Discussion for making feature requests.
     - name: 💻 Discord
       url: https://discord.gg/UHrpNWGwkH
       about: Feel free to join our Discord for Talking, Homelab and so on.
