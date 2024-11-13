@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
     - name: 📃 Documentation Issue
-      url: https://github.com/community-scripts/ProxmoxVE/issues/new/choose
+      url: https://github.com/community-scripts/ProxmoxVE/issues/new?assignees=&labels=Status%3A+Unconfirmed&projects=&template=frontend_report.yml&title=%5BFrontend%5D%3A+
       about: This issue tracker is not for documentation issues. Please file documentation issues here.
     - name: 🤔 Questions and Help
       url: https://github.com/community-scripts/ProxmoxVE/discussions
