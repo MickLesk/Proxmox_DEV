@@ -14,13 +14,12 @@ body:
         - For suggestions, questions, or feature/script requests, please use the [Discussions section.](https://github.com/community-scripts/ProxmoxVE/discussions)
 
   - type: checkboxes
-    validations:
-      required: true
+    id: guidelines
     attributes:
       label: Please verify that you have read and understood the guidelines.
-      options:
-        - label: Yes
-        - label: No
+      placeholder: "yes"
+    validations:
+      required: true
 
   - type: textarea
     id: bug
