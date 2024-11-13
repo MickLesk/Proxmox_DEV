@@ -28,21 +28,11 @@ body:
     validations:
       required: true
 
-  - type: section
+  - type: markdown
     attributes:
-      label: What settings are you currently utilizing?
-    fields:
-      - type: radio
-        id: settings
-        attributes:
-          label: "Select the settings"
-          options:
-            - label: Default Settings
-              value: default
-            - label: Advanced Settings
-              value: advanced
-        validations:
-          required: true
+      value: |
+        - [ ] **Default Settings**
+        - [ ] **Advanced Settings**
 
   - type: markdown
     attributes:
