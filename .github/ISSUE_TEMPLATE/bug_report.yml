@@ -1,4 +1,4 @@
-name: "🐛 Script Issue Report"
+name: "🐞 Script Issue Report"
 description: Report a specific issue with a script. For general inquiries, please use the Discussions section.
 title: "Bug: "
 labels: "Status: Unconfirmed"

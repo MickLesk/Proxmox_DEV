@@ -1,5 +1,8 @@
-name: "Webseite: Optimierung oder Bug"
-description: "Report an issue specifically related to the website frontend. For other inquiries, please use the Discussions section."
+name: "🌐 Frontend (Issue / Optimization / Documentation)"
+description: Report an issue specifically related to the website frontend. For other inquiries, please use the Discussions section.
+title: "Frontend: "
+labels: "Status: Unconfirmed"
+
 body:
   - type: markdown
     attributes:
@@ -27,6 +30,7 @@ body:
         - 
         - Bug
         - Optimization
+        - Documentation
   
   - type: textarea
     id: bug_description
