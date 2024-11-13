@@ -28,35 +28,49 @@ body:
     validations:
       required: true
 
-  - type: dropdown
-    id: settings
+  - type: section
     attributes:
       label: What settings are you currently utilizing?
-      options:
-        - 
-        - Default Settings
-        - Advanced Settings
-    validations:
-      required: true
+    fields:
+      - type: radio
+        id: settings
+        attributes:
+          label: "Select the settings"
+          options:
+            - label: Default Settings
+              value: default
+            - label: Advanced Settings
+              value: advanced
+        validations:
+          required: true
 
   - type: markdown
     attributes:
       value: "If using Advanced Settings, please try Default Settings before creating an issue."
 
-  - type: dropdown
-    id: distribution
+  - type: section
     attributes:
       label: Which Linux distribution are you employing?
-      options:
-        - 
-        - Alpine
-        - Debian 11
-        - Debian 12
-        - Ubuntu 20.04
-        - Ubuntu 22.04
-        - Ubuntu 24.04
-    validations:
-      required: true
+    fields:
+      - type: radio
+        id: distribution
+        attributes:
+          label: "Select your Linux distribution"
+          options:
+            - label: Alpine
+              value: alpine
+            - label: Debian 11
+              value: debian11
+            - label: Debian 12
+              value: debian12
+            - label: Ubuntu 20.04
+              value: ubuntu20
+            - label: Ubuntu 22.04
+              value: ubuntu22
+            - label: Ubuntu 24.04
+              value: ubuntu24
+        validations:
+          required: true
 
   - type: textarea
     id: screenshot
