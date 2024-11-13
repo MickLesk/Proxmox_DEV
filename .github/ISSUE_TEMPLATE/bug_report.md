@@ -5,8 +5,6 @@ description: Generate a report on an issue pertaining specifically to a script. 
 title: 'Bug: '
 labels: 'Status: Unconfirmed'
 
----
-
 body:
   - type: markdown
     attributes:
