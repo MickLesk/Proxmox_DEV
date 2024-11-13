@@ -48,29 +48,20 @@ body:
     attributes:
       value: "If using Advanced Settings, please try Default Settings before creating an issue."
 
-  - type: section
+  - type: dropdown
+    id: distribution
     attributes:
       label: Which Linux distribution are you employing?
-    fields:
-      - type: radio
-        id: distribution
-        attributes:
-          label: "Select your Linux distribution"
-          options:
-            - label: Alpine
-              value: alpine
-            - label: Debian 11
-              value: debian11
-            - label: Debian 12
-              value: debian12
-            - label: Ubuntu 20.04
-              value: ubuntu20
-            - label: Ubuntu 22.04
-              value: ubuntu22
-            - label: Ubuntu 24.04
-              value: ubuntu24
-        validations:
-          required: true
+      options:
+        - 
+        - Alpine
+        - Debian 11
+        - Debian 12
+        - Ubuntu 20.04
+        - Ubuntu 22.04
+        - Ubuntu 24.04
+    validations:
+      required: true
 
   - type: textarea
     id: screenshot
