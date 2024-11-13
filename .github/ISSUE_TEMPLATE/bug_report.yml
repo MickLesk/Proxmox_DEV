@@ -14,14 +14,12 @@ body:
         - For suggestions, questions, or feature/script requests, please use the [Discussions section.](https://github.com/community-scripts/ProxmoxVE/discussions)
 
   - type: checkboxes
-    id: guidelines
     attributes:
       label: Please verify that you have read and understood the guidelines.
       options:
         - label: Yes
 
   - type: textarea
-    id: bug
     attributes:
       label: A clear and concise description of the issue.
     validations:
@@ -54,7 +52,6 @@ body:
         - label: Ubuntu 24.04
 
   - type: textarea
-    id: screenshot
     attributes:
       label: If relevant, including screenshots or a code block can be helpful in clarifying the issue.
       placeholder: "Code blocks begin and conclude by enclosing the code with three backticks (```) above and below it."
@@ -62,7 +59,6 @@ body:
       required: false
 
   - type: textarea
-    id: reproduce
     attributes:
       label: Please provide detailed steps to reproduce the issue.
       placeholder: "First do this, then this ..."
