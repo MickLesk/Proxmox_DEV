@@ -52,8 +52,6 @@ body:
         - label: Ubuntu 20.04
         - label: Ubuntu 22.04
         - label: Ubuntu 24.04
-    validations:
-      required: true
 
   - type: textarea
     id: screenshot
