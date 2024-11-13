@@ -16,7 +16,6 @@ body:
   - type: checkboxes
     validations:
       required: true
-    id: guidelines
     attributes:
       label: Please verify that you have read and understood the guidelines.
       options:
