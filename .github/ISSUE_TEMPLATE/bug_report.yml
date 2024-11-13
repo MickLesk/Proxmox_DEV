@@ -21,6 +21,7 @@ body:
       label: Please verify that you have read and understood the guidelines.
       options:
         - label: Yes
+        - label: No
 
   - type: textarea
     id: bug
