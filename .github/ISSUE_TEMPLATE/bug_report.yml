@@ -13,13 +13,12 @@ body:
         - When encountering the error message `[ERROR] in line 23: exit code *: while executing command "$@" > /dev/null 2>&1`, make sure to run the script in verbose mode to accurately determine the underlying issue.
         - For suggestions, questions, or feature/script requests, please use the [Discussions section.](https://github.com/community-scripts/ProxmoxVE/discussions)
 
-  - type: input
+  - type: checkboxes
     id: guidelines
     attributes:
       label: Please verify that you have read and understood the guidelines.
-      placeholder: "yes"
-    validations:
-      required: true
+      options:
+        - label: Yes
 
   - type: textarea
     id: bug
@@ -27,34 +26,32 @@ body:
       label: A clear and concise description of the issue.
     validations:
       required: true
-
-  - type: dropdown
-    id: settings
+      
+  - type: checkboxes
+    validations:
+      required: true
     attributes:
       label: What settings are you currently utilizing?
       options:
-        - 
-        - Default Settings
-        - Advanced Settings
-    validations:
-      required: true
+        - label: Default Settings
+        - label: Advanced Settings
 
   - type: markdown
     attributes:
       value: "If using Advanced Settings, please try Default Settings before creating an issue."
 
-  - type: dropdown
-    id: distribution
+  - type: checkboxes
+    validations:
+      required: true
     attributes:
       label: Which Linux distribution are you employing?
       options:
-        - 
-        - Alpine
-        - Debian 11
-        - Debian 12
-        - Ubuntu 20.04
-        - Ubuntu 22.04
-        - Ubuntu 24.04
+        - label: Alpine
+        - label: Debian 11
+        - label: Debian 12
+        - label: Ubuntu 20.04
+        - label: Ubuntu 22.04
+        - label: Ubuntu 24.04
     validations:
       required: true
 
