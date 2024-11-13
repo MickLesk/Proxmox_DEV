@@ -13,7 +13,7 @@ body:
         - When encountering the error message `[ERROR] in line 23: exit code *: while executing command "$@" > /dev/null 2>&1`, make sure to run the script in verbose mode to accurately determine the underlying issue.
         - For suggestions, questions, or feature/script requests, please use the [Discussions section.](https://github.com/community-scripts/ProxmoxVE/discussions)
 
-  - type: checkboxes
+  - type: input
     id: guidelines
     attributes:
       label: Please verify that you have read and understood the guidelines.
