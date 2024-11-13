@@ -1,6 +1,6 @@
 name: "🐞 Script Issue Report"
 description: Report a specific issue with a script. For general inquiries, please use the Discussions section.
-title: "Bug: "
+title: "[Issue]: "
 labels: "Status: Unconfirmed"
 
 body:

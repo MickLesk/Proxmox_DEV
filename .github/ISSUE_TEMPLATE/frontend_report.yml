@@ -1,6 +1,6 @@
 name: "🌐 Frontend (Issue / Optimization / Documentation)"
 description: Report an issue specifically related to the website frontend. For other inquiries, please use the Discussions section.
-title: "Frontend: "
+title: "[Frontend]: "
 labels: "Status: Unconfirmed"
 
 body:
