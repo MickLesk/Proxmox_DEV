@@ -1,7 +1,10 @@
+---
 name: "🐛 Bug Report"
 about: Report a reproducible bug or regression.
 title: 'Bug: '
 labels: 'Status: Unconfirmed'
+
+---
 
 name: Problems with a script.
 description: Generate a report on an issue pertaining specifically to a script. For other inquires please share them in the Discussions section.
