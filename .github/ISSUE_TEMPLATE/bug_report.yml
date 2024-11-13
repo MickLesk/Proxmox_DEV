@@ -14,12 +14,15 @@ body:
         - For suggestions, questions, or feature/script requests, please use the [Discussions section.](https://github.com/community-scripts/ProxmoxVE/discussions)
 
   - type: checkboxes
+    id: guidelines
     attributes:
       label: Please verify that you have read and understood the guidelines.
       options:
-        - label: Yes
+        - label: Default Settings
+        - label: Advanced Settings
 
   - type: textarea
+    id: bug
     attributes:
       label: A clear and concise description of the issue.
     validations:
@@ -38,20 +41,23 @@ body:
     attributes:
       value: "If using Advanced Settings, please try Default Settings before creating an issue."
 
-  - type: checkboxes
-    validations:
-      required: true
+  - type: dropdown
+    id: distribution
     attributes:
       label: Which Linux distribution are you employing?
       options:
-        - label: Alpine
-        - label: Debian 11
-        - label: Debian 12
-        - label: Ubuntu 20.04
-        - label: Ubuntu 22.04
-        - label: Ubuntu 24.04
+        - 
+        - Alpine
+        - Debian 11
+        - Debian 12
+        - Ubuntu 20.04
+        - Ubuntu 22.04
+        - Ubuntu 24.04
+    validations:
+      required: true
 
   - type: textarea
+    id: screenshot
     attributes:
       label: If relevant, including screenshots or a code block can be helpful in clarifying the issue.
       placeholder: "Code blocks begin and conclude by enclosing the code with three backticks (```) above and below it."
@@ -59,6 +65,7 @@ body:
       required: false
 
   - type: textarea
+    id: reproduce
     attributes:
       label: Please provide detailed steps to reproduce the issue.
       placeholder: "First do this, then this ..."
