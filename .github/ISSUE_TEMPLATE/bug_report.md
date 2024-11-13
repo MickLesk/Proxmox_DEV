@@ -1,9 +1,11 @@
 ---
 name: "🐛 Bug Report"
 about: Report a reproducible bug or regression.
-description: Generate a report on an issue pertaining specifically to a script. For other inquires please share them in the Discussions section.
+description: Generate a report on an issue pertaining specifically to a script. For other inquiries, please share them in the Discussions section.
 title: 'Bug: '
 labels: 'Status: Unconfirmed'
+
+---
 
 body:
   - type: markdown
@@ -13,7 +15,7 @@ body:
         - Prior to submitting, kindly search the closed issues to check if the problem you are reporting has already been addressed and resolved. If you come across a closed issue that pertains to your problem, please leave a comment on that issue instead of creating a new one.
         - If the default Linux distribution is not adhered to, script support will be discontinued.
         - When encountering the error message `[ERROR] in line 23: exit code *: while executing command "$@" > /dev/null 2>&1`, make sure to run the script in verbose mode to accurately determine the underlying issue.
-        - For suggestions, questions or feature/script requests, please share them in the [Discussions section.](https://github.com/community-scripts/ProxmoxVE/discussions)
+        - For suggestions, questions, or feature/script requests, please share them in the [Discussions section.](https://github.com/community-scripts/ProxmoxVE/discussions)
   - type: input
     id: guidelines
     attributes:
@@ -34,12 +36,12 @@ body:
     attributes:
       label: What settings are you currently utilizing?
       options:
-        - 
         - Default Settings
         - Advanced Settings
   - type: markdown
     attributes:
-      value: (if Advanced Settings, please try Default Settings before creating an issue)
+      value: |
+        _(If you are using Advanced Settings, please try Default Settings before creating an issue)_
   - type: dropdown
     id: distribution
     validations:
@@ -47,7 +49,6 @@ body:
     attributes:
       label: Which Linux distribution are you employing?
       options:
-        - 
         - Alpine
         - Debian 11
         - Debian 12
