@@ -62,11 +62,9 @@ if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
   [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 msg_info "Updating $APP"
 systemctl stop nextpvr-server
-
 sudo apt-get update >/dev/null 2>&1
 sudo apt-get upgrade >/dev/null 2>&1
 dpkg -i /opt/nextpvr-helper.deb >/dev/null 2>&1
- 
 systemctl start rdtc
 msg_ok "Updated $APP"
 exit
