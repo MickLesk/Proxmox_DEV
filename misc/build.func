@@ -536,6 +536,19 @@ check_container_ressources() {
   fi
 }
 
+check_storage() {
+  # Check if the /boot partition is more than 80% full
+  if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
+    # Prompt the user for confirmation to continue
+    read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
+    # Check if the input is 'y' or 'yes', otherwise exit with status 1
+    if [[ ! ${prompt,,} =~ ^(y|yes)$ ]]; then
+      echo "{BL}Exiting due to insufficient storage.${CL}"
+      exit 1
+    fi
+  fi
+}
+
 start() {
   if command -v pveversion >/dev/null 2>&1; then
     if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "To ensure the safety of your system, please only use https://tteck.github.io/Proxmox/\n\nThis will create a New ${APP} LXC. Proceed?" 10 58); then
