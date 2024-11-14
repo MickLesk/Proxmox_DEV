@@ -57,16 +57,10 @@ function update_script() {
 header_info
 check_container_ressources
 if [[ ! -f /opt/nextpvr-helper.deb ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
-  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
-  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
-msg_info "Updating $APP"
-systemctl stop nextpvr-server
-sudo apt-get update >/dev/null 2>&1
-sudo apt-get upgrade >/dev/null 2>&1
-dpkg -i /opt/nextpvr-helper.deb >/dev/null 2>&1
-systemctl start rdtc
-msg_ok "Updated $APP"
+msg_info "Updating ${APP} LXC"
+apt-get update &>/dev/null
+apt-get -y upgrade &>/dev/null
+msg_ok "Updated Successfully"
 exit
 }
 
