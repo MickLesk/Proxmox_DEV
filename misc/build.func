@@ -528,8 +528,8 @@ check_container_ressources() {
 
   # Check whether the current RAM is less than the required RAM or the CPU cores are less than required
   if [[ "$current_ram" -lt "$required_ram" ]] || [[ "$current_cpu" -lt "$required_cpu" ]]; then
-    echo -e "\n${BL}Required: ${required_cpu} CPU, ${required_ram}MB RAM | Current: ${current_cpu} CPU, ${current_ram}MB RAM"
-    echo -e "${BL}Please ensure that the ${app_name} LXC is configured with at least ${var_cpu} vCPU and ${var_ram} MB RAM for the build process.\n"
+    echo -e "\n${BL}Required: ${required_cpu} CPU, ${required_ram}MB RAM | Current: ${current_cpu} CPU, ${current_ram}MB RAM${CL}"
+    echo -e "Please ensure that the ${app_name} LXC is configured with at least ${var_cpu} vCPU and ${var_ram} MB RAM for the build process.\n"
     exit 1  
   else
     echo -e ""
