@@ -533,7 +533,7 @@ check_container_ressources() {
              --msgbox --title "SET RESOURCES" \
              "Please set the resources in your ${app_name} LXC to ${required_cpu}vCPU and ${required_ram}MB RAM for the build process before continuing" 10 75
   else
-    echo -e "Starting Update..."
+    echo -e ""
   fi
 }
 
