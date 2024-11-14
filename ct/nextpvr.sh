@@ -9,18 +9,18 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 function header_info {
 clear
 cat <<"EOF"
-    __  ___      _____ ____    __ 
-   /  |/  /_  __/ ___// __ \  / / 
-  / /|_/ / / / /\__ \/ / / / / /  
- / /  / / /_/ /___/ / /_/ / / /___
-/_/  /_/\__, //____/\___\_\/_____/
-       /____/                     
+    _   __          __  ____ _    ______ 
+   / | / /__  _  __/ /_/ __ \ |  / / __ \
+  /  |/ / _ \| |/_/ __/ /_/ / | / / /_/ /
+ / /|  /  __/>  </ /_/ ____/| |/ / _, _/ 
+/_/ |_/\___/_/|_|\__/_/     |___/_/ |_|  
+                                         
 EOF
 }
 header_info
 echo -e "Loading..."
 APP="nextpvr"
-var_disk="4"
+var_disk="2"
 var_cpu="1"
 var_ram="1024"
 var_os="debian"
@@ -49,7 +49,7 @@ function default_settings() {
   MAC=""
   VLAN=""
   SSH="no"
-  VERB="yes"
+  VERB="no"
   echo_default
 }
 function update_script() {
