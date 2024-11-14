@@ -33,7 +33,7 @@ msg_ok "Installed Dependencies"
 msg_info "Setup NextPVR (Patience)"
 cd /opt
 wget -q https://nextpvr.com/nextpvr-helper.deb
-dpkg -i nextpvr-helper.deb
+$STD dpkg -i nextpvr-helper.deb
 msg_ok "Installed NextPVR"
 
 motd_ssh
