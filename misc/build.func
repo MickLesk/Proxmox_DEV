@@ -528,8 +528,8 @@ check_container_ressources() {
 
   # Check whether the current RAM is less than the required RAM or the CPU cores are less than required
   if [[ "$current_ram" -lt "$required_ram" ]] || [[ "$current_cpu" -lt "$required_cpu" ]]; then
-    echo -e "\n${BL}Required: ${required_cpu} CPU, ${required_ram}MB RAM | Current: ${current_cpu} CPU, ${current_ram}MB RAM${CL}"
-    echo -e "Please ensure that the ${app_name} LXC is configured with at least ${var_cpu} vCPU and ${var_ram} MB RAM for the build process.\n"
+    echo -e "\n${GN}Required: ${required_cpu} CPU, ${required_ram}MB RAM ${CL}| ${RD}Current: ${current_cpu} CPU, ${current_ram}MB RAM${CL}"
+    echo -e "${YW}Please ensure that the ${app_name} LXC is configured with at least ${var_cpu} vCPU and ${var_ram} MB RAM for the build process.${CL}\n"
     exit 1  
   else
     echo -e ""
@@ -540,10 +540,10 @@ check_storage() {
   # Check if the /boot partition is more than 80% full
   if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
     # Prompt the user for confirmation to continue
-    read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
+    read -r -p "${RD}✗${CL} Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
     # Check if the input is 'y' or 'yes', otherwise exit with status 1
     if [[ ! ${prompt,,} =~ ^(y|yes)$ ]]; then
-      echo "{BL}Exiting due to insufficient storage.${CL}"
+      echo "${RD}✗${CL} ${YW}Exiting due to insufficient storage.${CL}"
       exit 1
     fi
   fi
