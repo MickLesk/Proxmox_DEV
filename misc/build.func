@@ -540,7 +540,8 @@ check_storage() {
   # Check if the /boot partition is more than 80% full
   if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
     # Prompt the user for confirmation to continue
-    read -r -p "${RD}✗${CL} Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
+    echo -e "${RD}✗${CL} ${YW}Warning: Storage is dangerously low. Continue anyway? <y/N>${CL}"
+    read -r -p "" prompt  
     # Check if the input is 'y' or 'yes', otherwise exit with status 1
     if [[ ! ${prompt,,} =~ ^(y|yes)$ ]]; then
       echo "${RD}✗${CL} ${YW}Exiting due to insufficient storage.${CL}"
