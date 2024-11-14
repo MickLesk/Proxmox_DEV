@@ -19,7 +19,7 @@ EOF
 }
 header_info
 echo -e "Loading..."
-APP="MySQL"
+APP="nextpvr"
 var_disk="4"
 var_cpu="1"
 var_ram="1024"
