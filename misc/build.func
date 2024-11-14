@@ -528,11 +528,23 @@ check_container_ressources() {
 
   # Check whether the current RAM is less than the required RAM or the CPU cores are less than required
   if [[ "$current_ram" -lt "$required_ram" ]] || [[ "$current_cpu" -lt "$required_cpu" ]]; then
-    # show `whiptail`-Dialogue if cores or ram < var_cpu or var_ram
-    whiptail --backtitle "Proxmox VE Helper Scripts" \
-             --msgbox --title "SET RESOURCES" \
-             "Please set the resources in your ${app_name} LXC to ${required_cpu}vCPU and ${required_ram}MB RAM for the build process before continuing" 10 75
-      exit 0
+    # Display table when resources are insufficient
+    echo -e "\n========================================"
+    echo -e "          RESOURCE CHECK"
+    echo -e "========================================"
+    echo -e "  Required CPU  |  Required RAM"
+    echo -e "----------------------------------------"
+    printf "      %-10s   |    %-10s\n" "$required_cpu" "$required_ram"
+    echo -e "----------------------------------------"
+    echo -e "  Current CPU   |  Current RAM"
+    echo -e "----------------------------------------"
+    printf "      %-10s   |    %-10s\n" "$current_cpu" "$current_ram"
+    echo -e "========================================\n"
+    
+    # Show warning if resources are insufficient
+    echo -e "\nWARNING: The current resources are insufficient!"
+    echo -e "Please ensure that the ${app_name} LXC is configured with at least ${var_cpu} vCPU and ${var_ram} MB RAM for the build process.\n"
+    exit 1  # Exit the script or take another action
   else
     echo -e ""
   fi
