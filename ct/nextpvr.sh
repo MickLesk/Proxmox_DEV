@@ -57,9 +57,20 @@ header_info
 check_storage
 check_container_ressources
 if [[ ! -f /opt/nextpvr-helper.deb ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+msg_info "Stopping ${APP}"
+systemctl stop nextpvr-server
+msg_ok "Stopped ${APP}"
+
 msg_info "Updating ${APP} LXC"
+cd /opt
+rm -rf nextpvr-helper.deb
+curl -q https://nextpvr.com/nextpvr-helper.deb -O
 apt-get update &>/dev/null
 apt-get -y upgrade &>/dev/null
+sudo dpkg -i nextpvr-helper.deb &>/dev/null
+msg_info "Starting ${APP}"
+systemctl start nextpvr-server
+msg_ok "Started ${APP}"
 msg_ok "Updated Successfully"
 exit
 }
