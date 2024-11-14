@@ -64,7 +64,7 @@ msg_ok "Stopped ${APP}"
 msg_info "Updating ${APP} LXC"
 cd /opt
 rm -rf nextpvr-helper.deb
-curl -q https://nextpvr.com/nextpvr-helper.deb -O
+wget -q https://nextpvr.com/nextpvr-helper.deb
 apt-get update &>/dev/null
 apt-get -y upgrade &>/dev/null
 sudo dpkg -i nextpvr-helper.deb &>/dev/null
