@@ -532,6 +532,7 @@ check_container_ressources() {
     whiptail --backtitle "Proxmox VE Helper Scripts" \
              --msgbox --title "SET RESOURCES" \
              "Please set the resources in your ${app_name} LXC to ${required_cpu}vCPU and ${required_ram}MB RAM for the build process before continuing" 10 75
+      exit 0
   else
     echo -e ""
   fi
