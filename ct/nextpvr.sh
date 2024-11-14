@@ -54,8 +54,8 @@ function default_settings() {
 }
 function update_script() {
 header_info
-check_container_ressources
 check_storage
+check_container_ressources
 if [[ ! -f /opt/nextpvr-helper.deb ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 msg_info "Updating ${APP} LXC"
 apt-get update &>/dev/null
