@@ -517,23 +517,23 @@ if systemctl is-active -q ping-instances.service; then
 }
 
 check_container_ressources() {
-  local required_ram="$var_ram"  # Erwarteter RAM in MB
-  local required_cpu="$var_cpu"  # Erwartete Anzahl vCPUs
-  local app_name="${APP}"        # Name der Anwendung
+  local required_ram="$var_ram"  # Expected RAM in MB
+  local required_cpu="$var_cpu"  # Expected number of Cores
+  local app_name="${APP}"        # Name of App
 
-  # Aktuellen RAM des Containers abrufen
+  # Check actual RAM & Cores
   local current_ram
   current_ram=$(free -m | awk '/^Mem:/{print $2}')
   current_cpu=$(nproc) 
 
-  # Überprüfen, ob der aktuelle RAM kleiner ist als der geforderte RAM
+  # Check whether the current RAM is less than the required RAM or the CPU cores are less than required
   if [[ "$current_ram" -lt "$required_ram" ]] || [[ "$current_cpu" -lt "$required_cpu" ]]; then
-    # `whiptail`-Dialog anzeigen, wenn RAM zu niedrig ist
+    # show `whiptail`-Dialogue if cores or ram < var_cpu or var_ram
     whiptail --backtitle "Proxmox VE Helper Scripts" \
              --msgbox --title "SET RESOURCES" \
              "Please set the resources in your ${app_name} LXC to ${required_cpu}vCPU and ${required_ram}MB RAM for the build process before continuing" 10 75
   else
-    echo -e "${DGN}Container has sufficient resources: ${BGN}${current_ram}MB RAM, ${current_cpu} Cores${CL}"
+    echo -e "Starting Update..."
   fi
 }
 
