@@ -93,12 +93,11 @@ setting_up_container() {
       fi
       sed -i "/$LANG/ s/^\(# \)//" /etc/locale.gen
       locale-gen >/dev/null
-  elif grep -qEi "fedora|centos|rocky|almalinux" /etc/os-release; then
-      # Für Fedora/CentOS/Rocky/AlmaLinux-basierte Systeme
-      localectl set-locale LANG=$LANG
-  elif grep -qEi "opensuse" /etc/os-release; then
-      # Für openSUSE-basierte Systeme
-      localectl set-locale LANG=$LANG
+  elif grep -qEi "fedora|centos|rocky|almalinux|opensuse" /etc/os-release; then
+	  if [[ ! -f /etc/locale.conf ]]; then
+        echo "LANG=$LANG" > /etc/locale.conf
+      fi
+      export LANG=$LANG
   else
       msg_error "Unsupported OS detected!"
       exit 1
