@@ -40,6 +40,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
+rm -rf /opt/nextpvr-helper.deb
 $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"

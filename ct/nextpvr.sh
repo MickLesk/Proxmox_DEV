@@ -61,18 +61,20 @@ msg_info "Stopping ${APP}"
 systemctl stop nextpvr-server
 msg_ok "Stopped ${APP}"
 
-msg_info "Updating ${APP} LXC"
+msg_info "Updating ${APP}"
 apt-get update &>/dev/null
 apt-get -y upgrade &>/dev/null
 cd /opt
-rm -rf nextpvr-helper.deb
 wget -q https://nextpvr.com/nextpvr-helper.deb
-sudo dpkg -i nextpvr-helper.deb &>/dev/null
+ DEBIAN_FRONTEND=noninteractive dpkg -i nextpvr-helper.deb &>/dev/null
 
 msg_info "Starting ${APP}"
 systemctl start nextpvr-server
 msg_ok "Started ${APP}"
 
+msg_info "Cleaning Up"
+rm -rf /opt/nextpvr-helper.deb
+msg_ok "Cleaned"
 msg_ok "Updated Successfully"
 exit
 }
