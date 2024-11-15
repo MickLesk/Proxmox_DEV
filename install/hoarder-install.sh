@@ -17,13 +17,10 @@ msg_info "Installing Dependencies"
 $STD apt-get install -y \
   postgresql \
   python3 \
-  cmake \
   g++ \
   build-essential \
   curl \
   sudo \
-  git \
-  make \
   gnupg \
   ca-certificates \
   mc
