@@ -517,7 +517,7 @@ if systemctl is-active -q ping-instances.service; then
   fi
 }
 
-check_container_ressources() {
+check_container_resources() {
   # Check actual RAM & Cores
   current_ram=$(free -m | awk '/^Mem:/{print $2}')
   current_cpu=$(nproc) 
@@ -532,7 +532,7 @@ check_container_ressources() {
   fi
 }
 
-check_storage() {
+check_container_storage() {
   # Check if the /boot partition is more than 80% full
   total_size=$(df /boot --output=size | tail -n 1)
   local used_size=$(df /boot --output=used | tail -n 1)
@@ -543,7 +543,7 @@ check_storage() {
     read -r -p "Continue anyway? <y/N>  " prompt  
     # Check if the input is 'y' or 'yes', otherwise exit with status 1
     if [[ ! ${prompt,,} =~ ^(y|yes)$ ]]; then
-      echo -e "❌${HOLD} ${YWB}Exiting due to insufficient storage.${CL}"
+      echo -e "❌${HOLD} ${YWB}Exiting based on user input.${CL}"
       exit 1
     fi
   fi
