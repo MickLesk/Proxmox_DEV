@@ -22,9 +22,6 @@ $STD apt-get install -y \
   curl \
   sudo \
   gnupg \
-  libc6-compat \
-  libssl-dev \
-  libffi-dev \
   ca-certificates \
   mc
 msg_ok "Installed Dependencies"
