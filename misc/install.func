@@ -243,7 +243,6 @@ EOF
       msg_error "Systemd not found. Unable to customize getty service."
       exit 1
     fi
-  fi
     msg_ok "Customized Container"
   fi
   echo "bash -c \"\$(wget -qLO - https://github.com/MickLesk/Proxmox/raw/main/ct/${app}.sh)\"" >/usr/bin/update
