@@ -534,11 +534,13 @@ check_container_ressources() {
 
 check_storage() {
   # Check if the /boot partition is more than 80% full
-  usage=$(df /boot | awk 'NR==2{gsub("%","",$5); print $5}')
+  total_size=$(df /boot --output=size | tail -n 1)
+  local used_size=$(df /boot --output=used | tail -n 1)
+  usage=$(( 100 * used_size / total_size ))
   if (( usage > 80 )); then
     # Prompt the user for confirmation to continue
     echo -e "⚠️${HOLD} ${YWB}Warning: Storage is dangerously low (${usage}%).${CL}"
-    read -r -p "Continue anyway? <y/N>" prompt  
+    read -r -p "Continue anyway? <y/N>  " prompt  
     # Check if the input is 'y' or 'yes', otherwise exit with status 1
     if [[ ! ${prompt,,} =~ ^(y|yes)$ ]]; then
       echo -e "❌${HOLD} ${YWB}Exiting due to insufficient storage.${CL}"
