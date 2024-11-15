@@ -518,19 +518,14 @@ if systemctl is-active -q ping-instances.service; then
 }
 
 check_container_ressources() {
-  local required_ram="$var_ram"  # Expected RAM in MB
-  local required_cpu="$var_cpu"  # Expected number of Cores
-  local app_name="${APP}"        # Name of App
-
   # Check actual RAM & Cores
-  local current_ram
   current_ram=$(free -m | awk '/^Mem:/{print $2}')
   current_cpu=$(nproc) 
 
   # Check whether the current RAM is less than the required RAM or the CPU cores are less than required
-  if [[ "$current_ram" -lt "$required_ram" ]] || [[ "$current_cpu" -lt "$required_cpu" ]]; then
-    echo -e "\n⚠️${HOLD} ${GN}Required: ${required_cpu} CPU, ${required_ram}MB RAM ${CL}| ${RD}Current: ${current_cpu} CPU, ${current_ram}MB RAM${CL}"
-    echo -e "${YW}Please ensure that the ${app_name} LXC is configured with at least ${var_cpu} vCPU and ${var_ram} MB RAM for the build process.${CL}\n"
+  if [[ "$current_ram" -lt "$var_ram" ]] || [[ "$current_cpu" -lt "$var_cpu" ]]; then
+    echo -e "\n⚠️${HOLD} ${GN}Required: ${var_cpu} CPU, ${var_ram}MB RAM ${CL}| ${RD}Current: ${current_cpu} CPU, ${current_ram}MB RAM${CL}"
+    echo -e "${YW}Please ensure that the ${APP} LXC is configured with at least ${var_cpu} vCPU and ${var_ram} MB RAM for the build process.${CL}\n"
     exit 1  
   else
     echo -e ""
@@ -541,9 +536,8 @@ check_storage() {
   # Check if the /boot partition is more than 80% full
   if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
     # Prompt the user for confirmation to continue
-    echo -e "⚠️${HOLD} ${YWB}Warning: Storage is dangerously low.${CL}"
-    echo -e "Continue anyway? <y/N>${CL}"
-    read -r -p "" prompt  
+    echo -e "⚠️${HOLD} ${YWB}Warning: Storage is dangerously low."
+    read -r -p "${CL}Continue anyway? <y/N>" prompt  
     # Check if the input is 'y' or 'yes', otherwise exit with status 1
     if [[ ! ${prompt,,} =~ ^(y|yes)$ ]]; then
       echo -e "❌${HOLD} ${YWB}Exiting due to insufficient storage.${CL}"
