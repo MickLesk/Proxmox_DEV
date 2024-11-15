@@ -54,6 +54,8 @@ function default_settings() {
 }
 function update_script() {
 header_info
+check_container_storage
+check_container_resources
 if [[ ! -d /opt/nextpvr ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 msg_info "Stopping ${APP}"
 systemctl stop nextpvr-server
@@ -64,7 +66,7 @@ apt-get update &>/dev/null
 apt-get -y upgrade &>/dev/null
 cd /opt
 wget -q https://nextpvr.com/nextpvr-helper.deb
- DEBIAN_FRONTEND=noninteractive dpkg -i nextpvr-helper.deb &>/dev/null
+#DEBIAN_FRONTEND=noninteractive dpkg -i nextpvr-helper.deb &>/dev/null
 
 msg_info "Starting ${APP}"
 systemctl start nextpvr-server
