@@ -56,21 +56,23 @@ function update_script() {
 header_info
 check_container_storage
 check_container_resources
-if [[ ! -f /opt/nextpvr-helper.deb ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if [[ ! -d /opt/nextpvr ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 msg_info "Stopping ${APP}"
 systemctl stop nextpvr-server
 msg_ok "Stopped ${APP}"
 
 msg_info "Updating ${APP} LXC"
+apt-get update &>/dev/null
+apt-get -y upgrade &>/dev/null
 cd /opt
 rm -rf nextpvr-helper.deb
 wget -q https://nextpvr.com/nextpvr-helper.deb
-apt-get update &>/dev/null
-apt-get -y upgrade &>/dev/null
 sudo dpkg -i nextpvr-helper.deb &>/dev/null
+
 msg_info "Starting ${APP}"
 systemctl start nextpvr-server
 msg_ok "Started ${APP}"
+
 msg_ok "Updated Successfully"
 exit
 }
