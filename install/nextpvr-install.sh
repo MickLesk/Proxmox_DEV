@@ -21,6 +21,7 @@ $STD apt-get install -y \
   curl \
   sudo \
   libgdiplus \
+  acl \
   dvb-tools \
   libdvbv5-0 \
   dtv-scan-tables \

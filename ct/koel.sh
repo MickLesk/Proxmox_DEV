@@ -53,6 +53,7 @@ function default_settings() {
 }
 
 function update_script() {
+check_container_ressources
   if [[ ! -d /opt/koel ]]; then
     msg_error "No ${APP} Installation Found!"
     exit

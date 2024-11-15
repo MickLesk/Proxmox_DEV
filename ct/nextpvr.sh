@@ -19,8 +19,8 @@ EOF
 }
 header_info
 echo -e "Loading..."
-APP="NextPVR"
-var_disk="4"
+APP="nextpvr"
+var_disk="2"
 var_cpu="1"
 var_ram="1024"
 var_os="debian"
@@ -52,22 +52,26 @@ function default_settings() {
   VERB="no"
   echo_default
 }
-
 function update_script() {
 header_info
+check_container_storage
+check_container_resources
 if [[ ! -f /opt/nextpvr-helper.deb ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
-  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
-  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
-msg_info "Updating $APP"
+msg_info "Stopping ${APP}"
 systemctl stop nextpvr-server
+msg_ok "Stopped ${APP}"
 
-sudo apt-get update >/dev/null 2>&1
-sudo apt-get upgrade >/dev/null 2>&1
-dpkg -i /opt/nextpvr-helper.deb >/dev/null 2>&1
- 
-systemctl start rdtc
-msg_ok "Updated $APP"
+msg_info "Updating ${APP} LXC"
+cd /opt
+rm -rf nextpvr-helper.deb
+wget -q https://nextpvr.com/nextpvr-helper.deb
+apt-get update &>/dev/null
+apt-get -y upgrade &>/dev/null
+sudo dpkg -i nextpvr-helper.deb &>/dev/null
+msg_info "Starting ${APP}"
+systemctl start nextpvr-server
+msg_ok "Started ${APP}"
+msg_ok "Updated Successfully"
 exit
 }
 
