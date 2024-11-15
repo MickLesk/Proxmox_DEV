@@ -116,7 +116,22 @@ setting_up_container() {
     exit 1
   fi
   rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
-  systemctl disable -q --now systemd-networkd-wait-online.service
+  # OS-specific handling for network service deactivation
+  if grep -qEi "debian|ubuntu" /etc/os-release; then
+    # Debian/Ubuntu use systemd-networkd
+    if systemctl list-units --type=service | grep -q "systemd-networkd-wait-online.service"; then
+      systemctl disable -q --now systemd-networkd-wait-online.service
+    else
+      echo "systemd-networkd-wait-online.service not found, skipping disable."
+    fi
+  elif grep -qEi "centos|rocky|almalinux|fedora" /etc/os-release; then
+    # CentOS/Rocky/AlmaLinux/Fedora typically use NetworkManager
+    echo "NetworkManager detected in CentOS/Rocky/AlmaLinux/Fedora, skipping systemd-networkd-wait-online.service."
+  else
+    echo "Unsupported OS detected for network service handling."
+  fi
+  
+  # Output the network status
   msg_ok "Set up Container OS"
   msg_ok "Network Connected: ${BL}$(hostname -I)"
 }
