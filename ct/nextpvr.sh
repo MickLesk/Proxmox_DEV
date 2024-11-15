@@ -20,7 +20,7 @@ EOF
 header_info
 echo -e "Loading..."
 APP="nextpvr"
-var_disk="2"
+var_disk="5"
 var_cpu="1"
 var_ram="1024"
 var_os="debian"

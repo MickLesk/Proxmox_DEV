@@ -22,6 +22,9 @@ $STD apt-get install -y \
   curl \
   sudo \
   gnupg \
+  libc6-compat \
+  libssl-dev \
+  libffi-dev \
   ca-certificates \
   mc
 msg_ok "Installed Dependencies"
@@ -61,7 +64,7 @@ wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zi
 unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
 cd /opt/hoarder
-pnpm install --frozen-lockfile
+pnpm install --force --frozen-lockfile
 
 cd /opt/hoarder/packages/db
 pnpm dlx @vercel/ncc build migrate.ts -o /db_migrations
