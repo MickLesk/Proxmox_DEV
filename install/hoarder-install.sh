@@ -61,7 +61,7 @@ wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zi
 unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
 cd /opt/hoarder
-pnpm install --force --frozen-lockfile
+pnpm install --no-frozen-lockfile
 
 cd /opt/hoarder/packages/db
 pnpm dlx @vercel/ncc build migrate.ts -o /db_migrations
