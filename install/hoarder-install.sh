@@ -36,6 +36,7 @@ echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.co
 $STD apt-get update
 $STD apt-get install -y nodejs
 $STD npm install -g pnpm
+$STD pnpm add typescript
 export NODE_OPTIONS="--max_old_space_size=4096"
 msg_ok "Installed Node.js"
 
@@ -62,15 +63,22 @@ RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/late
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
+cd /opt/hoarder
+pnpm install --frozen-lockfile
+
 cd /opt/hoarder/packages/db
 pnpm dlx @vercel/ncc build migrate.ts -o /db_migrations
 cp -R drizzle /db_migrations
+
 cd /opt/hoarder/apps/web
 pnpm exec next build --experimental-build-mode compile
-cd /opt/hoarder
-pnpm deploy --node-linker=isolated --filter @hoarder/workers --prod /prod/workers
+
+#cd /opt/hoarder/apps/workers
+#pnpm deploy --node-linker=isolated --filter @hoarder/workers --prod /prod/workers
+
 cd /opt/hoarder/apps/cli
 pnpm build
+
 echo "${RELEASE}" >"/opt/hoarder_version.txt"
 cat <<EOF >/opt/hoarder/src/server/.env
 DATABASE_URL="postgresql://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME?schema=public"
