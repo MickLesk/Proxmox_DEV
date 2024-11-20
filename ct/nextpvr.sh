@@ -66,7 +66,7 @@ apt-get update &>/dev/null
 apt-get -y upgrade &>/dev/null
 cd /opt
 wget -q https://nextpvr.com/nextpvr-helper.deb
-#DEBIAN_FRONTEND=noninteractive dpkg -i nextpvr-helper.deb &>/dev/null
+DEBIAN_FRONTEND=noninteractive dpkg -i nextpvr-helper.deb &>/dev/null
 
 msg_info "Starting ${APP}"
 systemctl start nextpvr-server
