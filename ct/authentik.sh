@@ -6,25 +6,22 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
 function header_info {
-clear
-cat <<"EOF"
-______                          _ _ 
-|  _  \                        | | |
-| | | |___   ___ ___ _ __   ___| | |
-| | | / _ \ / __/ __| '_ \ / _ \ | |
-| |/ / (_) | (__\__ \ |_) |  __/ | |
-|___/ \___/ \___|___/ .__/ \___|_|_|
-                    | |             
-                    |_|            
+  clear
+  cat <<"EOF"
+    ___         __  __               __  _ __  
+   /   | __  __/ /_/ /_  ___  ____  / /_(_) /__
+  / /| |/ / / / __/ __ \/ _ \/ __ \/ __/ / //_/
+ / ___ / /_/ / /_/ / / /  __/ / / / /_/ / ,<   
+/_/  |_\__,_/\__/_/ /_/\___/_/ /_/\__/_/_/|_|  
                                                
 EOF
 }
 header_info
 echo -e "Loading..."
 APP="Authentik"
-var_disk="10"
-var_cpu="4"
-var_ram="2048"
+var_disk="12"
+var_cpu="6"
+var_ram="8192"
 var_os="debian"
 var_version="12"
 variables
@@ -57,32 +54,59 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -d /opt/ampache ]]; then 
-	msg_error "No ${APP} Installation Found!"; 
-	exit; 
+check_container_storage
+check_container_resources
+if [[ ! -f /etc/systemd/system/authentik-server.service ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+RELEASE=$(curl -s https://api.github.com/repos/goauthentik/authentik/releases/latest | grep "tarball_url" | awk '{print substr($2, 2, length($2)-3)}')
+if [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]] || [[ ! -f /opt/${APP}_version.txt ]]; then
+  whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "SET RESOURCES" "Please set the resources in your ${APP} LXC to ${var_cpu}vCPU and ${var_ram}RAM for the build process before continuing" 10 75
+  msg_info "Stopping Authentik"
+  systemctl stop authentik-server
+  systemctl stop authentik-worker
+  msg_ok "Stopped Authentik"
+
+  msg_info "Building Authentik website"
+  mkdir -p /opt/authentik
+  wget -qO authentik.tar.gz "${RELEASE}"
+  tar -xzf authentik.tar.gz -C /opt/authentik --strip-components 1 --overwrite
+  rm -rf authentik.tar.gz
+  cd /opt/authentik/website
+  npm install >/dev/null 2>&1
+  npm run build-bundled >/dev/null 2>&1
+  cd /opt/authentik/web
+  npm install >/dev/null 2>&1
+  npm run build >/dev/null 2>&1
+  msg_ok "Built Authentik website"
+
+  msg_info "Installing Python Dependencies"
+  cd /opt/authentik
+  poetry install --only=main --no-ansi --no-interaction --no-root >/dev/null 2>&1
+  poetry export --without-hashes --without-urls -f requirements.txt --output requirements.txt >/dev/null 2>&1
+  pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1
+  pip install . >/dev/null 2>&1
+  msg_ok "Installed Python Dependencies"
+
+  msg_info "Updating ${APP} to v${RELEASE} (Patience)" 
+  cp -r /opt/authentik/authentik/blueprints /opt/authentik/blueprints
+  cd /opt/authentik
+  bash /opt/authentik/lifecycle/ak migrate >/dev/null 2>&1
+  echo "${RELEASE}" >/opt/${APP}_version.txt
+  msg_ok "Updated ${APP} to v${RELEASE}"
+
+  msg_info "Starting Authentik"
+  systemctl start authentik-server
+  systemctl start authentik-worker
+  msg_ok "Started Authentik"
+else
+  msg_ok "No update required. ${APP} is already at ${RELEASE}"
 fi
-msg_info "Updating ${APP} LXC"
-cd /opt/bookstack
-git config --global --add safe.directory /opt/bookstack >/dev/null 2>&1
-git pull origin release >/dev/null 2>&1
-composer install --no-interaction --no-dev >/dev/null 2>&1
-php artisan migrate --force >/dev/null 2>&1
-php artisan cache:clear
-php artisan config:clear
-php artisan view:clear
-msg_ok "Updated Successfully"
 exit
-msg_error "There is currently no update path available."
 }
 
 start
 build_container
 description
 
-msg_info "Setting Container to Normal Resources"
-pct set $CTID -cores 2
-msg_ok "Set Container to Normal Resources"
-
 msg_ok "Completed Successfully!\n"
-echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}/install.php${CL} \n"
+echo -e "${APP} should be reachable by going to the following URL.
+         ${BL}http://${IP}:9000/if/flow/initial-setup/${CL} \n"
