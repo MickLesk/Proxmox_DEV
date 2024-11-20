@@ -71,11 +71,13 @@ if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_v
   mv kimai-${RELEASE} /opt/kimai
   mv /opt/.env /opt/kimai/.env
   cd /opt/kimai
-  COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader &>/dev/null
-  bin/console kimai:update
+  composer install --no-dev --optimize-autoloader &>/dev/null
+  bin/console kimai:update &>/dev/null
   chown -R :www-data .
   chmod -R g+r .
   chmod -R g+rw var/
+  sudo chown -R www-data:www-data /opt/kimai
+  sudo chmod -R 755 /opt/kimai
   echo "${RELEASE}" >/opt/${APP}_version.txt
   msg_ok "Updated ${APP}"
 
