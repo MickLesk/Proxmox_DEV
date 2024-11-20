@@ -60,7 +60,7 @@ mv kimai-${RELEASE} /opt/kimai
 cd /opt/kimai
 COMPOSER_ALLOW_SUPERUSER=1
 $STD composer install --no-dev --optimize-autoloader --no-plugins --no-scripts --no-interaction
-$STD composer require symfony/flex --no-interaction
+composer require symfony/flex --no-interaction
 cp .env.dist .env
 sed -i "/^DATABASE_URL=/c\DATABASE_URL=mysql://$DB_USER:$DB_PASS@127.0.0.1:3306/$DB_NAME?charset=utf8mb4&serverVersion=$MYSQL_VERSION" /opt/kimai/.env
 $STD bin/console kimai:install -n
@@ -81,7 +81,7 @@ send "helper-scripts.com\r"
 expect eof
 EOF
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
-msg_ok "Installed Kimai v${RELEASE}"
+msg_ok "Installed Kimai"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/apache2/sites-available/kimai.conf
@@ -109,6 +109,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
+rm -rf ${RELEASE}.zip
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
