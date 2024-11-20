@@ -53,12 +53,45 @@ function default_settings() {
 }
 
 function update_script() {
-  if [[ ! -d /opt/kimai ]]; then
-    msg_error "No ${APP} Installation Found!"
-    exit
-  fi
-}
+header_info
+check_container_storage
+check_container_resources
+if [[ ! -d /opt/kimai ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+RELEASE=$(curl -s https://api.github.com/repos/kimai/kimai/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
+  msg_info "Stopping Apache2"
+  systemctl stop apache2
+  msg_ok "Services Stopped"
 
+  msg_info "Updating ${APP} to ${RELEASE}"
+  cp /opt/kimai/.env /opt/.env
+  rm -rf /opt/kimai
+  wget -q "https://github.com/kimai/kimai/archive/refs/tags/${RELEASE}.zip"
+  unzip -q ${RELEASE}.zip
+  mv kimai-${RELEASE} /opt/kimai
+  mv /opt/.env /opt/kimai/.env
+  cd /opt/kimai
+  COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader &>/dev/null
+  bin/console kimai:update
+  chown -R :www-data .
+  chmod -R g+r .
+  chmod -R g+rw var/
+  echo "${RELEASE}" >/opt/${APP}_version.txt
+  msg_ok "Updated ${APP}"
+
+  msg_info "Starting Apache2"
+  systemctl start apache2
+  msg_ok "Started Apache2"
+
+  msg_info "Cleaning Up"
+  rm -rf ${RELEASE}.zip
+  msg_ok "Cleaned"
+  msg_ok "Updated Successfully"
+else
+  msg_ok "No update required. ${APP} is already at ${RELEASE}"
+fi
+exit
+}
 start
 build_container
 description

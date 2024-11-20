@@ -75,6 +75,7 @@ send "helper-scripts.com\r"
 
 expect eof
 EOF
+echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Kimai v${RELEASE}"
 
 msg_info "Creating Service"
