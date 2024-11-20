@@ -521,8 +521,7 @@ add_core_dependencies() {
   apt-get install -y \
     curl \
     sudo \
-    mc 
-  &>/dev/null
+    mc &>/dev/null
 }
 
 check_container_resources() {
