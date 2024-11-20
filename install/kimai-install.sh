@@ -50,7 +50,7 @@ wget -q "https://github.com/kimai/kimai/archive/refs/tags/${RELEASE}.zip"
 unzip -q ${RELEASE}.zip
 mv kimai-${RELEASE} /opt/kimai
 cd /opt/kimai
-$STD COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader &>/dev/null
 cp .env.dist .env
 sed -i "/^DATABASE_URL=/c\DATABASE_URL=mysql://$DB_USER:$DB_PASS@127.0.0.1:3306/$DB_NAME?charset=utf8mb4&serverVersion=$MYSQL_VERSION" /opt/kimai/.env
 $STD bin/console kimai:install -n
