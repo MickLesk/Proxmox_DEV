@@ -62,7 +62,8 @@ wget -q "https://github.com/kimai/kimai/archive/refs/tags/${RELEASE}.zip"
 unzip -q ${RELEASE}.zip
 mv kimai-${RELEASE} /opt/kimai
 cd /opt/kimai
-COMPOSER_ALLOW_SUPERUSER=1
+$STD echo "export COMPOSER_ALLOW_SUPERUSER=1" >> ~/.bashrc
+$STD source ~/.bashrc
 $STD composer require symfony/flex 
 $STD composer install --no-dev --optimize-autoloader --no-interaction
 cp .env.dist .env
