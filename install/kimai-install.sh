@@ -62,13 +62,13 @@ wget -q "https://github.com/kimai/kimai/archive/refs/tags/${RELEASE}.zip"
 unzip -q ${RELEASE}.zip
 mv kimai-${RELEASE} /opt/kimai
 cd /opt/kimai
-$STD echo "export COMPOSER_ALLOW_SUPERUSER=1" >> ~/.bashrc
-$STD source ~/.bashrc
-$STD composer require symfony/flex 
-$STD composer install --no-dev --optimize-autoloader --no-interaction
+echo "export COMPOSER_ALLOW_SUPERUSER=1" >> ~/.bashrc
+source ~/.bashrc
+#composer require symfony/flex 
+composer install --no-dev --optimize-autoloader --no-interaction
 cp .env.dist .env
 sed -i "/^DATABASE_URL=/c\DATABASE_URL=mysql://$DB_USER:$DB_PASS@127.0.0.1:3306/$DB_NAME?charset=utf8mb4&serverVersion=$MYSQL_VERSION" /opt/kimai/.env
-$STD bin/console kimai:install -n
+bin/console kimai:install -n
 chown -R :www-data .
 chmod -R g+r .
 chmod -R g+rw var/
