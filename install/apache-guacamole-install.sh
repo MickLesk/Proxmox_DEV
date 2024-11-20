@@ -15,15 +15,22 @@ network_check
 update_os
 
 msg_info "Installing Dependencies"
-$STD apt-get install -y gcc vim curl wget g++ libcairo2-dev libjpeg-turbo8-dev libpng-dev \
+$STD apt-get install -y gcc vim curl wget g++ libcairo2-dev libpng-dev \
   libtool-bin libossp-uuid-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
   build-essential libpango1.0-dev libssh2-1-dev libvncserver-dev libtelnet-dev libpulse-dev \
   libssl-dev libvorbis-dev libwebp-dev libwebsockets-dev freerdp2-dev freerdp2-x11 xrdp
 msg_ok "Installed Dependencies"
 
-msg_info "Installing OpenJDK 11"
-$STD apt-get install -y openjdk-11-jdk
-msg_ok "Installed OpenJDK 11"
+msg_info "Setting up Adoptium Repository"
+mkdir -p /etc/apt/keyrings
+$STD wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc
+$STD echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
+$STD apt-get update
+msg_ok "Set up Adoptium Repository"
+
+msg_info "Installing Temurin JDK 11 (LTS)"
+$STD apt-get install -y temurin-11-jdk
+msg_ok "Setup Temurin JDK 11 (LTS)"
 
 msg_info "Installing Apache Tomcat 9.0.97"
 TOMCAT_VERSION="9.0.97"
@@ -46,7 +53,7 @@ After=network.target
 Type=forking
 User=$TOMCAT_USER
 Group=$TOMCAT_USER
-Environment="JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
+Environment="JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-amd64"
 Environment="JAVA_OPTS=-Djava.security.egd=file:///dev/urandom -Djava.awt.headless=true"
 Environment="CATALINA_BASE=$TOMCAT_DIR/tomcatapp"
 Environment="CATALINA_HOME=$TOMCAT_DIR/tomcatapp"
