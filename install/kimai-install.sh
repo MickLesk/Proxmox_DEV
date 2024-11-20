@@ -14,10 +14,8 @@ network_check
 update_os
 
 msg_info "Installing Dependencies"
+add_core_dependencies
 $STD apt-get install -y \
-  curl \
-  sudo \
-  mc \
   apt-transport-https \
   apache2 \
   git \

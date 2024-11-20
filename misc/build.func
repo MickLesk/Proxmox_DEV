@@ -517,6 +517,14 @@ if systemctl is-active -q ping-instances.service; then
   fi
 }
 
+add_core_dependencies() {
+  apt-get install -y \
+    curl \
+    sudo \
+    mc 
+  &>/dev/null
+}
+
 check_container_resources() {
   # Check actual RAM & Cores
   current_ram=$(free -m | awk '/^Mem:/{print $2}')
