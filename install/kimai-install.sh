@@ -29,17 +29,6 @@ $STD apt-get install -y \
   php8.2-{mbstring,gd,intl,pdo,mysql,tokenizer,zip,xml} 
 msg_ok "Installed Dependencies"
 
-#msg_info "Setting up Symfony CLI"
-#SYMFONY=$(curl -s https://api.github.com/repos/symfony-cli/symfony-cli/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-#wget -q https://github.com/symfony-cli/symfony-cli/releases/download/${SYMFONY}/symfony-cli_${SYMFONY:1}_amd64.deb
-#chmod +x symfony*
-#$STD dpkg -i symfony*
-#msg_ok "Setup Symfony CLI"
-
-$STD curl -sS https://get.symfony.com/cli/installer | bash
-$STD export PATH="$HOME/.symfony/bin:$PATH"
-
-
 msg_info "Setting up Database"
 DB_NAME=kimai_db
 DB_USER=kimai
@@ -64,17 +53,16 @@ mv kimai-${RELEASE} /opt/kimai
 cd /opt/kimai
 echo "export COMPOSER_ALLOW_SUPERUSER=1" >> ~/.bashrc
 source ~/.bashrc
-#composer require symfony/flex 
-composer install --no-dev --optimize-autoloader --no-interaction
+$STD composer install --no-dev --optimize-autoloader --no-interaction
 cp .env.dist .env
 sed -i "/^DATABASE_URL=/c\DATABASE_URL=mysql://$DB_USER:$DB_PASS@127.0.0.1:3306/$DB_NAME?charset=utf8mb4&serverVersion=$MYSQL_VERSION" /opt/kimai/.env
-bin/console kimai:install -n
+$STD bin/console kimai:install -n
 chown -R :www-data .
 chmod -R g+r .
 chmod -R g+rw var/
 sudo chown -R www-data:www-data /opt/kimai
 sudo chmod -R 755 /opt/kimai
-expect <<EOF
+$STD expect <<EOF
 set timeout -1
 log_user 0
 
