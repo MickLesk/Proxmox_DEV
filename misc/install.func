@@ -136,6 +136,13 @@ setting_up_container() {
   msg_ok "Network Connected: ${BL}$(hostname -I)"
 }
 
+add_core_dependencies() {
+  apt-get install -y \
+    curl \
+    sudo \
+    mc &>/dev/null
+}
+
 # This function checks the network connection by pinging a known IP address and prompts the user to continue if the internet is not connected
 network_check() {
   set +e
