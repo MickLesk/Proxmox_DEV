@@ -29,8 +29,10 @@ $STD apt-get install -y \
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Symfony CLI"
-$STD curl -sS https://get.symfony.com/cli/installer | bash
-mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
+SYMFONY=$(curl -s https://api.github.com/repos/symfony-cli/symfony-cli/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+wget -q https://github.com/symfony-cli/symfony-cli/releases/download/${SYMFONY}/symfony-cli_${SYMFONY:1}_amd64.deb
+chmod +x symfony*
+$STD dpkg -i symfony*
 msg_ok "Setup Symfony CLI"
 
 msg_info "Setting up Database"
