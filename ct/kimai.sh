@@ -8,17 +8,17 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 function header_info {
 clear
 cat <<"EOF"
-    __ __           __
-   / //_/___  ___  / /
-  / ,< / __ \/ _ \/ / 
- / /| / /_/ /  __/ /  
-/_/ |_\____/\___/_/   
-                           
+    __ __ _                 _ 
+   / //_/(_)___ ___  ____ _(_)
+  / ,<  / / __ `__ \/ __ `/ / 
+ / /| |/ / / / / / / /_/ / /  
+/_/ |_/_/_/ /_/ /_/\__,_/_/   
+                              
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="Koel"
+APP="Kimai"
 var_disk="10"
 var_cpu="4"
 var_ram="2048"

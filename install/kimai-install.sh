@@ -20,51 +20,79 @@ $STD apt-get install -y \
   mc \
   apt-transport-https \
   apache2 \
+  git \
+  expect \
   composer \
+  mariadb-server \
   libapache2-mod-php \
   php8.2-{mbstring,gd,intl,pdo,mysql,tokenizer,zip,xml} 
 msg_ok "Installed Dependencies"
 
-msg_info "Installing Database"
-apt-get install -y mariadb-server
-service mysql start
-ADMIN_PASS="$(openssl rand -base64 18 | cut -c1-13)"
-sudo mariadb -uroot -p"$ADMIN_PASS" -e "ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('$ADMIN_PASS'); FLUSH PRIVILEGES;"
-msg_ok "Installed Database"
+msg_info "Setting up Database"
+DB_NAME=kimai_db
+DB_USER=kimai
+DB_PASS=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | head -c13)
+MYSQL_VERSION=$(mysql --version | grep -oP 'Distrib \K[0-9]+\.[0-9]+\.[0-9]+')
+sudo mysql -u root -e "CREATE DATABASE $DB_NAME;"
+sudo mysql -u root -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED WITH mysql_native_password AS PASSWORD('$DB_PASS');"
+sudo mysql -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUSH PRIVILEGES;"
+{
+    echo "Kimai-Credentials"
+    echo "Kimai Database User: $DB_USER"
+    echo "Kimai Database Password: $DB_PASS"
+    echo "Kimai Database Name: $DB_NAME"
+} >> ~/kimai.creds
+msg_ok "Set up database"
 
+msg_info "Setup Kimai (Patience)"
+RELEASE=$(curl -s https://api.github.com/repos/kimai/kimai/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+wget -q "https://github.com/kimai/kimai/archive/refs/tags/${RELEASE}.zip"
+unzip -q ${RELEASE}.zip
+mv kimai-${RELEASE} /opt/kimai
+cd /opt/kimai
+COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+cp .env.dist .env
+sed -i '/^DATABASE_URL=/c\DATABASE_URL=mysql://$DB_USER:$DB_PASS@127.0.0.1:3306/$DB_NAME?charset=utf8mb4&serverVersion=$MYSQL_VERSION' /opt/kimai/.env
+bin/console kimai:install -n
+chown -R :www-data .
+chmod -R g+r .
+chmod -R g+rw var/
+sudo chown -R www-data:www-data /opt/kimai
+sudo chmod -R 755 /opt/kimai
+expect <<EOF
+set timeout -1
+log_user 0
 
-RELEASE=$(curl -sX GET "https://api.github.com/repos/linuxserver/Heimdall/releases/latest" | awk '/tag_name/{print $4;exit}' FS='[""]')
-echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
-msg_info "Installing Heimdall Dashboard ${RELEASE}"
-wget -q https://github.com/linuxserver/Heimdall/archive/${RELEASE}.tar.gz
-tar xzf ${RELEASE}.tar.gz
-VER=$(curl -s https://api.github.com/repos/linuxserver/Heimdall/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
-rm -rf ${RELEASE}.tar.gz
-mv Heimdall-${VER} /opt/Heimdall
-cd /opt/Heimdall
-cp .env.example .env
-$STD php artisan key:generate
-msg_ok "Installed Heimdall Dashboard ${RELEASE}"
+spawn bin/console kimai:user:create username admin@helper-scripts.com ROLE_SUPER_ADMIN
 
-msg_info "Creating Kimai Service"
-service_path="/etc/systemd/system/kimai.service"
-echo "[Unit]
-Description=Kimai
-After=network.target
+expect "Please enter the password:"
+send "helper-scripts.com\r"
 
-[Service]
-Restart=always
-RestartSec=5
-Type=simple
-User=www-data
-WorkingDirectory=/opt/kimai
-ExecStart=/usr/bin/php bin/console server:run --env=prod --host=0.0.0.0 --port=8001
-TimeoutStopSec=30
+expect eof
+EOF
+msg_ok "Installed Kimai v${RELEASE}"
 
-[Install]
-WantedBy=multi-user.target" >$service_path
-systemctl enable -q --now kimai.service
-msg_ok "Created Kimai Service"
+msg_info "Creating Service"
+cat <<EOF >/etc/apache2/sites-available/kimai.conf
+<VirtualHost *:80>
+  ServerAdmin webmaster@localhost
+  DocumentRoot /opt/kimai/public/
+
+   <Directory /opt/kimai/public>
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+  
+    ErrorLog /var/log/apache2/error.log
+    CustomLog /var/log/apache2/access.log combined
+
+</VirtualHost>
+EOF
+$STD a2ensite kimai.conf
+$STD a2dissite 000-default.conf  
+$STD systemctl reload apache2
+msg_ok "Created Services"
 
 motd_ssh
 customize
