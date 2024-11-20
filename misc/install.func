@@ -218,11 +218,7 @@ EOF
 motd_ssh() {
   echo "export TERM='xterm-256color'" >>/root/.bashrc
   echo -e "$APPLICATION LXC provided by https://helper-scripts.com/\n" >/etc/motd
-  if [ -d /etc/update-motd.d ]; then
-    chmod -x /etc/update-motd.d/*
-  else
-    echo "Directory /etc/update-motd.d does not exist, skipping chmod."
-  fi
+  chmod -x /etc/update-motd.d/*
   if [[ "${SSH_ROOT}" == "yes" ]]; then
     sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/g" /etc/ssh/sshd_config
     systemctl restart sshd
@@ -240,29 +236,10 @@ customize() {
   ExecStart=
   ExecStart=-/sbin/agetty --autologin root --noclear --keep-baud tty%I 115200,38400,9600 \$TERM
 EOF
-# Ensure systemd is present for Fedora/CentOS/AlmaLinux/Rocky
-    if systemctl is-active --quiet systemd; then
-      # Reload systemd daemon and restart the service
-      systemctl daemon-reload
-      systemctl restart $(basename $(dirname $GETTY_OVERRIDE) | sed 's/\.d//')
-      msg_ok "Customized Container"
-    else
-      msg_error "Systemd not found. Unable to customize getty service."
-      exit 1
-    fi
+    systemctl daemon-reload
+    systemctl restart $(basename $(dirname $GETTY_OVERRIDE) | sed 's/\.d//')
     msg_ok "Customized Container"
   fi
-  echo "bash -c \"\$(wget -qLO - https://github.com/MickLesk/Proxmox/raw/main/ct/${app}.sh)\"" >/usr/bin/update
-  # Check if wget is available, if not, attempt to use curl
-  if ! command -v wget &>/dev/null; then
-    if command -v curl &>/dev/null; then
-      echo "wget not found, using curl instead."
-      echo "bash -c \"\$(curl -sSL https://github.com/MickLesk/Proxmox/raw/main/ct/${app}.sh)\"" >/usr/bin/update
-    else
-      msg_error "Neither wget nor curl is available. Please install one of them."
-      exit 1
-    fi
-  fi
-
+  echo "bash -c \"\$(wget -qLO - https://github.com/community-scripts/ProxmoxVE/raw/main/ct/${app}.sh)\"" >/usr/bin/update
   chmod +x /usr/bin/update
 }
