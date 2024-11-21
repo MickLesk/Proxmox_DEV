@@ -36,18 +36,27 @@ load_cidr_list() {
     # Überprüfe, ob das Verzeichnis existiert, wenn nicht, erstelle es
     if [[ ! -d "$cidr_dir" ]]; then
         echo "[Info] CIDR directory not found. Creating directory..."
-        mkdir -p "$cidr_dir"
+        mkdir -p "$cidr_dir"  # Hier wird das Verzeichnis erstellt
+        if [[ $? -ne 0 ]]; then
+            echo "[Error] Failed to create directory: $cidr_dir"
+            exit 1
+        fi
         echo "[Info] CIDR directory created."
     fi
 
     # Überprüfe, ob die CIDR-Datei existiert
     if [[ ! -f "$cidr_file" ]]; then
         echo "[Info] CIDR list file not found. Creating with default values..."
-
+        
         # Erstelle die CIDR-Datei mit den Standardwerten
         for cidr in "${default_cidr_list[@]}"; do
             echo "$cidr" >> "$cidr_file"
         done
+
+        if [[ $? -ne 0 ]]; then
+            echo "[Error] Failed to create CIDR file: $cidr_file"
+            exit 1
+        fi
 
         echo "[Info] CIDR list file created with default values."
     fi
@@ -137,6 +146,7 @@ tag_container_ip() {
 # Hauptfunktion für das IP-Taggen
 main() {
   # Auswahl der Container
+  load_cidr_list
   selected_containers=$(select_containers)
 
   # Wenn keine Container ausgewählt wurden, beenden
