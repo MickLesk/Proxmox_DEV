@@ -183,6 +183,7 @@ tag_container_ip() {
 main() {
     check_dependencies
     initialize_yaml_file
+	add_or_update_container_in_yaml
     validate_ips_in_yaml
 
     selected_containers=$(select_containers)
