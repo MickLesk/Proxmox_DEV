@@ -57,26 +57,23 @@ initialize_yaml_file() {
     cat "$yaml_file"
 }
 
-# Function: Update the YAML file with current containers
 update_yaml_with_current_containers() {
     echo -e "${GN}[Info]${CL} Updating YAML file with current containers."
+
+    # Überprüfung der Containerliste
+    pct list | awk 'NR>1 {print $1, $2}'  # Container-ID und Name ausgeben
     
-    # Ausgabe von pct list zur Debugging-Überprüfung
-    pct list
-
-    # Warten, falls keine Container vorhanden sind
-    if [[ $(pct list | grep -c "running") -eq 0 ]]; then
-        echo -e "${RD}[Warning]${CL} No running containers found."
-        return 1
-    fi
-
     # Iteration über alle laufenden Container
     while read -r id name; do
-        echo -e "DEBUG: Processing Container - ID: $id, Name: $name"  # Debugging-Ausgabe
+        echo -e "DEBUG: Processing Container - ID: $id, Name: $name"  # Debugging-Ausgabe für Container
 
         # Holen der Konfiguration jedes Containers, um die IP und Tags zu erhalten
         container_ip=$(pct exec "$id" ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
         container_tags=$(pct config "$id" | grep "^tags:" | cut -d: -f2 | tr -d '[:space:]')
+
+        # Debug-Ausgabe der gefundenen Werte
+        echo "DEBUG: Container IP: $container_ip"
+        echo "DEBUG: Container Tags: $container_tags"
 
         # Wenn keine IP gefunden wird, überspringen
         if [[ -z "$container_ip" ]]; then
@@ -107,11 +104,18 @@ add_or_update_container_in_yaml() {
     # Debugging-Ausgabe
     echo "DEBUG: Adding/updating container - ID: $id, Name: $name, IP: $ip, Tags: $tags, Update Type: $update_type"
 
+    # Wenn YAML-Datei nicht existiert, erstelle sie
+    if [[ ! -f "$yaml_file" ]]; then
+        echo -e "${RD}[Error]${CL} YAML file not found, creating it."
+        echo "containers: []" > "$yaml_file"
+    fi
+
     # YAML-Eintrag hinzufügen oder aktualisieren
     yq eval ".containers += [{id: \"$id\", name: \"$name\", tags: [\"$tags\"], last_update: \"$(date -Iseconds)\"}]" "$yaml_file" -i
 
+    # Ausgabe der YAML-Datei zur Überprüfung
     echo -e "DEBUG: YAML content after update:"
-    cat "$yaml_file"  # Ausgabe zur Überprüfung der Datei
+    cat "$yaml_file"
 }
 
 # Function: Validate IPs in YAML
