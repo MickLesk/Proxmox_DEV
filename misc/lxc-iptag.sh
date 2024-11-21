@@ -154,3 +154,4 @@ main() {
     echo -e "${GN}[Info]${CL} Finished tagging IPs for selected containers."
 }
 
+main
