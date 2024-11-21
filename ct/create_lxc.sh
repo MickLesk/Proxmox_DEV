@@ -14,8 +14,8 @@ BL=$(echo "\033[36m")
 RD=$(echo "\033[01;31m")
 GN=$(echo "\033[1;92m")
 CL=$(echo "\033[m")
-CM="${GN}✓${CL}"
-CROSS="${RD}✗${CL}"
+CM="${GN}✔️${CL}"
+CROSS="${RD}✖️${CL}"
 BFR="\\r\\033[K"
 HOLD="-"
 
@@ -36,13 +36,24 @@ function error_handler() {
 
 # This function displays a spinner.
 function spinner() {
-  printf "\e[?25l"
-  spinner="/-\\|/-\\|"
-  spin_i=0
-  while true; do
-    printf "\b%s" "${spinner:spin_i++%${#spinner}:1}"
-    sleep 0.1
-  done
+    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    local spin_i=0
+    local interval=0.1  # Sekunden
+    printf "\e[?25l"  # Cursor ausblenden
+
+    # Farbcodes für Orange (ANSI 256 Farben)
+    local orange="\e[38;5;214m"
+
+    while true; do
+        # Spinner mit 1 Leerzeichen davor und 1 Leerzeichen danach anzeigen
+        printf "\r ${orange}%s\e[0m " "${frames[spin_i]}"
+        
+        # Frame-Index erhöhen und zurücksetzen, wenn notwendig
+        spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
+        
+        # Verzögerung für das Intervall
+        sleep "$interval"
+    done
 }
 
 # This function displays an informational message with a yellow color.
