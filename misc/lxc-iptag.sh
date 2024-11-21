@@ -86,7 +86,7 @@ function install_iptag_tools() {
       fi
   }
 
-unction main() {
+function main() {
   # Container auflisten und in eine Variable speichern
   lxc_name_list=$(pct list 2>/dev/null | grep -v VMID | awk '{print $1}')
   
