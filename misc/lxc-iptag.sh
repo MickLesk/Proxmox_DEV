@@ -47,46 +47,29 @@ check_dependencies() {
 # Function: Initialize the YAML file if missing or empty
 initialize_yaml_file() {
     if [[ ! -f "$yaml_file" ]] || [[ ! -s "$yaml_file" ]]; then
-        echo -e "${GN}[Info]${CL} YAML file is missing or empty. Initializing..."
+        echo -e "[Info] YAML file is missing or empty. Initializing..."
         echo "containers: []" > "$yaml_file"
         update_yaml_with_current_containers
     fi
-
-    # Debugging-Ausgabe
-    echo -e "DEBUG: Contents of YAML file after initialization:"
+    echo "DEBUG: Contents of YAML file after initialization:"
     cat "$yaml_file"
 }
 
 # Function: Update YAML with current containers
 update_yaml_with_current_containers() {
-    echo -e "${GN}[Info]${CL} Updating YAML file with current containers."
-
-    # Iterate over all running containers
-    pct list | awk 'NR>1 {print $1, $2}' | while read -r id name; do
-        echo -e "DEBUG: Processing Container - ID: $id, Name: $name"
-
-        # Get container details
-        container_ip=$(pct exec "$id" -- ip addr show eth0 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1)
-        container_tags=$(pct config "$id" | grep "^tags:" | cut -d: -f2 | tr -d '[:space:]')
-
-        # Debugging output
-        echo "DEBUG: Container IP: $container_ip"
-        echo "DEBUG: Container Tags: $container_tags"
-
-        # Skip if no IP is found
-        if [[ -z "$container_ip" ]]; then
-            echo -e "${RD}[Error]${CL} No IP found for container $name. Skipping..."
-            continue
-        fi
-
-        # Default tags to IP if none are present
-        if [[ -z "$container_tags" ]]; then
-            container_tags="$container_ip"
-        fi
-
-        # Add or update container in YAML
-        add_or_update_container_in_yaml "$id" "$name" "$container_ip" "$container_tags" "initial"
-    done
+    echo -e "[Info] Updating YAML file with current containers."
+    pct_list=$(pct list | tail -n +2)
+    while IFS= read -r line; do
+        id=$(echo "$line" | awk '{print $1}')
+        name=$(echo "$line" | awk '{print $2}')
+        ip=$(pct exec "$id" -- hostname -I 2>/dev/null | awk '{print $1}')
+        tags=$(pct config "$id" | grep -oP "(?<=#Tags: ).*")
+        [[ -z "$tags" ]] && tags="default"
+        last_update=$(date --iso-8601=seconds)
+        yq -y -i ".containers += [{id: \"$id\", name: \"$name\", ip: \"$ip\", tags: \"$tags\", last_update: \"$last_update\"}]" "$yaml_file"
+        echo "DEBUG: YAML content after update:"
+        cat "$yaml_file"
+    done <<< "$pct_list"
 }
 
 # Function: Add or update a container in the YAML file
@@ -131,27 +114,25 @@ validate_ips_in_yaml() {
     done
 }
 
+select_containers() {
+    echo "DEBUG: Selecting containers..."
+    yq -r ".containers[].id" "$yaml_file"
+}
+
 # Main function
 main() {
-    check_dependencies
     initialize_yaml_file
-
-    # Stelle sicher, dass die YAML-Datei aktualisiert wird
     update_yaml_with_current_containers
-
     validate_ips_in_yaml
-
     selected_containers=$(select_containers)
     if [[ -z "$selected_containers" ]]; then
-        echo -e "${RD}[Info]${CL} No containers selected. Exiting."
+        echo -e "[Info] No containers selected. Exiting."
         exit 1
     fi
-
     for container_id in $selected_containers; do
         tag_container_ip "$container_id"
     done
-
-    echo -e "${GN}[Info]${CL} Finished tagging IPs for selected containers."
+    echo -e "[Info] Finished tagging IPs for selected containers."
 }
 
-main
+main "$@"
