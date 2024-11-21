@@ -110,6 +110,7 @@ select_containers() {
 tag_container_ip() {
   container_id=$1
   header_info
+  load_cidr_list
   name=$(pct exec "$container_id" hostname)
   echo -e "${BL}[Info]${GN} Tagging IP for ${name} ${CL} \n"
 
