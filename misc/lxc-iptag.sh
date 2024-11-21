@@ -88,9 +88,19 @@ tag_container_ip() {
   # IP überprüfen und taggen, wenn sie in den CIDR-Bereich fällt
   if ip_in_cidrs "$container_ip"; then
     echo -e "${BL}[Info]${GN} IP ${container_ip} for ${name} is within the CIDR range. Tagging... ${CL}"
-	
-    # IP als Tag setzen
-    pct set "$container_id" -tags "$container_ip"
+
+    # Holen der bestehenden Tags des Containers
+    existing_tags=$(pct config "$container_id" | grep "^tags:" | cut -d: -f2 | tr -d '[:space:]')
+    
+    # Wenn bereits Tags existieren, fügen wir die neue IP hinzu
+    if [ -n "$existing_tags" ]; then
+      new_tags="$existing_tags,$container_ip"
+    else
+      new_tags="$container_ip"
+    fi
+
+    # Tags setzen, ohne bestehende zu überschreiben
+    pct set "$container_id" -tags "$new_tags"
     # Beispiel: echo "Container ${name} IP: ${container_ip}" >> /var/log/lxc_ip_tags.log
   else
     echo -e "${RD}[Info]${GN} IP ${container_ip} for ${name} is outside the allowed CIDR range. Skipping... ${CL}"
