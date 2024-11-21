@@ -37,7 +37,6 @@ error_handler() {
   echo -e "\n$error_message\n"
 }
 
-# This function displays a spinner.
 spinner() {
     local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
     local interval=0.1  # Seconds
@@ -49,7 +48,7 @@ spinner() {
         printf "\r\e[36m%s\e[0m" "${frames[spin_i]}"
         
         # Increment the frame index and reset if necessary
-        ((spin_i = (spin_i + 1) % ${#frames[@]}))
+        spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
         
         # Delay for the interval
         sleep "$interval"
@@ -63,6 +62,16 @@ msg_info() {
     spinner &  # Start spinner in the background
     SPINNER_PID=$!  # Save spinner process ID
 }
+
+# Function to stop the spinner
+stop_spinner() {
+    if [[ -n ${SPINNER_PID-} ]]; then  # Check if SPINNER_PID is set
+        kill "$SPINNER_PID" 2>/dev/null
+        wait "$SPINNER_PID" 2>/dev/null
+        printf "\e[?25h\r"  # Show cursor
+    fi
+}
+
 # This function displays a success message with a green color.
 msg_ok() {
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
