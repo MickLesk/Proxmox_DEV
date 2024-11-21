@@ -70,25 +70,46 @@ update_yaml_with_current_containers() {
         return 1
     fi
 
-    while read -r id name ip; do
-        echo -e "DEBUG: Processing Container - ID: $id, Name: $name, IP: $ip"  # Debugging-Ausgabe
-        [[ "$id" == "VMID" ]] && continue  # Skip header row
-        add_or_update_container_in_yaml "$id" "$name" "$ip" "initial"
-    done < <(pct list | awk 'NR>1 {print $1, $2, $3}' | grep "running")
+    # Iteration über alle laufenden Container
+    while read -r id name; do
+        echo -e "DEBUG: Processing Container - ID: $id, Name: $name"  # Debugging-Ausgabe
+
+        # Holen der Konfiguration jedes Containers, um die IP und Tags zu erhalten
+        container_ip=$(pct exec "$id" ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+        container_tags=$(pct config "$id" | grep "^tags:" | cut -d: -f2 | tr -d '[:space:]')
+
+        # Wenn keine IP gefunden wird, überspringen
+        if [[ -z "$container_ip" ]]; then
+            echo -e "${RD}[Error]${CL} No IP found for container $name. Skipping...\n"
+            continue
+        fi
+
+        # Wenn keine Tags vorhanden sind, dann neue Tags setzen
+        if [[ -z "$container_tags" ]]; then
+            container_tags="$container_ip"
+        else
+            container_tags="$container_tags,$container_ip"
+        fi
+
+        # Container zur YAML-Datei hinzufügen
+        add_or_update_container_in_yaml "$id" "$name" "$container_ip" "$container_tags" "initial"
+    done < <(pct list | awk 'NR>1 {print $1, $2}' | grep "running")
 }
 
-# Function: Add or update container information in YAML
+# Funktion zum Hinzufügen oder Aktualisieren eines Containers in der YAML-Datei
 add_or_update_container_in_yaml() {
     local id="$1"
     local name="$2"
     local ip="$3"
-    local update_type="${4:-manual}"
+    local tags="$4"
+    local update_type="${5:-manual}"
 
     # Debugging-Ausgabe
-    echo "DEBUG: Adding/updating container - ID: $id, Name: $name, IP: $ip, Update Type: $update_type"
+    echo "DEBUG: Adding/updating container - ID: $id, Name: $name, IP: $ip, Tags: $tags, Update Type: $update_type"
 
-    # Testeintrag in die YAML-Datei
-    yq eval ".containers += [{id: \"$id\", name: \"$name\", tags: [\"$ip\"], last_update: \"$(date -Iseconds)\"}]" "$yaml_file" -i
+    # YAML-Eintrag hinzufügen oder aktualisieren
+    yq eval ".containers += [{id: \"$id\", name: \"$name\", tags: [\"$tags\"], last_update: \"$(date -Iseconds)\"}]" "$yaml_file" -i
+
     echo -e "DEBUG: YAML content after update:"
     cat "$yaml_file"  # Ausgabe zur Überprüfung der Datei
 }
