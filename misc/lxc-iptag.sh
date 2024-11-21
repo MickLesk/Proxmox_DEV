@@ -24,7 +24,7 @@ GN=$(echo "\033[1;92m")
 CL=$(echo "\033[m")
 header_info
 echo "Loading..."
-whiptail --backtitle "Proxmox VE Helper Scripts" --title "Proxmox VE LXC IP-Tag" --yesno "This can be add IP-Tags to your LXCs. Proceed?" 10 58 || exit
+whiptail --backtitle "Proxmox VE Helper Scripts" --title "Proxmox VE LXC IP-Tag" --yesno "This can add IP-Tags to your LXCs. Proceed?" 10 58 || exit
 
 NODE=$(hostname)
 EXCLUDE_MENU=()
@@ -39,53 +39,135 @@ excluded_containers=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "
   16 $((MSG_MAX_LENGTH + 23)) 6 "${EXCLUDE_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit  
 
 function install_iptag_tools() {
-  # Alle Installations- und Service-Dateien direkt im Skript
   container=$1
   header_info
   name=$(pct exec "$container" hostname)
-  echo -e "${BL}[Info]${GN} Installing IP Tag tools on ${name} ${CL} \n"
 
-  pct exec "$container" -- bash -c "
-    sudo apt update && sudo apt install -y ipcalc
-    curl -sSL https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/lxc-iptag -o /usr/local/bin/lxc-iptag
-    curl -sSL https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/lxc-iptag.service -o /lib/systemd/system/lxc-iptag.service
-    chmod +x /usr/local/bin/lxc-iptag
-    sudo systemctl daemon-reload
-    sudo systemctl enable lxc-iptag.service
-    sudo systemctl start lxc-iptag.service
-  "
+  # Hier die IP-Tagging-Logik für den Container anwenden
+  cidr_list=( 192.168.0.0/16 100.64.0.0/10 10.0.0.0/8 )
+
+  ip_to_int() {
+      local ip="${1}"
+      local a b c d
+      IFS=. read -r a b c d <<< "${ip}"
+      echo "$((a << 24 | b << 16 | c << 8 | d))"
+  }
+
+  ip_in_cidr() {
+      local ip="${1}"
+      local cidr="${2}"
+      ip_int=$(ip_to_int "${ip}")
+      netmask_int=$(ip_to_int "$(ipcalc -b "${cidr}" | grep Broadcast | awk '{print $2}')")
+      masked_ip_int=$(( "${ip_int}" & "${netmask_int}" ))
+      [[ ${ip_int} -eq ${masked_ip_int} ]] && return 0 || return 1
+  }
+
+  ip_in_cidrs() {
+      local ip="${1}"
+      for cidr in "${cidr_list[@]}"; do
+          ip_in_cidr "${ip}" "${cidr}" && return 0
+      done
+      return 1
+  }
+
+  is_valid_ipv4() {
+      local ip=$1
+      local regex="^([0-9]{1,3}\.){3}[0-9]{1,3}$"
+      if [[ $ip =~ $regex ]]; then
+          IFS='.' read -r -a parts <<< "$ip"
+          for part in "${parts[@]}"; do
+              if ! [[ $part =~ ^[0-9]+$ ]] || ((part < 0 || part > 255)); then
+                  return 1
+              fi
+          done
+          return 0
+      else
+          return 1
+      fi
+  }
+
+  main() {
+      lxc_name_list=$(pct list 2>/dev/null | grep -v VMID | awk '{print $1}')
+      for lxc_name in ${lxc_name_list}; do
+          new_tags=()
+          old_ips=()
+          new_ips=()
+
+          old_tags=$(pct config "${lxc_name}" | grep tags | awk '{print $2}' | sed 's/;/ /g')
+          for old_tag in ${old_tags}; do
+              if is_valid_ipv4 "${old_tag}"; then
+                  old_ips+=("${old_tag}")
+                  continue
+              fi
+              new_tags+=("${old_tag}")
+          done
+
+          ips=$(lxc-info -n "${lxc_name}" -i | awk '{print $2}')
+          for ip in ${ips}; do
+              if is_valid_ipv4 "${ip}" && ip_in_cidrs "${ip}"; then
+                  new_ips+=("${ip}")
+                  new_tags+=("${ip}")
+              fi
+          done
+
+          if [[ "$(echo "${old_ips[@]}" | tr ' ' '\n' | sort -u)" == "$(echo "${new_ips[@]}" | tr ' ' '\n' | sort -u)" ]]; then
+              echo "Skipping ${lxc_name} because IPs haven't changed"
+              continue
+          fi
+
+          joined_tags=$(IFS=';'; echo "${new_tags[*]}")
+          echo "Setting ${lxc_name} tags from ${old_tags} to ${joined_tags}"
+          pct set "${lxc_name}" -tags "${joined_tags}"
+      done
+      sleep 60
+  }
+
+  main
+
+  # Service-Datei erstellen und aktivieren
+  cat <<EOF >/lib/systemd/system/lxc-iptag.service
+  [Unit]
+  Description=Start lxc-iptag service
+  After=network.target
+  
+  [Service]
+  Type=simple
+  ExecStart=/usr/local/bin/lxc-iptag
+  Restart=always
+  
+  [Install]
+  WantedBy=multi-user.target
+  EOF
+
+  systemctl daemon-reload
+  systemctl enable -q -now lxc-iptag.service
 }
 
-for container in $(pct list | awk '{if(NR>1) print $1}'); do
-  if [[ " ${excluded_containers[@]} " =~ " $container " ]]; then
+# Container durchgehen
+for container in $excluded_containers; do
+  os=$(pct config "$container" | awk '/^ostype/ {print $2}')
+  if [ "$os" != "debian" ] && [ "$os" != "ubuntu" ]; then
     header_info
-    echo -e "${BL}[Info]${GN} Skipping ${BL}$container${CL}"
+    echo -e "${BL}[Info]${GN} Skipping ${RD}$container is not Debian or Ubuntu ${CL} \n"
     sleep 1
-  else
-    os=$(pct config "$container" | awk '/^ostype/ {print $2}')
-    if [ "$os" != "debian" ] && [ "$os" != "ubuntu" ]; then
-      header_info
-      echo -e "${BL}[Info]${GN} Skipping ${name} ${RD}$container is not Debian or Ubuntu ${CL} \n"
-      sleep 1
-      continue
-    fi
+    continue
+  fi
 
-    status=$(pct status $container)
-    template=$(pct config $container | grep -q "template:" && echo "true" || echo "false")
-    if [ "$template" == "false" ] && [ "$status" == "status: stopped" ]; then
-      echo -e "${BL}[Info]${GN} Starting${BL} $container ${CL} \n"
-      pct start $container
-      echo -e "${BL}[Info]${GN} Waiting For${BL} $container${CL}${GN} To Start ${CL} \n"
-      sleep 5
-      install_iptag_tools $container
-      echo -e "${BL}[Info]${GN} Shutting down${BL} $container ${CL} \n"
-      pct shutdown $container &
-    elif [ "$status" == "status: running" ]; then
-      install_iptag_tools $container
-    fi
+  status=$(pct status $container)
+  template=$(pct config $container | grep -q "template:" && echo "true" || echo "false")
+  if [ "$template" == "false" ] && [ "$status" == "status: stopped" ]; then
+    echo -e "${BL}[Info]${GN} Starting ${BL}$container ${CL} \n"
+    pct start $container
+    echo -e "${BL}[Info]${GN} Waiting For ${BL}$container ${GN} To Start ${CL} \n"
+    sleep 5
+    install_iptag_tools $container
+    echo -e "${BL}[Info]${GN} Shutting down ${BL}$container ${CL} \n"
+    pct shutdown $container &
+  elif [ "$status" == "status: running" ]; then
+    install_iptag_tools $container
   fi
 done
 
 wait
 header_info
-echo -e "${GN} Finished, Selected Containers IP Tags Applied. ${CL} \n"
+echo -e "${GN} Finished, IP Tags applied to selected containers. ${CL} \n"
