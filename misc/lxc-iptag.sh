@@ -47,21 +47,9 @@ function install_iptag_tools() {
 
   pct exec "$container" -- bash -c "
     sudo apt update && sudo apt install -y ipcalc
-    # Installiere das lxc-iptag-Skript direkt im Container
-    echo '#!/bin/bash' > /usr/local/bin/lxc-iptag
-    echo 'interface=\$(ip -4 route ls dev eth0 | grep default | awk \'{print \$5}\')' >> /usr/local/bin/lxc-iptag
-    echo 'ip=\$(ip -4 addr show dev \$interface | grep inet | awk \'{print \$2}\' | cut -d/ -f1)' >> /usr/local/bin/lxc-iptag
-    echo 'hostname=\$(hostname)' >> /usr/local/bin/lxc-iptag
-    echo 'echo \${hostname}: \${ip}' >> /usr/local/bin/lxc-iptag
+    curl -sSL https://raw.githubusercontent.com/MickLesk/ProxmoxDEV/main/misc/lxc-iptag -o /usr/local/bin/lxc-iptag
+    curl -sSL https://raw.githubusercontent.com/MickLesk/ProxmoxDEV/main/misc/lxc-iptag.service -o /lib/systemd/system/lxc-iptag.service
     chmod +x /usr/local/bin/lxc-iptag
-    # Installiere die systemd-Unit-Datei für lxc-iptag
-    echo '[Unit]' > /lib/systemd/system/lxc-iptag.service
-    echo 'Description=LXC IP Tag Service' >> /lib/systemd/system/lxc-iptag.service
-    echo '[Service]' >> /lib/systemd/system/lxc-iptag.service
-    echo 'ExecStart=/usr/local/bin/lxc-iptag' >> /lib/systemd/system/lxc-iptag.service
-    echo '[Install]' >> /lib/systemd/system/lxc-iptag.service
-    echo 'WantedBy=multi-user.target' >> /lib/systemd/system/lxc-iptag.service
-    chmod 644 /lib/systemd/system/lxc-iptag.service
     sudo systemctl daemon-reload
     sudo systemctl enable lxc-iptag.service
     sudo systemctl start lxc-iptag.service
