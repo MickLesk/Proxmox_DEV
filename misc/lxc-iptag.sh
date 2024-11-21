@@ -23,12 +23,12 @@ RD=$(echo "\033[01;31m")
 GN=$(echo "\033[1;92m")
 CL=$(echo "\033[m")
 
-# JSON file for storing container state
-json_file="/opt/lxc-iptag/container_state.json"
+# YAML file for storing container state
+yaml_file="/opt/lxc-iptag/container_state.yaml"
 
 # Function: Check and install dependencies
 check_dependencies() {
-    dependencies=("ipcalc" "jq")
+    dependencies=("ipcalc" "jq" "yq")
     for dep in "${dependencies[@]}"; do
         if ! command -v "$dep" &>/dev/null; then
             echo -e "${RD}[Error]${CL} Dependency '$dep' is missing."
@@ -44,64 +44,54 @@ check_dependencies() {
     echo -e "${GN}[Info]${CL} All dependencies are installed."
 }
 
-# Function: Initialize the JSON file if missing or empty
-initialize_json_file() {
-    if [[ ! -f "$json_file" ]] || [[ ! -s "$json_file" ]]; then
-        echo -e "${GN}[Info]${CL} JSON file is missing or empty. Initializing..."
-        echo '{"containers":[]}' > "$json_file"
-        update_json_with_current_containers
+# Function: Initialize the YAML file if missing or empty
+initialize_yaml_file() {
+    if [[ ! -f "$yaml_file" ]] || [[ ! -s "$yaml_file" ]]; then
+        echo -e "${GN}[Info]${CL} YAML file is missing or empty. Initializing..."
+        echo "containers: []" > "$yaml_file"
+        update_yaml_with_current_containers
     fi
 }
 
-# Function: Update the JSON file with current containers
-update_json_with_current_containers() {
-    echo -e "${GN}[Info]${CL} Updating JSON file with current containers."
-
+# Function: Update the YAML file with current containers
+update_yaml_with_current_containers() {
+    echo -e "${GN}[Info]${CL} Updating YAML file with current containers."
     while read -r id name ip; do
         [[ "$id" == "VMID" ]] && continue # Skip header row
-        add_or_update_container_in_json "$id" "$name" "$ip" "initial"
+        add_or_update_container_in_yaml "$id" "$name" "$ip" "initial"
     done < <(pct list | awk 'NR>1 {print $1, $2, $3}' | grep "running")
 }
 
-# Function: Add or update container information in JSON
-add_or_update_container_in_json() {
+# Function: Add or update container information in YAML
+add_or_update_container_in_yaml() {
     local id="$1"
     local name="$2"
     local ip="$3"
     local update_type="${4:-manual}"
 
-    # Load the current JSON state
-    json_state=$(jq '.' "$json_file")
-
     # Check if the container already exists
-    container_data=$(echo "$json_state" | jq --arg id "$id" '.containers[] | select(.id == $id)')
+    container_exists=$(yq ".containers[] | select(.id == \"$id\")" "$yaml_file")
 
-    if [[ -n "$container_data" ]]; then
+    if [[ -n "$container_exists" ]]; then
         # Update IP if it has changed
-        current_ip=$(echo "$container_data" | jq -r '.tags[0]')
+        current_ip=$(echo "$container_exists" | yq ".tags[0]")
         if [[ "$current_ip" != "$ip" ]]; then
             echo -e "${BL}[Info]${CL} Container $name ($id) IP changed: $current_ip -> $ip"
-            json_state=$(echo "$json_state" | jq --arg id "$id" --arg ip "$ip" '
-                .containers |= map(if .id == $id then .tags = [$ip] | .last_update = now | todateiso8601 else . end)')
+            yq -i ".containers |= map(if .id == \"$id\" then .tags = [\"$ip\"] | .last_update = \"$(date -Iseconds)\" else . end)" "$yaml_file"
         fi
     else
         # Add new container
         echo -e "${GN}[Info]${CL} New container detected: $name ($id) with IP $ip"
-        json_state=$(echo "$json_state" | jq --arg id "$id" --arg name "$name" --arg ip "$ip" '
-            .containers += [{"id": $id, "name": $name, "tags": [$ip], "last_update": (now | todateiso8601)}]')
+        yq -i ".containers += [{id: \"$id\", name: \"$name\", tags: [\"$ip\"], last_update: \"$(date -Iseconds)\"}]" "$yaml_file"
     fi
-
-    # Save updated JSON state
-    echo "$json_state" > "$json_file"
 }
 
-# Function: Validate IPs in JSON
-validate_ips_in_json() {
-    echo -e "${GN}[Info]${CL} Validating IPs in JSON file."
-    json_state=$(jq '.' "$json_file")
+# Function: Validate IPs in YAML
+validate_ips_in_yaml() {
+    echo -e "${GN}[Info]${CL} Validating IPs in YAML file."
 
-    # Get all container IDs from JSON
-    mapfile -t container_ids < <(echo "$json_state" | jq -r '.containers[].id')
+    # Get all container IDs from YAML
+    mapfile -t container_ids < <(yq ".containers[].id" "$yaml_file")
 
     for id in "${container_ids[@]}"; do
         if pct status "$id" &>/dev/null; then
@@ -109,12 +99,11 @@ validate_ips_in_json() {
             current_ip=$(pct exec "$id" ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
             # Update IP if needed
-            add_or_update_container_in_json "$id" "" "$current_ip"
+            add_or_update_container_in_yaml "$id" "" "$current_ip"
         else
             # Remove container if it no longer exists
-            echo -e "${RD}[Info]${CL} Container $id no longer exists. Removing from JSON."
-            json_state=$(echo "$json_state" | jq --arg id "$id" '.containers |= map(select(.id != $id))')
-            echo "$json_state" > "$json_file"
+            echo -e "${RD}[Info]${CL} Container $id no longer exists. Removing from YAML."
+            yq -i ".containers |= map(select(.id != \"$id\"))" "$yaml_file"
         fi
     done
 }
@@ -139,7 +128,6 @@ select_containers() {
 # Function: Tag container IPs
 tag_container_ip() {
     container_id=$1
-    header_info
     name=$(pct exec "$container_id" hostname)
     echo -e "${BL}[Info]${GN} Tagging IP for ${name} ${CL} \n"
 
@@ -166,8 +154,8 @@ tag_container_ip() {
 # Main function
 main() {
     check_dependencies
-    initialize_json_file
-    validate_ips_in_json
+    initialize_yaml_file
+    validate_ips_in_yaml
 
     selected_containers=$(select_containers)
     if [[ -z "$selected_containers" ]]; then
@@ -184,3 +172,4 @@ main() {
 
 # Run main
 main
+
