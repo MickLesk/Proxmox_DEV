@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2024 tteck
-# Author: tteck (tteckster)
+# Copyright (c) 2021-2024 community-scripts ORG
+# Author: MickLesk
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
@@ -22,12 +22,31 @@ RD=$(echo "\033[01;31m")
 GN=$(echo "\033[1;92m")
 CL=$(echo "\033[m")
 
-# LXC Tagging-Funktion
-cidr_list=(
-    192.168.0.0/16
-    100.64.0.0/10
-    10.0.0.0/8
+# LXC Tagging-Function
+default_cidr_list=(
+    "192.168.0.0/16"
+    "100.64.0.0/10"
+    "10.0.0.0/8"
 )
+
+load_cidr_list() {
+    local cidr_file="/opt/lxc-iptag/cidr_list.txt"
+
+    # Überprüfe, ob die CIDR-Datei existiert
+    if [[ ! -f "$cidr_file" ]]; then
+        echo "[Info] CIDR list file not found. Creating with default values..."
+
+        # Erstelle die CIDR-Datei mit den Standardwerten
+        for cidr in "${default_cidr_list[@]}"; do
+            echo "$cidr" >> "$cidr_file"
+        done
+
+        echo "[Info] CIDR list file created with default values."
+    fi
+
+    # Lade die CIDR-Liste aus der Datei
+    mapfile -t cidr_list < "$cidr_file"
+}
 
 ip_to_int() {
     local ip="${1}"
@@ -126,6 +145,4 @@ main() {
 
   echo -e "${GN} Finished tagging IPs for selected containers. ${CL} \n"
 }
-
-# Starte die Hauptfunktion
 main
