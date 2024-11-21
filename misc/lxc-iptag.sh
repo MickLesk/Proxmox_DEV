@@ -22,6 +22,42 @@ RD=$(echo "\033[01;31m")
 GN=$(echo "\033[1;92m")
 CL=$(echo "\033[m")
 
+# Function to ensure required packages are installed
+check_dependencies() {
+  local packages=("jq" "ipcalc")
+  local missing=()
+
+  for package in "${packages[@]}"; do
+    if ! command -v "$package" &>/dev/null; then
+      missing+=("$package")
+    fi
+  done
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo -e "${RD}[Error]${CL} Missing dependencies: ${missing[*]}"
+    read -p "Do you want to install them now? [y/n] " choice
+    case "$choice" in
+      y|Y)
+        apt-get update && apt-get install -y "${missing[@]}" || {
+          echo -e "${RD}[Error]${CL} Failed to install: ${missing[*]}"
+          exit 1
+        }
+        echo -e "${GN}[Info]${CL} Dependencies installed successfully."
+        ;;
+      n|N)
+        echo -e "${RD}[Error]${CL} Cannot proceed without the required dependencies."
+        exit 1
+        ;;
+      *)
+        echo -e "${RD}[Error]${CL} Invalid input. Exiting."
+        exit 1
+        ;;
+    esac
+  else
+    echo -e "${GN}[Info]${CL} All dependencies are installed."
+  fi
+}
+
 # Default CIDR ranges for allowed IPs
 default_cidr_list=(
     "192.168.0.0/16"
@@ -158,6 +194,9 @@ tag_container_ip() {
 
 # Main function
 main() {
+    # Ensure dependencies are installed
+    check_dependencies
+
     load_cidr_list
     selected_containers=$(select_containers)
 
