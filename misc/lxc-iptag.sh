@@ -57,7 +57,7 @@ initialize_yaml_file() {
 
 # Function: Update YAML with current containers
 update_yaml_with_current_containers() {
-    echo -e "[Info] Updating YAML file with current containers."
+    echo "[Info] Updating YAML file with current containers."
     pct_list=$(pct list | tail -n +2)
     while IFS= read -r line; do
         id=$(echo "$line" | awk '{print $1}')
