@@ -51,17 +51,25 @@ initialize_yaml_file() {
         echo "containers: []" > "$yaml_file"
         update_yaml_with_current_containers
     fi
+
+    # Überprüfe, ob die Datei jetzt befüllt ist
+    echo -e "DEBUG: Contents of YAML file after initialization:"
+    cat "$yaml_file"
 }
 
 # Function: Update the YAML file with current containers
 update_yaml_with_current_containers() {
     echo -e "${GN}[Info]${CL} Updating YAML file with current containers."
+    
+    # Ausgabe von pct list zur Debugging-Überprüfung
+    pct list
+
     while read -r id name ip; do
-        [[ "$id" == "VMID" ]] && continue # Skip header row
+        echo -e "DEBUG: Processing Container - ID: $id, Name: $name, IP: $ip"  # Debugging-Ausgabe
+        [[ "$id" == "VMID" ]] && continue  # Skip header row
         add_or_update_container_in_yaml "$id" "$name" "$ip" "initial"
     done < <(pct list | awk 'NR>1 {print $1, $2, $3}' | grep "running")
 }
-
 # Function: Add or update container information in YAML
 add_or_update_container_in_yaml() {
     local id="$1"
@@ -69,22 +77,11 @@ add_or_update_container_in_yaml() {
     local ip="$3"
     local update_type="${4:-manual}"
 
-    # Check if the container already exists
-    container_exists=$(yq ".containers[] | select(.id == \"$id\")" "$yaml_file")
-
-    if [[ -n "$container_exists" ]]; then
-        # Update IP if it has changed
-        current_ip=$(echo "$container_exists" | yq ".tags[0]")
-        if [[ "$current_ip" != "$ip" ]]; then
-            echo -e "${BL}[Info]${CL} Container $name ($id) IP changed: $current_ip -> $ip"
-            yq -i ".containers |= map(if .id == \"$id\" then .tags = [\"$ip\"] | .last_update = \"$(date -Iseconds)\" else . end)" "$yaml_file"
-        fi
-    else
-        # Add new container
-        echo -e "${GN}[Info]${CL} New container detected: $name ($id) with IP $ip"
-        yq -i ".containers += [{id: \"$id\", name: \"$name\", tags: [\"$ip\"], last_update: \"$(date -Iseconds)\"}]" "$yaml_file"
-    fi
+    # Einfacher Test, ob yq korrekt funktioniert
+    echo "DEBUG: Adding/updating container $id, IP: $ip"
+    yq eval ".containers += [{id: \"$id\", name: \"$name\", tags: [\"$ip\"], last_update: \"$(date -Iseconds)\"}]" "$yaml_file" | tee /dev/tty  # Ausgabe zur Prüfung
 }
+
 
 # Function: Validate IPs in YAML
 validate_ips_in_yaml() {
