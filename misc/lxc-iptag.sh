@@ -31,6 +31,14 @@ default_cidr_list=(
 
 load_cidr_list() {
     local cidr_file="/opt/lxc-iptag/cidr_list.txt"
+    local cidr_dir="/opt/lxc-iptag"
+
+    # Überprüfe, ob das Verzeichnis existiert, wenn nicht, erstelle es
+    if [[ ! -d "$cidr_dir" ]]; then
+        echo "[Info] CIDR directory not found. Creating directory..."
+        mkdir -p "$cidr_dir"
+        echo "[Info] CIDR directory created."
+    fi
 
     # Überprüfe, ob die CIDR-Datei existiert
     if [[ ! -f "$cidr_file" ]]; then
