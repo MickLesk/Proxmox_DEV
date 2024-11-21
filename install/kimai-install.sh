@@ -12,7 +12,6 @@ catch_errors
 setting_up_container
 network_check
 update_os
-#add_core_dependencies
 
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
@@ -29,14 +28,14 @@ $STD apt-get install -y \
   php8.2-{mbstring,gd,intl,pdo,mysql,tokenizer,zip,xml} 
 msg_ok "Installed Dependencies"
 
-msg_info "Setting up Database"
+msg_info "Setting up database"
 DB_NAME=kimai_db
 DB_USER=kimai
 DB_PASS=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | head -c13)
 MYSQL_VERSION=$(mysql --version | grep -oP 'Distrib \K[0-9]+\.[0-9]+\.[0-9]+')
-sudo mysql -u root -e "CREATE DATABASE $DB_NAME;"
-sudo mysql -u root -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED WITH mysql_native_password AS PASSWORD('$DB_PASS');"
-sudo mysql -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUSH PRIVILEGES;"
+mysql -u root -e "CREATE DATABASE $DB_NAME;"
+mysql -u root -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED WITH mysql_native_password AS PASSWORD('$DB_PASS');"
+mysql -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUSH PRIVILEGES;"
 {
     echo "Kimai-Credentials"
     echo "Kimai Database User: $DB_USER"
@@ -45,7 +44,7 @@ sudo mysql -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUSH 
 } >> ~/kimai.creds
 msg_ok "Set up database"
 
-msg_info "Setup Kimai (Patience)"
+msg_info "Installing Kimai (Patience)"
 RELEASE=$(curl -s https://api.github.com/repos/kimai/kimai/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 wget -q "https://github.com/kimai/kimai/archive/refs/tags/${RELEASE}.zip"
 unzip -q ${RELEASE}.zip
@@ -96,7 +95,7 @@ EOF
 $STD a2ensite kimai.conf
 $STD a2dissite 000-default.conf  
 $STD systemctl reload apache2
-msg_ok "Created Services"
+msg_ok "Created Service"
 
 motd_ssh
 customize

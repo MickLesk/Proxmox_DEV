@@ -19,7 +19,7 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Kimai"
-var_disk="7"
+var_disk="6"
 var_cpu="2"
 var_ram="2048"
 var_os="debian"
@@ -61,7 +61,7 @@ RELEASE=$(curl -s https://api.github.com/repos/kimai/kimai/releases/latest | gre
 if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
   msg_info "Stopping Apache2"
   systemctl stop apache2
-  msg_ok "Services Stopped"
+  msg_ok "Stopped Apache2"
 
   msg_info "Updating ${APP} to ${RELEASE}"
   cp /opt/kimai/.env /opt/.env
@@ -79,7 +79,7 @@ if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_v
   sudo chown -R www-data:www-data /opt/kimai
   sudo chmod -R 755 /opt/kimai
   echo "${RELEASE}" >/opt/${APP}_version.txt
-  msg_ok "Updated ${APP}"
+  msg_ok "Updated ${APP} to ${RELEASE}"
 
   msg_info "Starting Apache2"
   systemctl start apache2
@@ -94,6 +94,7 @@ else
 fi
 exit
 }
+
 start
 build_container
 description
