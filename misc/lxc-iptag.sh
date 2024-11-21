@@ -22,49 +22,68 @@ RD=$(echo "\033[01;31m")
 GN=$(echo "\033[1;92m")
 CL=$(echo "\033[m")
 
-# LXC Tagging-Function
+# Default CIDR ranges for allowed IPs
 default_cidr_list=(
     "192.168.0.0/16"
     "100.64.0.0/10"
     "10.0.0.0/8"
 )
 
+# Path to store JSON state
+json_file="/opt/lxc-iptag/container_state.json"
+
+# Function to load or create the CIDR list
 load_cidr_list() {
     local cidr_file="/opt/lxc-iptag/cidr_list.txt"
     local cidr_dir="/opt/lxc-iptag"
 
-    # Überprüfe, ob das Verzeichnis existiert, wenn nicht, erstelle es
+    # Create directory if it doesn't exist
     if [[ ! -d "$cidr_dir" ]]; then
-        echo "[Info] CIDR directory not found. Creating directory..."
-        mkdir -p "$cidr_dir"  # Hier wird das Verzeichnis erstellt
-        if [[ $? -ne 0 ]]; then
-            echo "[Error] Failed to create directory: $cidr_dir"
-            exit 1
-        fi
-        echo "[Info] CIDR directory created."
+        mkdir -p "$cidr_dir" || { echo "[Error] Failed to create directory: $cidr_dir"; exit 1; }
     fi
 
-    # Überprüfe, ob die CIDR-Datei existiert
+    # Create CIDR list file if it doesn't exist
     if [[ ! -f "$cidr_file" ]]; then
-        echo "[Info] CIDR list file not found. Creating with default values..."
-        
-        # Erstelle die CIDR-Datei mit den Standardwerten
         for cidr in "${default_cidr_list[@]}"; do
             echo "$cidr" >> "$cidr_file"
         done
-
-        if [[ $? -ne 0 ]]; then
-            echo "[Error] Failed to create CIDR file: $cidr_file"
-            exit 1
-        fi
-
-        echo "[Info] CIDR list file created with default values."
     fi
 
-    # Lade die CIDR-Liste aus der Datei
+    # Load CIDR ranges into an array
     mapfile -t cidr_list < "$cidr_file"
 }
 
+# Load JSON state or initialize it
+load_json_state() {
+    if [[ ! -f "$json_file" ]]; then
+        echo '{"containers":[]}' > "$json_file"
+    fi
+    json_state=$(cat "$json_file")
+}
+
+# Update JSON state with new container info
+update_json_state() {
+    local id="$1"
+    local name="$2"
+    local new_ip="$3"
+
+    container_data=$(echo "$json_state" | jq ".containers[] | select(.id == \"$id\")")
+
+    if [[ -n "$container_data" ]]; then
+        # Update existing container's IP
+        json_state=$(echo "$json_state" | jq --arg id "$id" --arg ip "$new_ip" '
+            .containers |= map(if .id == $id then .tags = [$ip] | .last_update = now | todateiso8601 else . end)')
+    else
+        # Add new container to JSON state
+        json_state=$(echo "$json_state" | jq --arg id "$id" --arg name "$name" --arg ip "$new_ip" '
+            .containers += [{"id": $id, "name": $name, "tags": [$ip], "last_update": (now | todateiso8601)}]')
+    fi
+
+    # Save updated JSON state
+    echo "$json_state" > "$json_file"
+}
+
+# Convert IP address to integer for CIDR matching
 ip_to_int() {
     local ip="${1}"
     local a b c d
@@ -72,6 +91,7 @@ ip_to_int() {
     echo "$((a << 24 | b << 16 | c << 8 | d))"
 }
 
+# Check if IP belongs to a CIDR range
 ip_in_cidr() {
     local ip="${1}"
     local cidr="${2}"
@@ -81,6 +101,7 @@ ip_in_cidr() {
     [[ ${ip_int} -eq ${masked_ip_int} ]] && return 0 || return 1
 }
 
+# Check if IP belongs to any CIDR range
 ip_in_cidrs() {
     local ip="${1}"
     for cidr in "${cidr_list[@]}"; do
@@ -89,79 +110,67 @@ ip_in_cidrs() {
     return 1
 }
 
-# Funktion zur Auswahl der Container mit whiptail
+# Select containers using whiptail
 select_containers() {
-  EXCLUDE_MENU=()
-  MSG_MAX_LENGTH=0
-  while read -r TAG ITEM; do
-    OFFSET=2
-    ((${#ITEM} + OFFSET > MSG_MAX_LENGTH)) && MSG_MAX_LENGTH=${#ITEM}+OFFSET
-    EXCLUDE_MENU+=("$TAG" "$ITEM " "OFF")
-  done < <(pct list | awk 'NR>1 {print $1, $2}')
+    EXCLUDE_MENU=()
+    MSG_MAX_LENGTH=0
+    while read -r TAG ITEM; do
+        OFFSET=2
+        ((${#ITEM} + OFFSET > MSG_MAX_LENGTH)) && MSG_MAX_LENGTH=${#ITEM}+OFFSET
+        EXCLUDE_MENU+=("$TAG" "$ITEM " "OFF")
+    done < <(pct list | awk 'NR>1 {print $1, $2}')
 
-  selected_containers=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Select Containers" --checklist "\nSelect containers to tag IPs:\n" \
-    16 $((MSG_MAX_LENGTH + 23)) 6 "${EXCLUDE_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
+    selected_containers=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Select Containers" --checklist "\nSelect containers to tag IPs:\n" \
+        16 $((MSG_MAX_LENGTH + 23)) 6 "${EXCLUDE_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
 
-  # Rückgabe der ausgewählten Container-IDs
-  echo "$selected_containers"
+    echo "$selected_containers"
 }
 
-# Funktion zum IP-Taggen der Container
+# Function to tag container IPs
 tag_container_ip() {
-  container_id=$1
-  header_info
-  load_cidr_list
-  name=$(pct exec "$container_id" hostname)
-  echo -e "${BL}[Info]${GN} Tagging IP for ${name} ${CL} \n"
+    local container_id="$1"
+    local name=$(pct exec "$container_id" hostname)
 
-  # IP des Containers abfragen
-  container_ip=$(pct exec "$container_id" -- ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+    echo -e "${BL}[Info]${GN} Tagging IP for ${name} ${CL}"
 
-  if [ -z "$container_ip" ]; then
-    echo -e "${RD}[Error]${CL} No IP found for ${name}. Skipping...\n"
-    return 1
-  fi
+    # Get container IP
+    local container_ip=$(pct exec "$container_id" -- ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
-  # IP überprüfen und taggen, wenn sie in den CIDR-Bereich fällt
-  if ip_in_cidrs "$container_ip"; then
-    echo -e "${BL}[Info]${GN} IP ${container_ip} for ${name} is within the CIDR range. Tagging... ${CL}"
-
-    # Holen der bestehenden Tags des Containers
-    existing_tags=$(pct config "$container_id" | grep "^tags:" | cut -d: -f2 | tr -d '[:space:]')
-    
-    # Wenn bereits Tags existieren, fügen wir die neue IP hinzu
-    if [ -n "$existing_tags" ]; then
-      new_tags="$existing_tags,$container_ip"
-    else
-      new_tags="$container_ip"
+    if [[ -z "$container_ip" ]]; then
+        echo -e "${RD}[Error]${CL} No IP found for ${name}. Skipping..."
+        return 1
     fi
 
-    # Tags setzen, ohne bestehende zu überschreiben
-    pct set "$container_id" -tags "$new_tags"
-    # Beispiel: echo "Container ${name} IP: ${container_ip}" >> /var/log/lxc_ip_tags.log
-  else
-    echo -e "${RD}[Info]${GN} IP ${container_ip} for ${name} is outside the allowed CIDR range. Skipping... ${CL}"
-  fi
+    # Check if IP is in allowed CIDR ranges
+    if ip_in_cidrs "$container_ip"; then
+        echo -e "${BL}[Info]${GN} IP ${container_ip} for ${name} is within the CIDR range. Tagging... ${CL}"
+
+        # Load JSON state
+        load_json_state
+
+        # Update JSON and tags
+        update_json_state "$container_id" "$name" "$container_ip"
+        pct set "$container_id" -tags "$container_ip"
+    else
+        echo -e "${RD}[Info]${CL} IP ${container_ip} for ${name} is outside the allowed CIDR range. Skipping..."
+    fi
 }
 
-# Hauptfunktion für das IP-Taggen
+# Main function
 main() {
-  # Auswahl der Container
-  load_cidr_list
-  selected_containers=$(select_containers)
+    load_cidr_list
+    selected_containers=$(select_containers)
 
-  # Wenn keine Container ausgewählt wurden, beenden
-  if [ -z "$selected_containers" ]; then
-    echo -e "${RD}[Info]${CL} No containers selected, exiting."
-    exit 1
-  fi
+    if [[ -z "$selected_containers" ]]; then
+        echo -e "${RD}[Info]${CL} No containers selected. Exiting..."
+        exit 1
+    fi
 
-  # Tagging der IPs der ausgewählten Container
-  for container_id in $selected_containers; do
-    # IP-Tagging durchführen
-    tag_container_ip "$container_id"
-  done
+    for container_id in $selected_containers; do
+        tag_container_ip "$container_id"
+    done
 
-  echo -e "${GN} Finished tagging IPs for selected containers. ${CL} \n"
+    echo -e "${GN} Finished tagging IPs for selected containers. ${CL}"
 }
+
 main
