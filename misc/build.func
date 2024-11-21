@@ -14,8 +14,8 @@ color() {
   GN=$(echo "\033[1;92m")
   DGN=$(echo "\033[32m")
   CL=$(echo "\033[m")
-  CM="${GN}✓${CL}"
-  CROSS="${RD}✗${CL}"
+  CM="${GN}✔️${CL}"
+  CROSS="${RD}✖️${CL}"
   BFR="\\r\\033[K"
   HOLD=" "
 }
@@ -47,8 +47,8 @@ spinner() {
     local orange="\e[38;5;214m"
 
     while true; do
-        # Aktuellen Frame anzeigen in Orange
-        printf "\r${orange}%s\e[0m" "${frames[spin_i]}"
+        # Spinner mit 1 Leerzeichen davor und 1 Leerzeichen danach anzeigen
+        printf "\r ${orange}%s\e[0m " "${frames[spin_i]}"
         
         # Frame-Index erhöhen und zurücksetzen, wenn notwendig
         spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
