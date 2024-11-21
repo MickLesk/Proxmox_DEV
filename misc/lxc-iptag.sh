@@ -61,24 +61,24 @@ select_containers() {
     OFFSET=2
     ((${#ITEM} + OFFSET > MSG_MAX_LENGTH)) && MSG_MAX_LENGTH=${#ITEM}+OFFSET
     EXCLUDE_MENU+=("$TAG" "$ITEM " "OFF")
-  done < <(pct list | awk 'NR>1')
+  done < <(pct list | awk 'NR>1 {print $1, $2}')
 
   selected_containers=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Select Containers" --checklist "\nSelect containers to tag IPs:\n" \
     16 $((MSG_MAX_LENGTH + 23)) 6 "${EXCLUDE_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
 
-  # Rückgabe der ausgewählten Container
+  # Rückgabe der ausgewählten Container-IDs
   echo "$selected_containers"
 }
 
 # Funktion zum IP-Taggen der Container
 tag_container_ip() {
-  container=$1
+  container_id=$1
   header_info
-  name=$(pct exec "$container" hostname)
+  name=$(pct exec "$container_id" hostname)
   echo -e "${BL}[Info]${GN} Tagging IP for ${name} ${CL} \n"
 
   # IP des Containers abfragen
-  container_ip=$(pct exec "$container" -- ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+  container_ip=$(pct exec "$container_id" -- ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
   if [ -z "$container_ip" ]; then
     echo -e "${RD}[Error]${CL} No IP found for ${name}. Skipping...\n"
@@ -88,8 +88,9 @@ tag_container_ip() {
   # IP überprüfen und taggen, wenn sie in den CIDR-Bereich fällt
   if ip_in_cidrs "$container_ip"; then
     echo -e "${BL}[Info]${GN} IP ${container_ip} for ${name} is within the CIDR range. Tagging... ${CL}"
-	joined_tags=$(IFS=';'; echo "${new_tags[*]}")
-    pct set "${name}" -tags "${joined_tags}"
+	
+    # Tagging durchführen
+    pct set "$container_id" -tags "${joined_tags}"
     # Beispiel: echo "Container ${name} IP: ${container_ip}" >> /var/log/lxc_ip_tags.log
   else
     echo -e "${RD}[Info]${GN} IP ${container_ip} for ${name} is outside the allowed CIDR range. Skipping... ${CL}"
@@ -108,9 +109,9 @@ main() {
   fi
 
   # Tagging der IPs der ausgewählten Container
-  for container in $selected_containers; do
+  for container_id in $selected_containers; do
     # IP-Tagging durchführen
-    tag_container_ip $container
+    tag_container_ip "$container_id"
   done
 
   echo -e "${GN} Finished tagging IPs for selected containers. ${CL} \n"
