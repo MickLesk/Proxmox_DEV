@@ -49,9 +49,10 @@ initialize_yaml_file() {
     if [[ ! -f "$yaml_file" ]] || [[ ! -s "$yaml_file" ]]; then
         echo -e "${GN}[Info]${CL} YAML file is missing or empty. Initializing..."
         echo "containers: []" > "$yaml_file"
+        update_yaml_with_current_containers
     fi
 
-    # Debug output
+    # Debugging-Ausgabe
     echo -e "DEBUG: Contents of YAML file after initialization:"
     cat "$yaml_file"
 }
@@ -132,12 +133,24 @@ validate_ips_in_yaml() {
 
 # Main function
 main() {
-    header_info
     check_dependencies
     initialize_yaml_file
+
+    # Stelle sicher, dass die YAML-Datei aktualisiert wird
     update_yaml_with_current_containers
+
     validate_ips_in_yaml
-    echo -e "${GN}[Info]${CL} Finished updating YAML file."
+
+    selected_containers=$(select_containers)
+    if [[ -z "$selected_containers" ]]; then
+        echo -e "${RD}[Info]${CL} No containers selected. Exiting."
+        exit 1
+    fi
+
+    for container_id in $selected_containers; do
+        tag_container_ip "$container_id"
+    done
+
+    echo -e "${GN}[Info]${CL} Finished tagging IPs for selected containers."
 }
 
-main
