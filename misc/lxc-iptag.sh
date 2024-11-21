@@ -70,6 +70,7 @@ update_yaml_with_current_containers() {
         add_or_update_container_in_yaml "$id" "$name" "$ip" "initial"
     done < <(pct list | awk 'NR>1 {print $1, $2, $3}' | grep "running")
 }
+
 # Function: Add or update container information in YAML
 add_or_update_container_in_yaml() {
     local id="$1"
@@ -77,11 +78,14 @@ add_or_update_container_in_yaml() {
     local ip="$3"
     local update_type="${4:-manual}"
 
-    # Einfacher Test, ob yq korrekt funktioniert
-    echo "DEBUG: Adding/updating container $id, IP: $ip"
-    yq eval ".containers += [{id: \"$id\", name: \"$name\", tags: [\"$ip\"], last_update: \"$(date -Iseconds)\"}]" "$yaml_file" | tee /dev/tty  # Ausgabe zur Prüfung
-}
+    # Debugging-Ausgabe
+    echo "DEBUG: Adding/updating container - ID: $id, Name: $name, IP: $ip, Update Type: $update_type"
 
+    # Testeintrag in die YAML-Datei
+    yq eval ".containers += [{id: \"$id\", name: \"$name\", tags: [\"$ip\"], last_update: \"$(date -Iseconds)\"}]" "$yaml_file" -i
+    echo -e "DEBUG: YAML content after update:"
+    cat "$yaml_file"  # Ausgabe zur Überprüfung der Datei
+}
 
 # Function: Validate IPs in YAML
 validate_ips_in_yaml() {
@@ -169,4 +173,3 @@ main() {
 
 # Run main
 main
-
