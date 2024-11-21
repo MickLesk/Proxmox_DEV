@@ -138,19 +138,19 @@ unction main() {
   main
 
   # Service-Datei erstellen und aktivieren
-  cat <<'EOF' >/lib/systemd/system/lxc-iptag.service
-  [Unit]
-  Description=Start lxc-iptag service
-  After=network.target
-  
-  [Service]
-  Type=simple
-  ExecStart=/usr/local/bin/lxc-iptag
-  Restart=always
-  
-  [Install]
-  WantedBy=multi-user.target
-  EOF
+cat <<'EOF' >/lib/systemd/system/lxc-iptag.service
+[Unit]
+Description=Start lxc-iptag service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/lxc-iptag
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
 
   systemctl daemon-reload
   systemctl enable -q -now lxc-iptag.service
