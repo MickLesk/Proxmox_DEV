@@ -118,6 +118,12 @@ select_containers() {
     echo "DEBUG: Selecting containers..."
     yq -r ".containers[].id" "$yaml_file"
 }
+tag_container_ip() {
+    container_id="$1"
+    echo "[Info] Tagging IP for container ID: $container_id"
+    # Beispiel: Aktualisiere die Tags basierend auf bestimmten Bedingungen
+    yq -y -i "(.containers[] | select(.id == \"$container_id\")).tags |= \"updated-tag\"" "$yaml_file"
+}
 
 # Main function
 main() {
@@ -126,13 +132,12 @@ main() {
     validate_ips_in_yaml
     selected_containers=$(select_containers)
     if [[ -z "$selected_containers" ]]; then
-        echo -e "[Info] No containers selected. Exiting."
+        echo "[Info] No containers selected. Exiting."
         exit 1
     fi
     for container_id in $selected_containers; do
         tag_container_ip "$container_id"
     done
-    echo -e "[Info] Finished tagging IPs for selected containers."
+    echo "[Info] Finished tagging IPs for selected containers."
 }
-
 main "$@"
