@@ -17,101 +17,77 @@ function header_info() {
 EOF
 }
 
+# Color definitions for output
 BL=$(echo "\033[36m")
 RD=$(echo "\033[01;31m")
 GN=$(echo "\033[1;92m")
 CL=$(echo "\033[m")
 
-# Function to ensure required packages are installed
-check_dependencies() {
-  local packages=("jq" "ipcalc")
-  local missing=()
-
-  for package in "${packages[@]}"; do
-    if ! command -v "$package" &>/dev/null; then
-      missing+=("$package")
-    fi
-  done
-
-  if [[ ${#missing[@]} -gt 0 ]]; then
-    echo -e "${RD}[Error]${CL} Missing dependencies: ${missing[*]}"
-    read -p "Do you want to install them now? [y/n] " choice
-    case "$choice" in
-      y|Y)
-        apt-get update && apt-get install -y "${missing[@]}" || {
-          echo -e "${RD}[Error]${CL} Failed to install: ${missing[*]}"
-          exit 1
-        }
-        echo -e "${GN}[Info]${CL} Dependencies installed successfully."
-        ;;
-      n|N)
-        echo -e "${RD}[Error]${CL} Cannot proceed without the required dependencies."
-        exit 1
-        ;;
-      *)
-        echo -e "${RD}[Error]${CL} Invalid input. Exiting."
-        exit 1
-        ;;
-    esac
-  else
-    echo -e "${GN}[Info]${CL} All dependencies are installed."
-  fi
-}
-
-# Default CIDR ranges for allowed IPs
-default_cidr_list=(
-    "192.168.0.0/16"
-    "100.64.0.0/10"
-    "10.0.0.0/8"
-)
-
-# Path to store JSON state
+# JSON file for storing container state
 json_file="/opt/lxc-iptag/container_state.json"
 
-# Function to load or create the CIDR list
-load_cidr_list() {
-    local cidr_file="/opt/lxc-iptag/cidr_list.txt"
-    local cidr_dir="/opt/lxc-iptag"
-
-    # Create directory if it doesn't exist
-    if [[ ! -d "$cidr_dir" ]]; then
-        mkdir -p "$cidr_dir" || { echo "[Error] Failed to create directory: $cidr_dir"; exit 1; }
-    fi
-
-    # Create CIDR list file if it doesn't exist
-    if [[ ! -f "$cidr_file" ]]; then
-        for cidr in "${default_cidr_list[@]}"; do
-            echo "$cidr" >> "$cidr_file"
-        done
-    fi
-
-    # Load CIDR ranges into an array
-    mapfile -t cidr_list < "$cidr_file"
+# Function: Check and install dependencies
+check_dependencies() {
+    dependencies=("ipcalc" "jq")
+    for dep in "${dependencies[@]}"; do
+        if ! command -v "$dep" &>/dev/null; then
+            echo -e "${RD}[Error]${CL} Dependency '$dep' is missing."
+            read -p "Install $dep? (y/n): " choice
+            if [[ "$choice" == "y" ]]; then
+                apt-get update && apt-get install -y "$dep"
+            else
+                echo -e "${RD}[Error]${CL} '$dep' is required. Exiting."
+                exit 1
+            fi
+        fi
+    done
+    echo -e "${GN}[Info]${CL} All dependencies are installed."
 }
 
-# Load JSON state or initialize it
-load_json_state() {
-    if [[ ! -f "$json_file" ]]; then
+# Function: Initialize the JSON file if missing or empty
+initialize_json_file() {
+    if [[ ! -f "$json_file" ]] || [[ ! -s "$json_file" ]]; then
+        echo -e "${GN}[Info]${CL} JSON file is missing or empty. Initializing..."
         echo '{"containers":[]}' > "$json_file"
+        update_json_with_current_containers
     fi
-    json_state=$(cat "$json_file")
 }
 
-# Update JSON state with new container info
-update_json_state() {
+# Function: Update the JSON file with current containers
+update_json_with_current_containers() {
+    echo -e "${GN}[Info]${CL} Updating JSON file with current containers."
+
+    while read -r id name ip; do
+        [[ "$id" == "VMID" ]] && continue # Skip header row
+        add_or_update_container_in_json "$id" "$name" "$ip" "initial"
+    done < <(pct list | awk 'NR>1 {print $1, $2, $3}' | grep "running")
+}
+
+# Function: Add or update container information in JSON
+add_or_update_container_in_json() {
     local id="$1"
     local name="$2"
-    local new_ip="$3"
+    local ip="$3"
+    local update_type="${4:-manual}"
 
-    container_data=$(echo "$json_state" | jq ".containers[] | select(.id == \"$id\")")
+    # Load the current JSON state
+    json_state=$(jq '.' "$json_file")
+
+    # Check if the container already exists
+    container_data=$(echo "$json_state" | jq --arg id "$id" '.containers[] | select(.id == $id)')
 
     if [[ -n "$container_data" ]]; then
-        # Update existing container's IP
-        json_state=$(echo "$json_state" | jq --arg id "$id" --arg ip "$new_ip" '
-            .containers |= map(if .id == $id then .tags = [$ip] | .last_update = now | todateiso8601 else . end)')
+        # Update IP if it has changed
+        current_ip=$(echo "$container_data" | jq -r '.tags[0]')
+        if [[ "$current_ip" != "$ip" ]]; then
+            echo -e "${BL}[Info]${CL} Container $name ($id) IP changed: $current_ip -> $ip"
+            json_state=$(echo "$json_state" | jq --arg id "$id" --arg ip "$ip" '
+                .containers |= map(if .id == $id then .tags = [$ip] | .last_update = now | todateiso8601 else . end)')
+        fi
     else
-        # Add new container to JSON state
-        json_state=$(echo "$json_state" | jq --arg id "$id" --arg name "$name" --arg ip "$new_ip" '
+        # Add new container
+        echo -e "${GN}[Info]${CL} New container detected: $name ($id) with IP $ip"
+        json_state=$(echo "$json_state" | jq --arg id "$id" --arg name "$name" --arg ip "$ip" '
             .containers += [{"id": $id, "name": $name, "tags": [$ip], "last_update": (now | todateiso8601)}]')
     fi
 
@@ -119,34 +95,31 @@ update_json_state() {
     echo "$json_state" > "$json_file"
 }
 
-# Convert IP address to integer for CIDR matching
-ip_to_int() {
-    local ip="${1}"
-    local a b c d
-    IFS=. read -r a b c d <<< "${ip}"
-    echo "$((a << 24 | b << 16 | c << 8 | d))"
-}
+# Function: Validate IPs in JSON
+validate_ips_in_json() {
+    echo -e "${GN}[Info]${CL} Validating IPs in JSON file."
+    json_state=$(jq '.' "$json_file")
 
-# Check if IP belongs to a CIDR range
-ip_in_cidr() {
-    local ip="${1}"
-    local cidr="${2}"
-    ip_int=$(ip_to_int "${ip}")
-    netmask_int=$(ip_to_int "$(ipcalc -b "${cidr}" | grep Broadcast | awk '{print $2}')")
-    masked_ip_int=$(( "${ip_int}" & "${netmask_int}" ))
-    [[ ${ip_int} -eq ${masked_ip_int} ]] && return 0 || return 1
-}
+    # Get all container IDs from JSON
+    mapfile -t container_ids < <(echo "$json_state" | jq -r '.containers[].id')
 
-# Check if IP belongs to any CIDR range
-ip_in_cidrs() {
-    local ip="${1}"
-    for cidr in "${cidr_list[@]}"; do
-        ip_in_cidr "${ip}" "${cidr}" && return 0
+    for id in "${container_ids[@]}"; do
+        if pct status "$id" &>/dev/null; then
+            # Get current IP for the container
+            current_ip=$(pct exec "$id" ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+
+            # Update IP if needed
+            add_or_update_container_in_json "$id" "" "$current_ip"
+        else
+            # Remove container if it no longer exists
+            echo -e "${RD}[Info]${CL} Container $id no longer exists. Removing from JSON."
+            json_state=$(echo "$json_state" | jq --arg id "$id" '.containers |= map(select(.id != $id))')
+            echo "$json_state" > "$json_file"
+        fi
     done
-    return 1
 }
 
-# Select containers using whiptail
+# Function: Select containers with Whiptail
 select_containers() {
     EXCLUDE_MENU=()
     MSG_MAX_LENGTH=0
@@ -159,49 +132,46 @@ select_containers() {
     selected_containers=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Select Containers" --checklist "\nSelect containers to tag IPs:\n" \
         16 $((MSG_MAX_LENGTH + 23)) 6 "${EXCLUDE_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
 
+    # Return selected container IDs
     echo "$selected_containers"
 }
 
-# Function to tag container IPs
+# Function: Tag container IPs
 tag_container_ip() {
-    local container_id="$1"
-    local name=$(pct exec "$container_id" hostname)
-
-    echo -e "${BL}[Info]${GN} Tagging IP for ${name} ${CL}"
+    container_id=$1
+    header_info
+    name=$(pct exec "$container_id" hostname)
+    echo -e "${BL}[Info]${GN} Tagging IP for ${name} ${CL} \n"
 
     # Get container IP
-    local container_ip=$(pct exec "$container_id" -- ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+    container_ip=$(pct exec "$container_id" ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
     if [[ -z "$container_ip" ]]; then
-        echo -e "${RD}[Error]${CL} No IP found for ${name}. Skipping..."
+        echo -e "${RD}[Error]${CL} No IP found for ${name}. Skipping...\n"
         return 1
     fi
 
-    # Check if IP is in allowed CIDR ranges
-    if ip_in_cidrs "$container_ip"; then
-        echo -e "${BL}[Info]${GN} IP ${container_ip} for ${name} is within the CIDR range. Tagging... ${CL}"
-
-        # Load JSON state
-        load_json_state
-
-        # Update JSON and tags
-        update_json_state "$container_id" "$name" "$container_ip"
-        pct set "$container_id" -tags "$container_ip"
+    # Get existing tags and set new tags
+    existing_tags=$(pct config "$container_id" | grep "^tags:" | cut -d: -f2 | tr -d '[:space:]')
+    if [[ -n "$existing_tags" ]]; then
+        new_tags="$existing_tags,$container_ip"
     else
-        echo -e "${RD}[Info]${CL} IP ${container_ip} for ${name} is outside the allowed CIDR range. Skipping..."
+        new_tags="$container_ip"
     fi
+
+    pct set "$container_id" -tags "$new_tags"
+    echo -e "${GN}[Info]${CL} IP $container_ip tagged for container $name."
 }
 
 # Main function
 main() {
-    # Ensure dependencies are installed
     check_dependencies
+    initialize_json_file
+    validate_ips_in_json
 
-    load_cidr_list
     selected_containers=$(select_containers)
-
     if [[ -z "$selected_containers" ]]; then
-        echo -e "${RD}[Info]${CL} No containers selected. Exiting..."
+        echo -e "${RD}[Info]${CL} No containers selected. Exiting."
         exit 1
     fi
 
@@ -209,7 +179,8 @@ main() {
         tag_container_ip "$container_id"
     done
 
-    echo -e "${GN} Finished tagging IPs for selected containers. ${CL}"
+    echo -e "${GN}[Info]${CL} Finished tagging IPs for selected containers."
 }
 
+# Run main
 main
