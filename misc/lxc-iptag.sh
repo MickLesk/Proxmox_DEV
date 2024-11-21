@@ -64,6 +64,12 @@ update_yaml_with_current_containers() {
     # Ausgabe von pct list zur Debugging-Überprüfung
     pct list
 
+    # Warten, falls keine Container vorhanden sind
+    if [[ $(pct list | grep -c "running") -eq 0 ]]; then
+        echo -e "${RD}[Warning]${CL} No running containers found."
+        return 1
+    fi
+
     while read -r id name ip; do
         echo -e "DEBUG: Processing Container - ID: $id, Name: $name, IP: $ip"  # Debugging-Ausgabe
         [[ "$id" == "VMID" ]] && continue  # Skip header row
