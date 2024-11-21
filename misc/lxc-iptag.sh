@@ -86,46 +86,59 @@ function install_iptag_tools() {
       fi
   }
 
-  main() {
-      lxc_name_list=$(pct list 2>/dev/null | grep -v VMID | awk '{print $1}')
-      for lxc_name in ${lxc_name_list}; do
-          new_tags=()
-          old_ips=()
-          new_ips=()
+unction main() {
+  # Container auflisten und in eine Variable speichern
+  lxc_name_list=$(pct list 2>/dev/null | grep -v VMID | awk '{print $1}')
+  
+  # Nur Container zur Auswahl stellen, die geupdated werden sollen
+  update_menu=()
+  for lxc_name in ${lxc_name_list}; do
+    # Tags und IPs ermitteln
+    new_tags=()
+    old_ips=()
+    new_ips=()
 
-          old_tags=$(pct config "${lxc_name}" | grep tags | awk '{print $2}' | sed 's/;/ /g')
-          for old_tag in ${old_tags}; do
-              if is_valid_ipv4 "${old_tag}"; then
-                  old_ips+=("${old_tag}")
-                  continue
-              fi
-              new_tags+=("${old_tag}")
-          done
+    old_tags=$(pct config "${lxc_name}" | grep tags | awk '{print $2}' | sed 's/;/ /g')
+    for old_tag in ${old_tags}; do
+      if is_valid_ipv4 "${old_tag}"; then
+        old_ips+=("${old_tag}")
+        continue
+      fi
+      new_tags+=("${old_tag}")
+    done
 
-          ips=$(lxc-info -n "${lxc_name}" -i | awk '{print $2}')
-          for ip in ${ips}; do
-              if is_valid_ipv4 "${ip}" && ip_in_cidrs "${ip}"; then
-                  new_ips+=("${ip}")
-                  new_tags+=("${ip}")
-              fi
-          done
+    ips=$(lxc-info -n "${lxc_name}" -i | awk '{print $2}')
+    for ip in ${ips}; do
+      if is_valid_ipv4 "${ip}" && ip_in_cidrs "${ip}"; then
+        new_ips+=("${ip}")
+        new_tags+=("${ip}")
+      fi
+    done
 
-          if [[ "$(echo "${old_ips[@]}" | tr ' ' '\n' | sort -u)" == "$(echo "${new_ips[@]}" | tr ' ' '\n' | sort -u)" ]]; then
-              echo "Skipping ${lxc_name} because IPs haven't changed"
-              continue
-          fi
+    # Wenn IPs nicht geändert wurden, Container überspringen
+    if [[ "$(echo "${old_ips[@]}" | tr ' ' '\n' | sort -u)" == "$(echo "${new_ips[@]}" | tr ' ' '\n' | sort -u)" ]]; then
+      echo "Skipping ${lxc_name} because IPs haven't changed"
+      continue
+    fi
 
-          joined_tags=$(IFS=';'; echo "${new_tags[*]}")
-          echo "Setting ${lxc_name} tags from ${old_tags} to ${joined_tags}"
-          pct set "${lxc_name}" -tags "${joined_tags}"
-      done
-      sleep 60
-  }
+    # Container zur Auswahl hinzufügen
+    update_menu+=("$lxc_name" "${lxc_name}" "OFF")
+  done
+
+  # Nur Container auswählen, die aktualisiert werden sollen
+  selected_containers=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Containers on $NODE" --checklist "\nSelect containers to update:\n" \
+    16 58 6 "${update_menu[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
+
+  # Container mit IP-Tags versehen
+  for container in $selected_containers; do
+    install_iptag_tools $container
+  done
+}
 
   main
 
   # Service-Datei erstellen und aktivieren
-  cat <<EOF >/lib/systemd/system/lxc-iptag.service
+  cat <<'EOF' >/lib/systemd/system/lxc-iptag.service
   [Unit]
   Description=Start lxc-iptag service
   After=network.target
