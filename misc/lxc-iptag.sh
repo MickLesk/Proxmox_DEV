@@ -57,19 +57,37 @@ initialize_yaml_file() {
 
 # Function: Update YAML with current containers
 update_yaml_with_current_containers() {
-    echo "[Info] Updating YAML file with current containers."
-    pct_list=$(pct list | tail -n +2)
-    while IFS= read -r line; do
-        id=$(echo "$line" | awk '{print $1}')
-        name=$(echo "$line" | awk '{print $2}')
-        ip=$(pct exec "$id" -- hostname -I 2>/dev/null | awk '{print $1}')
-        tags=$(pct config "$id" | grep -oP "(?<=#Tags: ).*")
-        [[ -z "$tags" ]] && tags="default"
+    echo "[Info] Aktualisiere YAML-Datei mit aktuellen Containern."
+    
+    # IDs aus pct list extrahieren
+    while IFS= read -r id; do
+        # pct config für die jeweilige ID holen
+        config=$(pct config "$id")
+
+        # Hostname (Name des Containers) extrahieren
+        hostname=$(echo "$config" | grep -oP "^hostname:\s+\K.*")
+
+        # Tags extrahieren (Fallback auf 'default', falls keine Tags gesetzt)
+        tags=$(echo "$config" | grep -oP "^tags:\s+\K.*" || echo "default")
+
+        # Status des Containers (laufend oder nicht)
+        status=$(pct status "$id" | awk '{print $2}')
+
+        # IP-Adresse extrahieren (nur, wenn Container läuft)
+        if [[ "$status" == "running" ]]; then
+            ip=$(pct exec "$id" -- hostname -I 2>/dev/null | awk '{print $1}')
+        else
+            ip="n/a"
+        fi
+
+        # Letztes Update-Zeitstempel
         last_update=$(date --iso-8601=seconds)
-        yq -y -i ".containers += [{id: \"$id\", name: \"$name\", ip: \"$ip\", tags: \"$tags\", last_update: \"$last_update\"}]" "$yaml_file"
-        echo "DEBUG: YAML content after update:"
-        cat "$yaml_file"
-    done <<< "$pct_list"
+
+        # YAML aktualisieren
+        yq -y -i ".containers += [{id: \"$id\", name: \"$hostname\", ip: \"$ip\", tags: \"$tags\", last_update: \"$last_update\"}]" "$yaml_file"
+
+        echo "[DEBUG] Container $id hinzugefügt: Name=$hostname, IP=$ip, Tags=$tags, Status=$status"
+    done < <(pct list | tail -n +2 | awk '{print $1}')
 }
 
 # Function: Add or update a container in the YAML file
