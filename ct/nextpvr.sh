@@ -11,6 +11,7 @@ clear
 generate_app_name "NextPVR"
 }
 header_info
+
 echo -e "Loading..."
 APP="NextPVR"
 var_disk="5"
