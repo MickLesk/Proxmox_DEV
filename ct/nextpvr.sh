@@ -12,7 +12,7 @@ generate_app_name "NextPVR"
 }
 header_info
 echo -e "Loading..."
-APP="nextpvr"
+APP="NextPVR"
 var_disk="5"
 var_cpu="1"
 var_ram="1024"
@@ -45,6 +45,7 @@ function default_settings() {
   VERB="no"
   echo_default
 }
+
 function update_script() {
 header_info
 check_container_storage
