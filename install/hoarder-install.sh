@@ -15,7 +15,6 @@ update_os
 
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
-# python3 \
   g++ \
   build-essential \
   curl \
