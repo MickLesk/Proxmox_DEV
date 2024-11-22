@@ -9,8 +9,8 @@ color() {
   CL=$(echo "\033[m")
   RETRY_NUM=10
   RETRY_EVERY=3
-  CM="${GN}✔️ ${HOLD}${CL}"
-  CROSS="${RD}✖️ ${HOLD}${CL}"
+  CM="${GN}✔️${HOLD}${CL}"
+  CROSS="${RD}✖️${HOLD}${CL}"
   BFR="\\r\\033[K"
   HOLD=" "
 }
@@ -81,7 +81,7 @@ msg_ok() {
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
   printf "\e[?25h"
   local msg="$1"
-  echo -e "${BFR} ${CM}${HOLD}   ${GN}${msg}${CL}"
+  echo -e "${BFR}${CM}${HOLD}${GN}${msg}${CL}"
 }
 
 # This function displays a error message with a red color.
@@ -89,7 +89,7 @@ msg_error() {
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
   printf "\e[?25h"
   local msg="$1"
-  echo -e "${BFR} ${CROSS}${HOLD}   ${RD}${msg}${CL}"
+  echo -e "${BFR}${CROSS}${HOLD}${RD}${msg}${CL}"
 }
 
 # This function sets up the Container OS by generating the locale, setting the timezone, and checking the network connection
