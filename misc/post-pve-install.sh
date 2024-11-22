@@ -3,7 +3,7 @@
 # Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
-# https://github.com/tteck/Proxmox/raw/main/LICENSE
+# https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 
 header_info() {
   clear
@@ -46,7 +46,6 @@ msg_error() {
 
 start_routines() {
   header_info
-  VERSION="$(awk -F'=' '/^VERSION_CODENAME=/{ print $NF }' /etc/os-release)"
 
   CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "SOURCES" --menu "The package manager will use the correct sources to update and install packages on your Proxmox VE server.\n \nCorrect Proxmox VE sources?" 14 58 2 \
     "yes" " " \
@@ -55,10 +54,11 @@ start_routines() {
   yes)
     msg_info "Correcting Proxmox VE Sources"
     cat <<EOF >/etc/apt/sources.list
-deb http://ftp.debian.org/debian ${VERSION} main contrib
-deb http://ftp.debian.org/debian ${VERSION}-updates main contrib
-deb http://security.debian.org/debian-security ${VERSION}-security main contrib
+deb http://deb.debian.org/debian bookworm main contrib
+deb http://deb.debian.org/debian bookworm-updates main contrib
+deb http://security.debian.org/debian-security bookworm-security main contrib
 EOF
+echo 'APT::Get::Update::SourceListWarnings::NonFreeFirmware "false";' >/etc/apt/apt.conf.d/no-bookworm-firmware.conf
     msg_ok "Corrected Proxmox VE Sources"
     ;;
   no)
@@ -73,7 +73,7 @@ EOF
   yes)
     msg_info "Disabling 'pve-enterprise' repository"
     cat <<EOF >/etc/apt/sources.list.d/pve-enterprise.list
-# deb https://enterprise.proxmox.com/debian/pve ${VERSION} pve-enterprise
+# deb https://enterprise.proxmox.com/debian/pve bookworm pve-enterprise
 EOF
     msg_ok "Disabled 'pve-enterprise' repository"
     ;;
@@ -89,7 +89,7 @@ EOF
   yes)
     msg_info "Enabling 'pve-no-subscription' repository"
     cat <<EOF >/etc/apt/sources.list.d/pve-install-repo.list
-deb http://download.proxmox.com/debian/pve ${VERSION} pve-no-subscription
+deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription
 EOF
     msg_ok "Enabled 'pve-no-subscription' repository"
     ;;
@@ -98,24 +98,24 @@ EOF
     ;;
   esac
 
-  if [[ "${VERSION}" == "bookworm" ]]; then
-    CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "CEPH PACKAGE REPOSITORIES" --menu "The 'Ceph Package Repositories' provides access to both the 'no-subscription'(enabled) and 'enterprise'(disabled) repositories.\n \nCorrect 'ceph package sources?" 14 58 2 \
+    CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "CEPH PACKAGE REPOSITORIES" --menu "The 'Ceph Package Repositories' provides access to both the 'no-subscription' and 'enterprise' repositories (initially disabled).\n \nCorrect 'ceph package sources?" 14 58 2 \
       "yes" " " \
       "no" " " 3>&2 2>&1 1>&3)
     case $CHOICE in
     yes)
-      msg_info "Enabling 'ceph package repositories'"
+      msg_info "Correcting 'ceph package repositories'"
       cat <<EOF >/etc/apt/sources.list.d/ceph.list
-# deb http://download.proxmox.com/debian/ceph-quincy bookworm enterprise
-deb http://download.proxmox.com/debian/ceph-quincy bookworm no-subscription
+# deb https://enterprise.proxmox.com/debian/ceph-quincy bookworm enterprise
+# deb http://download.proxmox.com/debian/ceph-quincy bookworm no-subscription
+# deb https://enterprise.proxmox.com/debian/ceph-reef bookworm enterprise
+# deb http://download.proxmox.com/debian/ceph-reef bookworm no-subscription
 EOF
-      msg_ok "Enabled 'ceph package repositories'"
+      msg_ok "Corrected 'ceph package repositories'"
       ;;
     no)
-      msg_error "Selected no to Enabling 'ceph package repositories'"
+      msg_error "Selected no to Correcting 'ceph package repositories'"
       ;;
     esac
-  fi
 
   CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "PVETEST" --menu "The 'pvetest' repository can give advanced users access to new features and updates before they are officially released.\n \nAdd (Disabled) 'pvetest' repository?" 14 58 2 \
     "yes" " " \
@@ -124,7 +124,7 @@ EOF
   yes)
     msg_info "Adding 'pvetest' repository and set disabled"
     cat <<EOF >/etc/apt/sources.list.d/pvetest-for-beta.list
-# deb http://download.proxmox.com/debian/pve ${VERSION} pvetest
+# deb http://download.proxmox.com/debian/pve bookworm pvetest
 EOF
     msg_ok "Added 'pvetest' repository"
     ;;
@@ -231,9 +231,11 @@ while true; do
   esac
 done
 
-if ! command -v pveversion >/dev/null 2>&1; then
-  header_info
-  msg_error "\n No PVE Detected!\n"
+if ! pveversion | grep -Eq "pve-manager/8.[0-2]"; then
+  msg_error "This version of Proxmox Virtual Environment is not supported"
+  echo -e "Requires Proxmox Virtual Environment Version 8.0 or later."
+  echo -e "Exiting..."
+  sleep 2
   exit
 fi
 
