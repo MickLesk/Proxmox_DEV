@@ -19,9 +19,9 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Hoarder"
-var_disk="10"
-var_cpu="4"
-var_ram="4096"
+var_disk="8"
+var_cpu="2"
+var_ram="2048"
 var_os="debian"
 var_version="12"
 variables
@@ -60,7 +60,7 @@ if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
 fi
 RELEASE=$(curl -s https://api.github.com/repos/msgbyte/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
-  whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "SET RESOURCES" "Please set the resources in your ${APP} LXC to ${var_cpu}vCPU and ${var_ram}RAM for the build process before continuing" 10 75
+#  whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "SET RESOURCES" "Please set the resources in your ${APP} LXC to ${var_cpu}vCPU and ${var_ram}RAM for the build process before continuing" 10 75
   msg_info "Stopping ${APP} Service"
   systemctl stop hoarder
   msg_ok "Stopped ${APP} Service"
