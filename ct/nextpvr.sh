@@ -6,16 +6,9 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 # Source: https://nextpvr.com/
 
-APP="NextPVR"
-var_disk="5"
-var_cpu="1"
-var_ram="1024"
-var_os="debian"
-var_version="12"
-
 function header_info {
 clear
-generate_app_name
+generate_app_name "NextPVR"
 }
 header_info
 echo -e "Loading..."
