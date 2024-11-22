@@ -6,18 +6,19 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 # Source: https://nextpvr.com/
 
-function header_info {
-clear
-generate_app_name
-}
-header_info
-echo -e "Loading..."
 APP="nextpvr"
 var_disk="5"
 var_cpu="1"
 var_ram="1024"
 var_os="debian"
 var_version="12"
+
+function header_info {
+clear
+generate_app_name
+}
+header_info
+echo -e "Loading..."
 variables
 color
 catch_errors
