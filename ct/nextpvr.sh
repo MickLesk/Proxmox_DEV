@@ -6,7 +6,7 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 # Source: https://nextpvr.com/
 
-APP="nextpvr"
+APP="NextPVR"
 var_disk="5"
 var_cpu="1"
 var_ram="1024"
