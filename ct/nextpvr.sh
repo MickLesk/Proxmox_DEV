@@ -12,6 +12,12 @@ generate_app_name "NextPVR"
 }
 header_info
 echo -e "Loading..."
+APP="nextpvr"
+var_disk="5"
+var_cpu="1"
+var_ram="1024"
+var_os="debian"
+var_version="12"
 variables
 color
 catch_errors
