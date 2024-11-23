@@ -47,7 +47,7 @@ $STD npm install -g pnpm
 export NODE_OPTIONS="--max_old_space_size=4096"
 msg_ok "Installed Node.js"
 
-msg_info "Installing Hoarder (Extreme Patience)"
+msg_info "Installing Hoarder"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
