@@ -21,7 +21,7 @@ $STD apt-get install -y \
   sudo \
   gnupg \
   ca-certificates \
-  chromium-shell \
+  chromium \
   mc
 
 wget -q https://github.com/Y2Z/monolith/releases/latest/download/monolith-gnu-linux-x86_64 -O monolith && \
@@ -31,7 +31,7 @@ wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -
   chmod +x yt-dlp && mv yt-dlp /usr/bin
 
 wget -q https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb && \
-  dpkg -i meilisearch.deb && rm meilisearch.deb
+  DEBIAN_FRONTEND=noninteractive dpkg -i meilisearch.deb &>/dev/null && rm meilisearch.deb
 
 msg_ok "Installed Dependencies"
 
@@ -55,23 +55,31 @@ unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
 cd /opt/hoarder && mkdir -p /opt/hoarder/data
 corepack enable
-echo y\n | pnpm install --frozen-lockfile
+echo y\n | pnpm install --frozen-lockfile >/dev/null 2>&1
 
+msg_info "Building DB"
 cd /opt/hoarder/packages/db
-pnpm dlx @vercel/ncc build migrate.ts -o /opt/hoarder/db_migrations
+pnpm dlx @vercel/ncc build migrate.ts -o /opt/hoarder/db_migrations >/dev/null 2>&1
 cp -R drizzle /opt/hoarder/db_migrations
+msg_ok "DB installed"
 
+msg_info "Building web frontend"
 cd /opt/hoarder/apps/web
-pnpm exec next build --experimental-build-mode compile
+pnpm exec next build --experimental-build-mode compile >/dev/null 2>&1
 cp -r /opt/hoarder/apps/web/.next/standalone/* /opt/hoarder
+msg_ok "Frontend installed"
 
+msg_info "Building workers"
 cd /opt/hoarder
-pnpm deploy --node-linker=isolated --filter @hoarder/workers --prod workers
+pnpm deploy --node-linker=isolated --filter @hoarder/workers --prod workers >/dev/null 2>&1
 rm -rf /opt/hoarder/apps/workers
 cp -r /opt/hoarder/workers /opt/hoarder/apps/workers
+msg_ok "Workers installed"
 
+msg_info "Building cli"
 cd /opt/hoarder/apps/cli
-pnpm build
+pnpm build >/dev/null 2>&1
+msg_ok "cli installed"
 
 echo "${RELEASE}" >"/opt/hoarder_version.txt"
 HOARDER_SECRET="$(openssl rand -base64 32 | cut -c1-24)"
@@ -149,7 +157,7 @@ After=network-online.target
 
 [Service]
 Restart=on-failure
-ExecStart=/usr/bin/chromium-shell --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222 --hide-scrollbars
+ExecStart=/usr/bin/chromium --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222 --hide-scrollbars
 TimeoutStopSec=5
 SyslogIdentifier=hoarder-browser
 
