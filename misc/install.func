@@ -9,8 +9,8 @@ color() {
   CL=$(echo "\033[m")
   RETRY_NUM=10
   RETRY_EVERY=3
-  CM="${GN}✔️${CL}"
-  CROSS="${RD}✖️${CL}"
+  CM="${GN}✔️${HOLD}${CL}"
+  CROSS="${RD}✖️${HOLD}${CL}"
   BFR="\\r\\033[K"
   HOLD=" "
 }
@@ -81,7 +81,7 @@ msg_ok() {
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
   printf "\e[?25h"
   local msg="$1"
-  echo -e "${BFR} ${CM} ${GN}${msg}${CL}"
+  echo -e "${BFR}${CM}${HOLD}${GN}${msg}${CL}"
 }
 
 # This function displays a error message with a red color.
@@ -89,28 +89,18 @@ msg_error() {
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
   printf "\e[?25h"
   local msg="$1"
-  echo -e "${BFR} ${CROSS} ${RD}${msg}${CL}"
+  echo -e "${BFR}${CROSS}${HOLD}${RD}${msg}${CL}"
 }
 
 # This function sets up the Container OS by generating the locale, setting the timezone, and checking the network connection
 setting_up_container() {
   msg_info "Setting up Container OS"
-  if grep -qEi "debian|ubuntu" /etc/os-release; then
-      # Für Debian/Ubuntu-basierte Systeme
-      if [[ ! -f /etc/locale.gen ]]; then
-        echo "$LANG UTF-8" > /etc/locale.gen
-      fi
-      sed -i "/$LANG/ s/^\(# \)//" /etc/locale.gen
-      locale-gen >/dev/null
-  elif grep -qEi "fedora|centos|rocky|almalinux|opensuse" /etc/os-release; then
-	  if [[ ! -f /etc/locale.conf ]]; then
-        echo "LANG=$LANG" > /etc/locale.conf
-      fi
-      export LANG=$LANG
-  else
-      msg_error "Unsupported OS detected!"
-      exit 1
-  fi
+  sed -i "/$LANG/ s/\(^# \)//" /etc/locale.gen
+  locale_line=$(grep -v '^#' /etc/locale.gen | grep -E '^[a-zA-Z]' | awk '{print $1}' | head -n 1)
+  echo "LANG=${locale_line}" >/etc/default/locale
+  locale-gen >/dev/null
+  export LANG=${locale_line}
+  echo $tz >/etc/timezone
   ln -sf /usr/share/zoneinfo/$tz /etc/localtime
   for ((i = RETRY_NUM; i > 0; i--)); do
     if [ "$(hostname -I)" != "" ]; then
@@ -125,31 +115,9 @@ setting_up_container() {
     exit 1
   fi
   rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
-  # OS-specific handling for network service deactivation
-  if grep -qEi "debian|ubuntu" /etc/os-release; then
-    # Debian/Ubuntu use systemd-networkd
-    if systemctl list-units --type=service | grep -q "systemd-networkd-wait-online.service"; then
-      systemctl disable -q --now systemd-networkd-wait-online.service
-    else
-      echo "systemd-networkd-wait-online.service not found, skipping disable."
-    fi
-  elif grep -qEi "centos|rocky|almalinux|fedora" /etc/os-release; then
-    # CentOS/Rocky/AlmaLinux/Fedora typically use NetworkManager
-    echo "NetworkManager detected in CentOS/Rocky/AlmaLinux/Fedora, skipping systemd-networkd-wait-online.service."
-  else
-    echo "Unsupported OS detected for network service handling."
-  fi
-  
-  # Output the network status
+  systemctl disable -q --now systemd-networkd-wait-online.service
   msg_ok "Set up Container OS"
   msg_ok "Network Connected: ${BL}$(hostname -I)"
-}
-
-add_core_dependencies() {
-  apt-get install -y \
-    curl \
-    sudo \
-    mc &>/dev/null
 }
 
 # This function checks the network connection by pinging a known IP address and prompts the user to continue if the internet is not connected
@@ -158,7 +126,7 @@ network_check() {
   trap - ERR
   ipv4_connected=false
   ipv6_connected=false
-
+  sleep 1
 # Check IPv4 connectivity
   if ping -c 1 -W 1 1.1.1.1 &>/dev/null; then 
     msg_ok "IPv4 Internet Connected";
