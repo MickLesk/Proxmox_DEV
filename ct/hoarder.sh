@@ -21,7 +21,7 @@ echo -e "Loading..."
 APP="Hoarder"
 var_disk="8"
 var_cpu="2"
-var_ram="2048"
+var_ram="3072"
 var_os="debian"
 var_version="12"
 variables
