@@ -53,26 +53,30 @@ RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/late
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
-cd /opt/hoarder
-pnpm install --frozen-lockfile
+cd /opt/hoarder && mkdir -p /opt/hoarder/data
+corepack enable
+echo y\n | pnpm install --frozen-lockfile
 
 cd /opt/hoarder/packages/db
-pnpm dlx @vercel/ncc build migrate.ts -o ../../db_migrations
-cp -R drizzle /../..db_migrations
+pnpm dlx @vercel/ncc build migrate.ts -o /opt/hoarder/db_migrations
+cp -R drizzle /opt/hoarder/db_migrations
 
 cd /opt/hoarder/apps/web
 pnpm exec next build --experimental-build-mode compile
+cp -r /opt/hoarder/apps/web/.next/standalone/* /opt/hoarder
 
-cd /opt/hoarder/apps/workers
+cd /opt/hoarder
 pnpm deploy --node-linker=isolated --filter @hoarder/workers --prod workers
+rm -rf /opt/hoarder/apps/workers
+cp -r /opt/hoarder/workers /opt/hoarder/apps/workers
 
 cd /opt/hoarder/apps/cli
 pnpm build
 
 echo "${RELEASE}" >"/opt/hoarder_version.txt"
-HOARDER_SECRET="$(openssl rand -base64 32 | cut c1-24)"
+HOARDER_SECRET="$(openssl rand -base64 32 | cut -c1-24)"
 MEILI_SECRET="$(openssl rand -base64 36)"
-echo "" >>~/hoarder.creds
+echo "" >>~/hoarder.creds && chmod 600 ~/hoarder.creds
 echo -e "NextAuth Secret: $HOARDER_SECRET" >>~/hoarder.creds
 echo -e "Meilisearch Master Key: $MEILI_SECRET" >>~/hoarder.creds
 
@@ -89,8 +93,7 @@ CRAWLER_VIDEO_DOWNLOAD=true
 #INFERENCE_TEXT_MODEL=
 #INFERENCE_IMAGE_MODEL=
 EOF
-# cd /opt/hoarder/src/server
-# $STD pnpm db:migrate:apply
+chmod 600 /opt/hoarder/.env
 msg_ok "Installed Hoarder"
 
 msg_info "Creating users and Services"
@@ -202,7 +205,7 @@ Wants=hoarder-web.service hoarder-workers.service hoarder-browser.service
 [Install]
 WantedBy=multi-user.target
 EOF
-# systemctl enable -q --now meilisearch.service hoarder.target
+systemctl enable -q --now meilisearch.service hoarder.target
 msg_ok "Created users and Services"
 
 motd_ssh
@@ -210,9 +213,7 @@ customize
 
 msg_info "Cleaning up"
 rm -R /opt/v${RELEASE}.zip
-#rm -rf /opt/hoarder/src/client
-#rm -rf /opt/hoarder/website
-#rm -rf /opt/hoarder/reporter
+rm -rf /opt/hoarder/v8-compile-cache-0
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
