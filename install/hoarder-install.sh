@@ -31,55 +31,50 @@ wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -
   chmod +x yt-dlp && mv yt-dlp /usr/bin
 
 wget -q https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb && \
-  DEBIAN_FRONTEND=noninteractive dpkg -i meilisearch.deb &>/dev/null && rm meilisearch.deb
+  $STD dpkg -i meilisearch.deb &>/dev/null && rm meilisearch.deb
 
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Node.js"
-export NEXT_TELEMETRY_DISABLED=1
-export PUPPETEER_SKIP_DOWNLOAD="true"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
 $STD apt-get update
 $STD apt-get install -y nodejs
-$STD npm install -g pnpm
-export NODE_OPTIONS="--max_old_space_size=4096"
 msg_ok "Installed Node.js"
 
-msg_info "Installing Hoarder"
-cd /opt
+msg_info "Installing Hoarder (Patience)"
+
+TMP_DIR=/tmp/hoarder
+INSTALL_DIR=/opt/hoarder
+DATA_DIR=/var/lib/hoarder
+CONFIG_DIR=/etc/hoarder
+ENV_FILE="$CONFIG_DIR/hoarder.env"
+
+mkdir -p $TMP_DIR $INSTALL_DIR $DATA_DIR $CONFIG_DIR
+
+cd $TMP_DIR
 RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
-mv hoarder-${RELEASE} /opt/hoarder
-cd /opt/hoarder && mkdir -p /opt/hoarder/data
+mv hoarder-${RELEASE}/* $INSTALL_DIR
+
+cd $INSTALL_DIR
 corepack enable
-echo y\n | pnpm install --frozen-lockfile >/dev/null 2>&1
+export NEXT_TELEMETRY_DISABLED=1
+export PUPPETEER_SKIP_DOWNLOAD="true"
+cd $INSTALL_DIR/apps/web && echo y\n | pnpm install --frozen-lockfile >/dev/null 2>&1
+cd $INSTALL_DIR/apps/workers && $STD pnpm install --frozen-lockfile
 
-msg_info "Building DB"
-cd /opt/hoarder/packages/db
-pnpm dlx @vercel/ncc build migrate.ts -o /opt/hoarder/db_migrations >/dev/null 2>&1
-cp -R drizzle /opt/hoarder/db_migrations
-msg_ok "DB installed"
+cd $INSTALL_DIR/apps/web
+$STD pnpm exec next build --experimental-build-mode compile
+cp -r $INSTALL_DIR/apps/web/.next/standalone/apps/web/server.js $INSTALL_DIR/apps/web
 
-msg_info "Building web frontend"
-cd /opt/hoarder/apps/web
-pnpm exec next build --experimental-build-mode compile >/dev/null 2>&1
-cp -r /opt/hoarder/apps/web/.next/standalone/* /opt/hoarder
-msg_ok "Frontend installed"
-
-msg_info "Building workers"
-cd /opt/hoarder
-pnpm deploy --node-linker=isolated --filter @hoarder/workers --prod workers >/dev/null 2>&1
-rm -rf /opt/hoarder/apps/workers
-cp -r /opt/hoarder/workers /opt/hoarder/apps/workers
-msg_ok "Workers installed"
-
-msg_info "Building cli"
-cd /opt/hoarder/apps/cli
-pnpm build >/dev/null 2>&1
-msg_ok "cli installed"
+# this will fail - not yet sure why
+# msg_info "Building cli"
+# cd /opt/hoarder/apps/cli
+# pnpm build >/dev/null 2>&1
+# msg_ok "cli installed"
 
 echo "${RELEASE}" >"/opt/hoarder_version.txt"
 HOARDER_SECRET="$(openssl rand -base64 32 | cut -c1-24)"
@@ -88,10 +83,10 @@ echo "" >>~/hoarder.creds && chmod 600 ~/hoarder.creds
 echo -e "NextAuth Secret: $HOARDER_SECRET" >>~/hoarder.creds
 echo -e "Meilisearch Master Key: $MEILI_SECRET" >>~/hoarder.creds
 
-cat <<EOF >/opt/hoarder/.env
+cat <<EOF >$ENV_FILE
 NEXTAUTH_SECRET="$HOARDER_SECRET"
-NEXTAUTH_URL="http://localhost:3000"
-DATA_DIR="/opt/hoarder/data"
+NEXTAUTH_URL=
+DATA_DIR="$DATA_DIR"
 MEILI_ADDR="http://127.0.0.1:7700"
 MEILI_MASTER_KEY="$MEILI_SECRET"
 BROWSER_WEB_URL="http://127.0.0.1:9222"
@@ -101,12 +96,16 @@ CRAWLER_VIDEO_DOWNLOAD=true
 #INFERENCE_TEXT_MODEL=
 #INFERENCE_IMAGE_MODEL=
 EOF
-chmod 600 /opt/hoarder/.env
+chmod 600 $ENV_FILE
 msg_ok "Installed Hoarder"
 
 msg_info "Creating users and Services"
 
-/usr/sbin/useradd -U -s /usr/sbin/nologin -r -m -d /var/lib/meilisearch meilisearch
+$STD /usr/sbin/useradd -U -s /usr/sbin/nologin -r -m -d /var/lib/meilisearch meilisearch
+$STD /usr/sbin/useradd -U -s /usr/sbin/nologin -r -d $INSTALL_DIR hoarder
+
+chown -R hoarder:hoarder $INSTALL_DIR
+chown -R hoarder:hoarder $CONFIG_DIR
 
 cat <<EOF >/lib/systemd/system/meilisearch.service
 [Unit]
@@ -172,9 +171,12 @@ Wants=network-online.target hoarder-browser.service
 After=network-online.target hoarder-browser.service
 
 [Service]
-Restart=on-failure
-EnvironmentFile=/opt/hoarder/.env
-WorkingDirectory=/opt/hoarder/apps/workers
+Restart=always
+RestartSec=10
+User=hoarder
+Group=hoarder
+EnvironmentFile=$ENV_FILE
+WorkingDirectory=$INSTALL_DIR/apps/workers
 ExecStart=/usr/bin/pnpm run start:prod
 TimeoutStopSec=5
 SyslogIdentifier=hoarder-workers
@@ -190,13 +192,14 @@ Wants=network-online.target hoarder-workers.service meilisearch.service
 After=network-online.target hoarder-workers.service meilisearch.service
 
 [Service]
-Restart=on-failure
+Restart=always
+RestartSec=10
+User=hoarder
+Group=hoarder
 Environment=SERVER_VERSION=$RELEASE
-Environment=NODE_ENV=production
-EnvironmentFile=-/opt/hoarder/.env
-WorkingDirectory=/opt/hoarder/db_migrations
-ExecStartPre=/usr/bin/node index.js
-ExecStart=/usr/bin/node /opt/hoarder/apps/web/server.js
+EnvironmentFile=-$ENV_FILE
+WorkingDirectory=$INSTALL_DIR/apps/web
+ExecStart=/usr/bin/node server.js
 TimeoutStopSec=5
 SyslogIdentifier=hoarder-web
 
@@ -220,8 +223,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-rm -R /opt/v${RELEASE}.zip
-rm -rf /opt/hoarder/v8-compile-cache-0
+rm -R $TMP_DIR
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
