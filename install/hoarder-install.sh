@@ -13,7 +13,7 @@ setting_up_container
 network_check
 update_os
 
-msg_info "Installing Dependencies"
+msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y \
   g++ \
   build-essential \
@@ -43,7 +43,7 @@ $STD apt-get update
 $STD apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
-msg_info "Installing Hoarder (Patience)"
+msg_info "Installing Hoarder (More patience)"
 
 TMP_DIR=/tmp/hoarder
 INSTALL_DIR=/opt/hoarder
@@ -216,13 +216,19 @@ Wants=hoarder-web.service hoarder-workers.service hoarder-browser.service
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable -q --now meilisearch.service hoarder.target
+
 msg_ok "Created users and Services"
+
+msg_info "Performing database migration"
+export DATA_DIR=$DATA_DIR && cd $INSTALL_DIR/packages/db && pnpm migrate \
+  && chown -R hoarder:hoarder $DATA_DIR
+msg_ok "Migrated database"
 
 motd_ssh
 customize
 
 msg_info "Cleaning up"
+systemctl enable -q --now meilisearch.service hoarder.target
 rm -R $TMP_DIR
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
