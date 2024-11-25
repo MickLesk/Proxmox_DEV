@@ -11,41 +11,20 @@ clear
 generate_app_name "NextPVR"
 }
 header_info
-
 echo -e "Loading..."
 APP="NextPVR"
-var_disk="5"
+var_unprivileged="1"
+var_disk="4"
 var_cpu="1"
-var_ram="1024"
+var_ram="2048"
 var_os="debian"
 var_version="12"
 variables
 color
 catch_errors
+base_settings
+echo_default
 
-function default_settings() {
-  CT_TYPE="1"
-  PW=""
-  CT_ID=$NEXTID
-  HN=$NSAPP
-  DISK_SIZE="$var_disk"
-  CORE_COUNT="$var_cpu"
-  RAM_SIZE="$var_ram"
-  BRG="vmbr0"
-  NET="dhcp"
-  GATE=""
-  APT_CACHER=""
-  APT_CACHER_IP=""
-  DISABLEIP6="no"
-  MTU=""
-  SD=""
-  NS=""
-  MAC=""
-  VLAN=""
-  SSH="no"
-  VERB="no"
-  echo_default
-}
 
 function update_script() {
 header_info
