@@ -11,20 +11,20 @@ clear
 generate_app_name "NextPVR"
 }
 header_info
-echo -e "Loading..."
+
 APP="NextPVR"
 var_unprivileged="1"
-var_disk="4"
+var_disk="3"
 var_cpu="1"
-var_ram="2048"
+var_ram="1024"
 var_os="debian"
 var_version="12"
+var_verbose="yes"
 variables
 color
 catch_errors
 base_settings
 echo_default
-
 
 function update_script() {
 header_info
