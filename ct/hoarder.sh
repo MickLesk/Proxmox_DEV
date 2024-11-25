@@ -72,7 +72,7 @@ if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "${PREV_VERSION}" ]]
   pnpm install --frozen-lockfile >/dev/null 2>&1
   cd ../workers
   pnpm install --frozen-lockfile >/dev/null 2>&1
-  cd -
+  cd ../web
   export NEXT_TELEMETRY_DISABLED=1
   pnpm exec next build --experimental-build-mode compile >/dev/null 2>&1
   cp -r .next/standalone/apps/web/server.js .
