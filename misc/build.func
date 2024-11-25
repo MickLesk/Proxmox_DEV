@@ -173,7 +173,8 @@ base_settings() {
   
   # Other Default Settings (unchangeble) 
   PW=""
-  CT_ID=$NEXTID
+  # CT_ID=$NEXTID
+  CT_ID=$(pvesh get /cluster/nextid)
   HN=$NSAPP
   BRG="vmbr0"
   NET="dhcp"
