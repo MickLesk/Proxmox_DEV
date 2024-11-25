@@ -126,18 +126,18 @@ arch_check() {
   fi
 }
 
-generate_app_name() {
+header_info() {
+    # Prüfen, ob figlet installiert ist, und ggf. installieren
     if ! command -v figlet &> /dev/null; then
         sudo apt-get install -y figlet &> /dev/null
     fi
 
-    # Den Wert der APP-Variable annehmen (kann angepasst werden)
+    # ASCII-Art basierend auf der APP-Variable erstellen
     APP="$1"
-
-    # ASCII-Art erzeugen und formatieren
     ascii_art=$(figlet -f slant "$APP")
 
-    # Ausgabe als cat <<EOF
+    # Ausgabe formatieren und anzeigen
+    clear
     cat <<EOF
 $ascii_art
 EOF
