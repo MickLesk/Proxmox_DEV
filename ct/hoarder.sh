@@ -59,36 +59,34 @@ if [[ ! -d /opt/hoarder ]]; then msg_error "No ${APP} Installation Found!"; exit
 RELEASE=$(curl -s https://api.github.com/repos/msgbyte/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
   msg_info "Stopping ${APP} Service"
-  systemctl stop hoarder
-  msg_ok "Stopped ${APP} Service"
+  systemctl stop hoarder-web hoarder-workers hoarder-browser hoarder.target
+  msg_ok "Stopped ${APP} Services"
   msg_info "Updating ${APP} to ${RELEASE}"
   cd /opt
-  cp /opt/hoarder/src/server/.env /opt/.env
   mv /opt/hoarder /opt/hoarder_bak
   wget -q "https://github.com/msgbyte/hoarder/archive/refs/tags/v${RELEASE}.zip"
   unzip -q v${RELEASE}.zip
   mv hoarder-${RELEASE} /opt/hoarder
-  cd hoarder
-  pnpm install --filter @hoarder/client... --config.dedupe-peer-dependents=false --frozen-lockfile >/dev/null 2>&1
-  pnpm build:static >/dev/null 2>&1
-  pnpm install --filter @hoarder/server... --config.dedupe-peer-dependents=false >/dev/null 2>&1
-  mkdir -p ./src/server/public >/dev/null 2>&1
-  cp -r ./geo ./src/server/public >/dev/null 2>&1
-  pnpm build:server >/dev/null 2>&1
-  mv /opt/.env /opt/hoarder/src/server/.env 
-  cd src/server
-  pnpm db:migrate:apply >/dev/null 2>&1
+  cd hoarder/apps/web
+  pnpm install --frozen-lockfile >/dev/null 2>&1
+  cd ../workers
+  pnpm install --frozen-lockfile >/dev/null 2>&1
+  cd -
+  export NEXT_TELEMETRY_DISABLED=1
+  pnpm exec next build --experimental-build-mode compile >/dev/null 2>&1
+  cp -r .next/standalone/apps/web/server.js .
+  export DATA_DIR=/var/lib/hoarder
+  cd ../../packages/db
+  pnpm migrate >/dev/null 2>&1
   echo "${RELEASE}" >/opt/${APP}_version.txt
+  chown -R hoarder:hoarder /opt/hoarder
   msg_ok "Updated ${APP} to ${RELEASE}"
   msg_info "Starting ${APP}"
-  systemctl start hoarder
+  systemctl start hoarder.target
   msg_ok "Started ${APP}"
   msg_info "Cleaning up"
   rm -R /opt/v${RELEASE}.zip
   rm -rf /opt/hoarder_bak
-  rm -rf /opt/hoarder/src/client
-  rm -rf /opt/hoarder/website
-  rm -rf /opt/hoarder/reporter
   msg_ok "Cleaned"
   msg_ok "Updated Successfully"
 else
