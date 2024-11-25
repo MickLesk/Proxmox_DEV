@@ -133,7 +133,6 @@ header_info() {
     fi
 
     # ASCII-Art basierend auf der APP-Variable erstellen
-    APP="$1"
     ascii_art=$(figlet -f slant "$APP")
 
     # Ausgabe formatieren und anzeigen
