@@ -14,19 +14,18 @@ header_info
 
 ## App Default Values
 APP="NextPVR"
-var_unprivileged="1"
 var_disk="3"
-var_cpu="1"
-var_ram="1024"
+var_cpu="2"
+var_ram="2048"
 var_os="debian"
 var_version="12"
 var_verbose="yes"
-#base_settings
+base_settings
 
 variables
 color
 catch_errors
-#echo_default
+echo_default
 
 function update_script() {
 header_info
