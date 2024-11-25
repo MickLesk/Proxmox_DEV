@@ -156,15 +156,25 @@ ssh_check() {
   fi
 }
 
-# This function sets base settings which are common for all scripts. The settings can be overriden in default_settings or advanced_settings which are defined in each script
 base_settings() {
+  # Default Settings
   CT_TYPE="1"
+  DISK_SIZE="4"
+  CORE_COUNT="1"
+  RAM_SIZE="1024"
+  VERBOSE="no"
+  
+  # Changed From CT.sh 
+  CT_TYPE=${var_unprivileged:-$CT_TYPE}
+  DISK_SIZE=${var_disk:-$DISK_SIZE}
+  CORE_COUNT=${var_cpu:-$CORE_COUNT}
+  RAM_SIZE=${var_ram:-$RAM_SIZE}
+  VERB=${var_verbose:-$VERBOSE}
+  
+  # Other Default Settings (unchangeble) 
   PW=""
   CT_ID=$NEXTID
   HN=$NSAPP
-  DISK_SIZE="4"
-  CORE_COUNT="1"
-  RAM_SIZE="512"
   BRG="vmbr0"
   NET="dhcp"
   GATE=""
@@ -177,7 +187,6 @@ base_settings() {
   MAC=""
   VLAN=""
   SSH="no"
-  VERB="no"
   # Since these 2 are only defined outside of default_settings function, we add a temporary fallback. TODO: To align everything, we should add these as constant variables (e.g. OSTYPE and OSVERSION), but that would currently require updating the default_settings function for all existing scripts
   if [ -z "$var_os" ]; then
     var_os="debian"
