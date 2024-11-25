@@ -18,7 +18,7 @@ EOF
 }
 header_info
 echo -e "Loading..."
-APP="Hoarder"
+APP="hoarder"
 var_disk="8"
 var_cpu="2"
 var_ram="4096"
