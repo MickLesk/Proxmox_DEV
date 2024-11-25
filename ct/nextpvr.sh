@@ -8,6 +8,7 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 
 ## App Default Values
 APP="NextPVR"
+TAGS="nvr;dvr;video"
 var_disk="3"
 var_cpu="2"
 var_ram="2048"
