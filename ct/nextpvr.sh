@@ -15,6 +15,7 @@ var_os="debian"
 var_version="12"
 var_verbose="yes"
 
+# App Output & Base Settings
 header_info "$APP"
 base_settings
 
