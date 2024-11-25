@@ -14,8 +14,8 @@ color() {
   GN=$(echo "\033[1;92m")
   DGN=$(echo "\033[32m")
   CL=$(echo "\033[m")
-  CM="${GN} ✔️${HOLD}${CL}"
-  CROSS="${RD} ✖️${HOLD}${CL}"
+  CM=" ✔️ ${CL}"
+  CROSS=" ✖️ ${CL}"
   BFR="\\r\\033[K"
   HOLD=" "
 }
@@ -126,18 +126,17 @@ arch_check() {
   fi
 }
 
-generate_app_name() {
+header_info() {
+    # Prüfen, ob figlet installiert ist, und ggf. installieren
     if ! command -v figlet &> /dev/null; then
         sudo apt-get install -y figlet &> /dev/null
     fi
 
-    # Den Wert der APP-Variable annehmen (kann angepasst werden)
-    APP="$1"
-
-    # ASCII-Art erzeugen und formatieren
+    # ASCII-Art basierend auf der APP-Variable erstellen
     ascii_art=$(figlet -f slant "$APP")
 
-    # Ausgabe als cat <<EOF
+    # Ausgabe formatieren und anzeigen
+    clear
     cat <<EOF
 $ascii_art
 EOF
@@ -156,30 +155,66 @@ ssh_check() {
   fi
 }
 
-# This function displays the default values for various settings.
+base_settings() {
+  # Default Settings
+  CT_TYPE="1"
+  DISK_SIZE="4"
+  CORE_COUNT="1"
+  RAM_SIZE="1024"
+  VERBOSE="no"
+  PW=""
+  CT_ID=$NEXTID
+  HN=$NSAPP
+  BRG="vmbr0"
+  NET="dhcp"
+  GATE=""
+  APT_CACHER=""
+  APT_CACHER_IP=""
+  DISABLEIP6="no"
+  MTU=""
+  SD=""
+  NS=""
+  MAC=""
+  VLAN=""
+  SSH="no"
+  
+  # Changed From CT.sh 
+  CT_TYPE=${var_unprivileged:-$CT_TYPE}
+  DISK_SIZE=${var_disk:-$DISK_SIZE}
+  CORE_COUNT=${var_cpu:-$CORE_COUNT}
+  RAM_SIZE=${var_ram:-$RAM_SIZE}
+  VERB=${var_verbose:-$VERBOSE}
+  
+  # Since these 2 are only defined outside of default_settings function, we add a temporary fallback. TODO: To align everything, we should add these as constant variables (e.g. OSTYPE and OSVERSION), but that would currently require updating the default_settings function for all existing scripts
+  if [ -z "$var_os" ]; then
+    var_os="debian"
+  fi
+  if [ -z "$var_version" ]; then
+    var_version="12"
+  fi
+}
+
 echo_default() {
-  echo -e "${DGN}Using Distribution: ${BGN}$var_os${CL}"
-  echo -e "${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
-  echo -e "${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
-  echo -e "${DGN}Using Root Password: ${BGN}Automatic Login${CL}"
-  echo -e "${DGN}Using Container ID: ${BGN}$NEXTID${CL}"
-  echo -e "${DGN}Using Hostname: ${BGN}$NSAPP${CL}"
-  echo -e "${DGN}Using Disk Size: ${BGN}$var_disk${CL}${DGN}GB${CL}"
-  echo -e "${DGN}Allocated Cores ${BGN}$var_cpu${CL}"
-  echo -e "${DGN}Allocated Ram ${BGN}$var_ram${CL}"
-  echo -e "${DGN}Using Bridge: ${BGN}vmbr0${CL}"
-  echo -e "${DGN}Using Static IP Address: ${BGN}dhcp${CL}"
-  echo -e "${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Using Apt-Cacher IP Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Disable IPv6: ${BGN}No${CL}"
-  echo -e "${DGN}Using Interface MTU Size: ${BGN}Default${CL}"
-  echo -e "${DGN}Using DNS Search Domain: ${BGN}Host${CL}"
-  echo -e "${DGN}Using DNS Server Address: ${BGN}Host${CL}"
-  echo -e "${DGN}Using MAC Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Using VLAN Tag: ${BGN}Default${CL}"
-  echo -e "${DGN}Enable Root SSH Access: ${BGN}No${CL}"
-  echo -e "${DGN}Enable Verbose Mode: ${BGN}No${CL}"
+  # Convert CT_TYPE to description
+  CT_TYPE_DESC="Privileged"
+  if [ "$CT_TYPE" -eq 1 ]; then
+    CT_TYPE_DESC="Unprivileged"
+  fi
+
+  # Output the selected values with icons
+  echo -e "🖥️  ${DGN}Operating System: ${BGN}$var_os${CL}"
+  echo -e "🌟  ${DGN}Version: ${BGN}$var_version${CL}"
+  echo -e "📦  ${DGN}Container Type: ${BGN}$CT_TYPE_DESC${CL}"
+  echo -e "💾  ${DGN}Disk Size: ${BGN}${DISK_SIZE}GB${CL}"
+  echo -e "🧠  ${DGN}CPU Cores: ${BGN}${CORE_COUNT}${CL}"
+  echo -e "🛠️  ${DGN}RAM Size: ${BGN}${RAM_SIZE}MB${CL}"
   echo -e "${BL}Creating a ${APP} LXC using the above default settings${CL}"
+  echo -e "  " 
+
+  # Include VERBOSE if enabled
+  if [ "$VERBOSE" == "yes" ]; then
+    echo -e "🔍  ${DGN}Verbose Mode: ${BGN}Enabled${CL}"
+  fi
 }
 
 # This function is called when the user decides to exit the script. It clears the screen and displays an exit message.
@@ -201,7 +236,7 @@ advanced_settings() {
         "ubuntu" "" OFF \
         3>&1 1>&2 2>&3); then
         if [ -n "$var_os" ]; then
-          echo -e "${DGN}Using Distribution: ${BGN}$var_os${CL}"
+          echo -e "🖥️  ${DGN}Using Distribution: ${BGN}$var_os${CL}"
         fi
       else
         exit-script
@@ -217,7 +252,7 @@ advanced_settings() {
         "12" "Bookworm" OFF \
         3>&1 1>&2 2>&3); then
         if [ -n "$var_version" ]; then
-          echo -e "${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
+          echo -e "🌟  ${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
         fi
       else
         exit-script
@@ -230,11 +265,12 @@ advanced_settings() {
     while [ -z "$var_version" ]; do
       if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "UBUNTU VERSION" --radiolist "Choose Version" 10 58 3 \
         "20.04" "Focal" OFF \
-        "22.04" "Jammy" OFF \
-        "24.04" "Noble" OFF \
-        3>&1 1>&2 2>&3); then
+		"22.04" "Jammy" OFF \
+		"24.04" "Noble" OFF \
+		"24.10" "Oracular" OFF \
+		3>&1 1>&2 2>&3); then
         if [ -n "$var_version" ]; then
-          echo -e "${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
+          echo -e "🌟  ${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
         fi
       else
         exit-script
@@ -249,7 +285,7 @@ advanced_settings() {
       "0" "Privileged" OFF \
       3>&1 1>&2 2>&3); then
       if [ -n "$CT_TYPE" ]; then
-        echo -e "${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
+        echo -e "📦  ${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
       fi
     else
       exit-script
@@ -267,7 +303,7 @@ advanced_settings() {
           if PW2=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "\nVerify Root Password" 9 58 --title "PASSWORD VERIFICATION" 3>&1 1>&2 2>&3); then
             if [[ "$PW1" == "$PW2" ]]; then
               PW="-password $PW1"
-              echo -e "${DGN}Using Root Password: ${BGN}********${CL}"
+              echo -e "🔐  ${DGN}Using Root Password: ${BGN}********${CL}"
               break
             else
               whiptail --msgbox "Passwords do not match. Please try again." 8 58
@@ -279,7 +315,7 @@ advanced_settings() {
       else
         PW1="Automatic Login"
         PW=""
-        echo -e "${DGN}Using Root Password: ${BGN}$PW1${CL}"
+        echo -e "🔐  ${DGN}Using Root Password: ${BGN}$PW1${CL}"
         break
       fi
     else
@@ -291,9 +327,9 @@ advanced_settings() {
   if CT_ID=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Container ID" 8 58 $NEXTID --title "CONTAINER ID" 3>&1 1>&2 2>&3); then
     if [ -z "$CT_ID" ]; then
       CT_ID="$NEXTID"
-      echo -e "${DGN}Using Container ID: ${BGN}$CT_ID${CL}"
+      echo -e "🆔  ${DGN}Using Container ID: ${BGN}$CT_ID${CL}"
     else
-      echo -e "${DGN}Container ID: ${BGN}$CT_ID${CL}"
+      echo -e "🆔  ${DGN}Container ID: ${BGN}$CT_ID${CL}"
     fi
   else
     exit
@@ -305,7 +341,7 @@ advanced_settings() {
     else
       HN=$(echo ${CT_NAME,,} | tr -d ' ')
     fi
-    echo -e "${DGN}Using Hostname: ${BGN}$HN${CL}"
+    echo -e "🏠  ${DGN}Using Hostname: ${BGN}$HN${CL}"
   else
     exit-script
   fi
@@ -313,13 +349,13 @@ advanced_settings() {
   if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB" 8 58 $var_disk --title "DISK SIZE" 3>&1 1>&2 2>&3); then
     if [ -z "$DISK_SIZE" ]; then
       DISK_SIZE="$var_disk"
-      echo -e "${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
+      echo -e "💾  ${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
     else
       if ! [[ $DISK_SIZE =~ $INTEGER ]]; then
         echo -e "${RD}⚠ DISK SIZE MUST BE AN INTEGER NUMBER!${CL}"
         advanced_settings
       fi
-      echo -e "${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
+      echo -e "💾  ${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
     fi
   else
     exit-script
@@ -328,9 +364,9 @@ advanced_settings() {
   if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores" 8 58 $var_cpu --title "CORE COUNT" 3>&1 1>&2 2>&3); then
     if [ -z "$CORE_COUNT" ]; then
       CORE_COUNT="$var_cpu"
-      echo -e "${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
+      echo -e "🧠  ${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     else
-      echo -e "${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
+      echo -e "🧠  ${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     fi
   else
     exit-script
@@ -339,9 +375,9 @@ advanced_settings() {
   if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB" 8 58 $var_ram --title "RAM" 3>&1 1>&2 2>&3); then
     if [ -z "$RAM_SIZE" ]; then
       RAM_SIZE="$var_ram"
-      echo -e "${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
+      echo -e "🛠️  ${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     else
-      echo -e "${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
+      echo -e "🛠️  ${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     fi
   else
     exit-script
@@ -350,9 +386,9 @@ advanced_settings() {
   if BRG=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Bridge" 8 58 vmbr0 --title "BRIDGE" 3>&1 1>&2 2>&3); then
     if [ -z "$BRG" ]; then
       BRG="vmbr0"
-      echo -e "${DGN}Using Bridge: ${BGN}$BRG${CL}"
+      echo -e "🌉  ${DGN}Using Bridge: ${BGN}$BRG${CL}"
     else
-      echo -e "${DGN}Using Bridge: ${BGN}$BRG${CL}"
+      echo -e "🌉  ${DGN}Using Bridge: ${BGN}$BRG${CL}"
     fi
   else
     exit-script
@@ -363,11 +399,11 @@ advanced_settings() {
     exit_status=$?
     if [ $exit_status -eq 0 ]; then
       if [ "$NET" = "dhcp" ]; then
-        echo -e "${DGN}Using IP Address: ${BGN}$NET${CL}"
+        echo -e "📡  ${DGN}Using IP Address: ${BGN}$NET${CL}"
         break
       else
         if [[ "$NET" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
-          echo -e "${DGN}Using IP Address: ${BGN}$NET${CL}"
+          echo -e "📡  ${DGN}Using IP Address: ${BGN}$NET${CL}"
           break
         else
           whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox "$NET is an invalid IPv4 CIDR address. Please enter a valid IPv4 CIDR address or 'dhcp'" 8 58
@@ -387,13 +423,13 @@ advanced_settings() {
         whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox "Invalid IP address format" 8 58
       else
         GATE=",gw=$GATE1"
-        echo -e "${DGN}Using Gateway IP Address: ${BGN}$GATE1${CL}"
+        echo -e "🌐  ${DGN}Using Gateway IP Address: ${BGN}$GATE1${CL}"
         break
       fi
     done
   else
     GATE=""
-    echo -e "${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
+    echo -e "🌐  ${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
   fi
 
   if [ "$var_os" == "alpine" ]; then
@@ -402,7 +438,7 @@ advanced_settings() {
   else
     if APT_CACHER_IP=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set APT-Cacher IP (leave blank for default)" 8 58 --title "APT-Cacher IP" 3>&1 1>&2 2>&3); then
       APT_CACHER="${APT_CACHER_IP:+yes}"
-      echo -e "${DGN}Using APT-Cacher IP Address: ${BGN}${APT_CACHER_IP:-Default}${CL}"
+      echo -e "📡  ${DGN}Using APT-Cacher IP Address: ${BGN}${APT_CACHER_IP:-Default}${CL}"
     else
       exit-script
     fi
@@ -413,7 +449,7 @@ advanced_settings() {
   else
     DISABLEIP6="no"
   fi
-  echo -e "${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
+  echo -e "🚫  ${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
 
   if MTU1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Interface MTU Size (leave blank for default)" 8 58 --title "MTU SIZE" 3>&1 1>&2 2>&3); then
     if [ -z $MTU1 ]; then
@@ -422,7 +458,7 @@ advanced_settings() {
     else
       MTU=",mtu=$MTU1"
     fi
-    echo -e "${DGN}Using Interface MTU Size: ${BGN}$MTU1${CL}"
+    echo -e "⚙️  ${DGN}Using Interface MTU Size: ${BGN}$MTU1${CL}"
   else
     exit-script
   fi
@@ -435,7 +471,7 @@ advanced_settings() {
       SX=$SD
       SD="-searchdomain=$SD"
     fi
-    echo -e "${DGN}Using DNS Search Domain: ${BGN}$SX${CL}"
+    echo -e "🔍  ${DGN}Using DNS Search Domain: ${BGN}$SX${CL}"
   else
     exit-script
   fi
@@ -447,7 +483,7 @@ advanced_settings() {
     else
       NS="-nameserver=$NX"
     fi
-    echo -e "${DGN}Using DNS Server IP Address: ${BGN}$NX${CL}"
+    echo -e "📡  ${DGN}Using DNS Server IP Address: ${BGN}$NX${CL}"
   else
     exit-script
   fi
@@ -458,7 +494,7 @@ advanced_settings() {
       MAC=""
     else
       MAC=",hwaddr=$MAC1"
-      echo -e "${DGN}Using MAC Address: ${BGN}$MAC1${CL}"
+      echo -e "🔗  ${DGN}Using MAC Address: ${BGN}$MAC1${CL}"
     fi
   else
     exit-script
@@ -471,7 +507,7 @@ advanced_settings() {
     else
       VLAN=",tag=$VLAN1"
     fi
-    echo -e "${DGN}Using Vlan: ${BGN}$VLAN1${CL}"
+    echo -e "🏷️  ${DGN}Using Vlan: ${BGN}$VLAN1${CL}"
   else
     exit-script
   fi
@@ -482,10 +518,10 @@ advanced_settings() {
     else
       SSH="no"
     fi
-    echo -e "${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
+    echo -e "🔑  ${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
   else
     SSH="no"
-    echo -e "${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
+    echo -e "🔑  ${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
   fi
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?" 10 58); then
@@ -493,14 +529,14 @@ advanced_settings() {
   else
     VERB="no"
   fi
-  echo -e "${DGN}Enable Verbose Mode: ${BGN}$VERB${CL}"
+  echo -e "🔍  ${DGN}Enable Verbose Mode: ${BGN}$VERB${CL}"
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create ${APP} LXC?" 10 58); then
-    echo -e "${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
+    echo -e "🚀  ${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
   else
     clear
     header_info
-    echo -e "${RD}Using Advanced Settings${CL}"
+    echo -e "🧩  ${RD}Using Advanced Settings${CL}"
     advanced_settings
   fi
 }
@@ -520,11 +556,12 @@ install_script() {
   header_info
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "SETTINGS" --yesno "Use Default Settings?" --no-button Advanced 10 58); then
     header_info
-    echo -e "${BL}Using Default Settings${CL}"
-    default_settings
+    echo -e "⚙️  ${BL}Using Default Settings${CL}"
+    echo_default
+    base_settings
   else
     header_info
-    echo -e "${RD}Using Advanced Settings${CL}"
+    echo -e "🧩  ${RD}Using Advanced Settings${CL}"
     advanced_settings
   fi
 }
@@ -618,7 +655,7 @@ build_container() {
   export PCT_OPTIONS="
     -features $FEATURES
     -hostname $HN
-    -tags proxmox-helper-scripts
+    -tags $TAGS
     $SD
     $NS
     -net0 name=eth0,bridge=$BRG$MAC,ip=$NET$GATE$VLAN$MTU
