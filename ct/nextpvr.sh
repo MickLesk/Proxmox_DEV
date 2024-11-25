@@ -13,7 +13,7 @@ var_cpu="2"
 var_ram="2048"
 var_os="debian"
 var_version="12"
-var_verbose="yes"
+#var_verbose="yes"
 
 # App Output & Base Settings
 header_info "$APP"
