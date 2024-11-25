@@ -364,9 +364,9 @@ advanced_settings() {
   if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores" 8 58 $var_cpu --title "CORE COUNT" 3>&1 1>&2 2>&3); then
     if [ -z "$CORE_COUNT" ]; then
       CORE_COUNT="$var_cpu"
-      echo -e "${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
+      echo -e "🧠  ${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     else
-      echo -e "${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
+      echo -e "🧠  ${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     fi
   else
     exit-script
@@ -375,9 +375,9 @@ advanced_settings() {
   if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB" 8 58 $var_ram --title "RAM" 3>&1 1>&2 2>&3); then
     if [ -z "$RAM_SIZE" ]; then
       RAM_SIZE="$var_ram"
-      echo -e "🧠  ${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
+      echo -e "🛠️  ${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     else
-      echo -e "🧠  ${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
+      echo -e "🛠️  ${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     fi
   else
     exit-script
