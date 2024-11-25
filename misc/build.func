@@ -210,6 +210,7 @@ echo_default() {
   echo -e "💾  ${DGN}Disk Size: ${BGN}${DISK_SIZE}GB${CL}"
   echo -e "🧠  ${DGN}CPU Cores: ${BGN}${CORE_COUNT}${CL}"
   echo -e "🛠️  ${DGN}RAM Size: ${BGN}${RAM_SIZE}MB${CL}"
+  echo -e "  " 
 
   # Include VERBOSE if enabled
   if [ "$VERBOSE" == "yes" ]; then
