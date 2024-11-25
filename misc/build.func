@@ -162,18 +162,8 @@ base_settings() {
   CORE_COUNT="1"
   RAM_SIZE="1024"
   VERBOSE="no"
-  
-  # Changed From CT.sh 
-  CT_TYPE=${var_unprivileged:-$CT_TYPE}
-  DISK_SIZE=${var_disk:-$DISK_SIZE}
-  CORE_COUNT=${var_cpu:-$CORE_COUNT}
-  RAM_SIZE=${var_ram:-$RAM_SIZE}
-  VERB=${var_verbose:-$VERBOSE}
-  
-  # Other Default Settings (unchangeble) 
   PW=""
   CT_ID=$NEXTID
-  # CT_ID=$(pvesh get /cluster/nextid)
   HN=$NSAPP
   BRG="vmbr0"
   NET="dhcp"
@@ -187,6 +177,14 @@ base_settings() {
   MAC=""
   VLAN=""
   SSH="no"
+  
+  # Changed From CT.sh 
+  CT_TYPE=${var_unprivileged:-$CT_TYPE}
+  DISK_SIZE=${var_disk:-$DISK_SIZE}
+  CORE_COUNT=${var_cpu:-$CORE_COUNT}
+  RAM_SIZE=${var_ram:-$RAM_SIZE}
+  VERB=${var_verbose:-$VERBOSE}
+  
   # Since these 2 are only defined outside of default_settings function, we add a temporary fallback. TODO: To align everything, we should add these as constant variables (e.g. OSTYPE and OSVERSION), but that would currently require updating the default_settings function for all existing scripts
   if [ -z "$var_os" ]; then
     var_os="debian"
