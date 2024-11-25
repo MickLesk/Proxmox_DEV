@@ -35,13 +35,11 @@ msg_ok "Installed Node.js"
 
 msg_info "Installing Hoarder"
 ENV_FILE=/etc/hoarder/hoarder.env
-mkdir -p /opt/hoarder 
 mkdir -p /var/lib/hoarder 
 mkdir -p /etc/hoarder 
-mkdir -p /tmp/hoarder
 
 # Download and extract the latest release
-cd /tmp/hoarder
+cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
