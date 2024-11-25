@@ -156,30 +156,78 @@ ssh_check() {
   fi
 }
 
-# This function displays the default values for various settings.
+base_settings() {
+  # Default Settings
+  CT_TYPE="1"
+  DISK_SIZE="4"
+  CORE_COUNT="1"
+  RAM_SIZE="1024"
+  VERB="no"
+  
+  # Changed From CT.sh 
+  CT_TYPE=${var_unprivileged:-$CT_TYPE}
+  DISK_SIZE=${var_disk:-$DISK_SIZE}
+  CORE_COUNT=${var_cpu:-$CORE_COUNT}
+  RAM_SIZE=${var_ram:-$RAM_SIZE}
+  VERB=${var_verb:-$VERB}
+  PW=${var_pw:-""}
+  CT_ID=${var_ct_id:-$NEXTID}
+  HN=${var_hostname:-$NSAPP}
+  BRG=${var_bridge:-"vmbr0"}
+  NET=${var_net:-"dhcp"}
+  GATE=${var_gate:-""}
+  APT_CACHER=${var_apt_cacher:-""}
+  APT_CACHER_IP=${var_apt_cacher_ip:-""}
+  DISABLEIP6=${var_disableip6:-"no"}
+  MTU=${var_mtu:-""}
+  SD=${var_sd:-""}
+  NS=${var_ns:-""}
+  MAC=${var_mac:-""}
+  VLAN=${var_vlan:-""}
+  SSH=${var_ssh:-"no"}
+  
+  # Since these 2 are only defined outside of default_settings function, we add a temporary fallback. TODO: Align everything as constants (e.g., OSTYPE, OSVERSION)
+  var_os=${var_os:-"debian"}
+  var_version=${var_version:-"12"}
+}
+
+
+# This function displays the default and modified values for various settings.
 echo_default() {
   echo -e "${DGN}Using Distribution: ${BGN}$var_os${CL}"
   echo -e "${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
-  echo -e "${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
+  echo -e "${DGN}Using Container Type: ${BGN}$([ "$CT_TYPE" = "1" ] && echo "Privileged" || echo "Unprivileged")${CL}"
   echo -e "${DGN}Using Root Password: ${BGN}Automatic Login${CL}"
   echo -e "${DGN}Using Container ID: ${BGN}$NEXTID${CL}"
   echo -e "${DGN}Using Hostname: ${BGN}$NSAPP${CL}"
-  echo -e "${DGN}Using Disk Size: ${BGN}$var_disk${CL}${DGN}GB${CL}"
-  echo -e "${DGN}Allocated Cores ${BGN}$var_cpu${CL}"
-  echo -e "${DGN}Allocated Ram ${BGN}$var_ram${CL}"
-  echo -e "${DGN}Using Bridge: ${BGN}vmbr0${CL}"
-  echo -e "${DGN}Using Static IP Address: ${BGN}dhcp${CL}"
-  echo -e "${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Using Apt-Cacher IP Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Disable IPv6: ${BGN}No${CL}"
-  echo -e "${DGN}Using Interface MTU Size: ${BGN}Default${CL}"
-  echo -e "${DGN}Using DNS Search Domain: ${BGN}Host${CL}"
-  echo -e "${DGN}Using DNS Server Address: ${BGN}Host${CL}"
-  echo -e "${DGN}Using MAC Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Using VLAN Tag: ${BGN}Default${CL}"
-  echo -e "${DGN}Enable Root SSH Access: ${BGN}No${CL}"
-  echo -e "${DGN}Enable Verbose Mode: ${BGN}No${CL}"
-  echo -e "${BL}Creating a ${APP} LXC using the above default settings${CL}"
+  echo -e "${DGN}Using Disk Size: ${BGN}${DISK_SIZE}GB${CL}"
+  echo -e "${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
+  echo -e "${DGN}Allocated RAM: ${BGN}${RAM_SIZE}MB${CL}"
+  echo -e "${DGN}Using Bridge: ${BGN}$BRG${CL}"
+  echo -e "${DGN}Using Static IP Address: ${BGN}$NET${CL}"
+  echo -e "${DGN}Using Gateway IP Address: ${BGN}$([ -z "$GATE" ] && echo "Default" || echo "$GATE")${CL}"
+  echo -e "${DGN}Using Apt-Cacher IP Address: ${BGN}$([ -z "$APT_CACHER_IP" ] && echo "Default" || echo "$APT_CACHER_IP")${CL}"
+  echo -e "${DGN}Disable IPv6: ${BGN}$([ "$DISABLEIP6" = "no" ] && echo "No" || echo "Yes")${CL}"
+  echo -e "${DGN}Using Interface MTU Size: ${BGN}$([ -z "$MTU" ] && echo "Default" || echo "$MTU")${CL}"
+  echo -e "${DGN}Using DNS Search Domain: ${BGN}$([ -z "$SD" ] && echo "Host" || echo "$SD")${CL}"
+  echo -e "${DGN}Using DNS Server Address: ${BGN}$([ -z "$NS" ] && echo "Host" || echo "$NS")${CL}"
+  echo -e "${DGN}Using MAC Address: ${BGN}$([ -z "$MAC" ] && echo "Default" || echo "$MAC")${CL}"
+  echo -e "${DGN}Using VLAN Tag: ${BGN}$([ -z "$VLAN" ] && echo "Default" || echo "$VLAN")${CL}"
+  echo -e "${DGN}Enable Root SSH Access: ${BGN}$([ "$SSH" = "no" ] && echo "No" || echo "Yes")${CL}"
+  echo -e "${DGN}Enable Verbose Mode: ${BGN}$([ "$VERB" = "no" ] && echo "No" || echo "Yes")${CL}"
+
+  # Highlight modifications
+  if [[ -n "$var_disk" && "$var_disk" != "$DISK_SIZE" ]]; then
+    echo -e "${CYN}Modified Disk Size: ${BGN}$var_disk${CL}GB${CL}"
+  fi
+  if [[ -n "$var_cpu" && "$var_cpu" != "$CORE_COUNT" ]]; then
+    echo -e "${CYN}Modified Cores: ${BGN}$var_cpu${CL}"
+  fi
+  if [[ -n "$var_ram" && "$var_ram" != "$RAM_SIZE" ]]; then
+    echo -e "${CYN}Modified RAM: ${BGN}$var_ram${CL}MB${CL}"
+  fi
+
+  echo -e "${BL}Creating a ${APP} LXC using the above settings${CL}"
 }
 
 # This function is called when the user decides to exit the script. It clears the screen and displays an exit message.
