@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -s https://raw.githubusercontent.com/vhsdream/prox-script-dev/main/misc/build.func)
+source <(curl -s https://raw.githubusercontent.com/vhsdream/prox-script-dev/hoarder-update/misc/build.func)
 # Copyright (c) 2021-2024 tteck
 # Author: MickLesk (Canbiz)
 # License: MIT
