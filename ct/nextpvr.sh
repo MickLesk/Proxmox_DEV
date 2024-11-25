@@ -6,12 +6,6 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 # Source: https://nextpvr.com/
 
-function header_info {
-clear
-generate_app_name "NextPVR"
-}
-header_info
-
 ## App Default Values
 APP="NextPVR"
 var_disk="3"
@@ -20,12 +14,14 @@ var_ram="2048"
 var_os="debian"
 var_version="12"
 var_verbose="yes"
+
+header_info "$APP"
 base_settings
 
+# Core 
 variables
 color
 catch_errors
-echo_default
 
 function update_script() {
 header_info
@@ -58,6 +54,7 @@ msg_ok "Updated Successfully"
 exit
 }
 
+# Core 
 start
 build_container
 description
