@@ -197,31 +197,52 @@ base_settings() {
   fi
 }
 
-# This function displays the default values for various settings.
 echo_default() {
-  echo -e "${DGN}Using Distribution: ${BGN}$var_os${CL}"
-  echo -e "${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
-  echo -e "${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
-  echo -e "${DGN}Using Root Password: ${BGN}Automatic Login${CL}"
-  echo -e "${DGN}Using Container ID: ${BGN}$CT_ID${CL}"
-  echo -e "${DGN}Using Hostname: ${BGN}$NSAPP${CL}"
-  echo -e "${DGN}Using Disk Size: ${BGN}$var_disk${CL}${DGN}GB${CL}"
-  echo -e "${DGN}Allocated Cores ${BGN}$var_cpu${CL}"
-  echo -e "${DGN}Allocated Ram ${BGN}$var_ram${CL}"
-  echo -e "${DGN}Using Bridge: ${BGN}vmbr0${CL}"
-  echo -e "${DGN}Using Static IP Address: ${BGN}dhcp${CL}"
-  echo -e "${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Using Apt-Cacher IP Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Disable IPv6: ${BGN}No${CL}"
-  echo -e "${DGN}Using Interface MTU Size: ${BGN}Default${CL}"
-  echo -e "${DGN}Using DNS Search Domain: ${BGN}Host${CL}"
-  echo -e "${DGN}Using DNS Server Address: ${BGN}Host${CL}"
-  echo -e "${DGN}Using MAC Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Using VLAN Tag: ${BGN}Default${CL}"
-  echo -e "${DGN}Enable Root SSH Access: ${BGN}No${CL}"
-  echo -e "${DGN}Enable Verbose Mode: ${BGN}No${CL}"
-  echo -e "${BL}Creating a ${APP} LXC using the above default settings${CL}"
+  # Convert CT_TYPE to description
+  CT_TYPE_DESC="Privileged"
+  if [ "$CT_TYPE" -eq 1 ]; then
+    CT_TYPE_DESC="Unprivileged"
+  fi
+
+  # Output the selected values with icons
+  echo -e "🖥️  ${DGN}Operating System: ${BGN}$var_os${CL}"
+  echo -e "🌟 ${DGN}Version: ${BGN}$var_version${CL}"
+  echo -e "📦 ${DGN}Container Type: ${BGN}$CT_TYPE_DESC${CL}"
+  echo -e "💾 ${DGN}Disk Size: ${BGN}${DISK_SIZE}GB${CL}"
+  echo -e "🧠 ${DGN}CPU Cores: ${BGN}${CORE_COUNT}${CL}"
+  echo -e "🛠️  ${DGN}RAM Size: ${BGN}${RAM_SIZE}MB${CL}"
+
+  # Include VERBOSE if enabled
+  if [ "$VERBOSE" == "yes" ]; then
+    echo -e "🔍 ${DGN}Verbose Mode: ${BGN}Enabled${CL}"
+  fi
 }
+
+# This function displays the default values for various settings.
+#echo_default() {
+#  echo -e "${DGN}Using Distribution: ${BGN}$var_os${CL}"
+#  echo -e "${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
+#  echo -e "${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
+#  echo -e "${DGN}Using Root Password: ${BGN}Automatic Login${CL}"
+#  echo -e "${DGN}Using Container ID: ${BGN}$CT_ID${CL}"
+#  echo -e "${DGN}Using Hostname: ${BGN}$NSAPP${CL}"
+#  echo -e "${DGN}Using Disk Size: ${BGN}$var_disk${CL}${DGN}GB${CL}"
+#  echo -e "${DGN}Allocated Cores ${BGN}$var_cpu${CL}"
+#  echo -e "${DGN}Allocated Ram ${BGN}$var_ram${CL}"
+#  echo -e "${DGN}Using Bridge: ${BGN}vmbr0${CL}"
+#  echo -e "${DGN}Using Static IP Address: ${BGN}dhcp${CL}"
+#  echo -e "${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
+#  echo -e "${DGN}Using Apt-Cacher IP Address: ${BGN}Default${CL}"
+#  echo -e "${DGN}Disable IPv6: ${BGN}No${CL}"
+#  echo -e "${DGN}Using Interface MTU Size: ${BGN}Default${CL}"
+##  echo -e "${DGN}Using DNS Search Domain: ${BGN}Host${CL}"
+#  echo -e "${DGN}Using DNS Server Address: ${BGN}Host${CL}"
+#  echo -e "${DGN}Using MAC Address: ${BGN}Default${CL}"
+#  echo -e "${DGN}Using VLAN Tag: ${BGN}Default${CL}"
+#  echo -e "${DGN}Enable Root SSH Access: ${BGN}No${CL}"
+ ## echo -e "${DGN}Enable Verbose Mode: ${BGN}No${CL}"
+ # echo -e "${BL}Creating a ${APP} LXC using the above default settings${CL}"
+#}
 
 # This function is called when the user decides to exit the script. It clears the screen and displays an exit message.
 exit-script() {
