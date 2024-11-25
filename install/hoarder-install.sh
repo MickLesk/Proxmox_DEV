@@ -85,7 +85,7 @@ echo -e "Meilisearch Master Key: $MEILI_SECRET" >>~/hoarder.creds
 
 cat <<EOF >$ENV_FILE
 NEXTAUTH_SECRET="$HOARDER_SECRET"
-NEXTAUTH_URL=
+NEXTAUTH_URL="https://localhost:3000"
 DATA_DIR="$DATA_DIR"
 MEILI_ADDR="http://127.0.0.1:7700"
 MEILI_MASTER_KEY="$MEILI_SECRET"
