@@ -21,12 +21,12 @@ var_ram="1024"
 var_os="debian"
 var_version="12"
 var_verbose="yes"
-base_settings
+#base_settings
 
 variables
 color
 catch_errors
-echo_default
+#echo_default
 
 function update_script() {
 header_info
