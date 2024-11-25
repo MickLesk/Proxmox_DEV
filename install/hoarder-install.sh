@@ -16,6 +16,7 @@ update_os
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y \
   g++ \
+  python3 \
   build-essential \
   curl \
   sudo \
@@ -61,14 +62,16 @@ mv hoarder-${RELEASE}/* $INSTALL_DIR
 
 cd $INSTALL_DIR
 corepack enable
-export NEXT_TELEMETRY_DISABLED=1
 export PUPPETEER_SKIP_DOWNLOAD="true"
-cd $INSTALL_DIR/apps/web && echo y\n | pnpm install --frozen-lockfile >/dev/null 2>&1
-cd $INSTALL_DIR/apps/workers && $STD pnpm install --frozen-lockfile
+cd $INSTALL_DIR/apps/web 
+pnpm install --frozen-lockfile
+cd $INSTALL_DIR/apps/workers
+pnpm install --frozen-lockfile
 
 cd $INSTALL_DIR/apps/web
-$STD pnpm exec next build --experimental-build-mode compile
-cp -r $INSTALL_DIR/apps/web/.next/standalone/apps/web/server.js $INSTALL_DIR/apps/web
+pnpm exec next build --experimental-build-mode compile
+
+#cp -r $INSTALL_DIR/apps/web/.next/standalone/apps/web/server.js $INSTALL_DIR/apps/web
 
 # this will fail - not yet sure why
 # msg_info "Building cli"
@@ -99,66 +102,19 @@ EOF
 chmod 600 $ENV_FILE
 msg_ok "Installed Hoarder"
 
-msg_info "Creating users and Services"
-
-$STD /usr/sbin/useradd -U -s /usr/sbin/nologin -r -m -d /var/lib/meilisearch meilisearch
-$STD /usr/sbin/useradd -U -s /usr/sbin/nologin -r -d $INSTALL_DIR hoarder
-
-chown -R hoarder:hoarder $INSTALL_DIR
-chown -R hoarder:hoarder $CONFIG_DIR
-
-cat <<EOF >/lib/systemd/system/meilisearch.service
+msg_info "Creating Services"
+cat <<EOF >/etc/systemd/system/hoarder-web.service
 [Unit]
-Description=MeiliSearch is a RESTful search API
-Documentation=https://docs.meilisearch.com/
-Requires=network-online.target
-After=network-online.target
+Description=Hoarder Web
+After=network.target
 
 [Service]
-User=meilisearch
-Group=meilisearch
-Restart=on-failure
-WorkingDirectory=/var/lib/meilisearch
-ExecStart=/usr/bin/meilisearch --no-analytics
-EnvironmentFile=/etc/meilisearch.conf
-NoNewPrivileges=true
-ProtectHome=true
-ReadWritePaths=/var/lib/meilisearch
-ProtectSystem=full
-ProtectHostname=true
-ProtectControlGroups=true
-ProtectKernelModules=true
-ProtectKernelTunables=true
-ProtectKernelLogs=true
-ProtectClock=true
-LockPersonality=true
-RestrictRealtime=yes
-RestrictNamespaces=yes
-MemoryDenyWriteExecute=yes
-PrivateDevices=yes
-PrivateTmp=true
-CapabilityBoundingSet=
-RemoveIPC=true
+ExecStart=pnpm start
+WorkingDirectory=$INSTALLATION_DIR/apps/web
+Restart=always
+RestartSec=10
 
-[Install]
-WantedBy=multi-user.target
-EOF
-
-cat <<EOF >/etc/meilisearch.conf
-MEILI_MASTER_KEY="$MEILI_SECRET"
-EOF
-
-cat <<EOF >/etc/systemd/system/hoarder-browser.service
-[Unit]
-Description=Hoarder browser
-Wants=network-online.target
-After=network-online.target
-
-[Service]
-Restart=on-failure
-ExecStart=/usr/bin/chromium --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222 --hide-scrollbars
-TimeoutStopSec=5
-SyslogIdentifier=hoarder-browser
+EnvironmentFile=$ENV_FILE
 
 [Install]
 WantedBy=multi-user.target
@@ -166,63 +122,23 @@ EOF
 
 cat <<EOF >/etc/systemd/system/hoarder-workers.service
 [Unit]
-Description=Hoarder workers
-Wants=network-online.target hoarder-browser.service
-After=network-online.target hoarder-browser.service
+Description=Hoarder Workers
+After=network.target
 
 [Service]
+ExecStart=pnpm start:prod
+WorkingDirectory=$INSTALLATION_DIR/apps/workers
 Restart=always
 RestartSec=10
-User=hoarder
-Group=hoarder
+
 EnvironmentFile=$ENV_FILE
-WorkingDirectory=$INSTALL_DIR/apps/workers
-ExecStart=/usr/bin/pnpm run start:prod
-TimeoutStopSec=5
-SyslogIdentifier=hoarder-workers
 
 [Install]
 WantedBy=multi-user.target
 EOF
-
-cat <<EOF >/etc/systemd/system/hoarder-web.service
-[Unit]
-Description=Hoarder web
-Wants=network-online.target hoarder-workers.service meilisearch.service
-After=network-online.target hoarder-workers.service meilisearch.service
-
-[Service]
-Restart=always
-RestartSec=10
-User=hoarder
-Group=hoarder
-Environment=SERVER_VERSION=$RELEASE
-EnvironmentFile=-$ENV_FILE
-WorkingDirectory=$INSTALL_DIR/apps/web
-ExecStart=/usr/bin/node server.js
-TimeoutStopSec=5
-SyslogIdentifier=hoarder-web
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-cat <<EOF >/etc/systemd/system/hoarder.target
-[Unit]
-Description=Hoarder Services
-After=network-online.target
-Wants=hoarder-web.service hoarder-workers.service hoarder-browser.service
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-msg_ok "Created users and Services"
-
-msg_info "Performing database migration"
-export DATA_DIR=$DATA_DIR && cd $INSTALL_DIR/packages/db && pnpm migrate \
-  && chown -R hoarder:hoarder $DATA_DIR
-msg_ok "Migrated database"
+systemctl enable -q --now hoarder-web.service
+systemctl enable -q --now hoarder-workers.service
+msg_ok "Created Services"
 
 motd_ssh
 customize

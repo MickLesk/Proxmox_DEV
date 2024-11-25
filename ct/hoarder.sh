@@ -4,53 +4,27 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
+# Source: https://nextpvr.com/
 
-function header_info {
-clear
-cat <<"EOF"
-    __  __                     __         
-   / / / /___  ____ __________/ /__  _____
-  / /_/ / __ \/ __ `/ ___/ __  / _ \/ ___/
- / __  / /_/ / /_/ / /  / /_/ /  __/ /    
-/_/ /_/\____/\__,_/_/   \__,_/\___/_/     
-                                          
-EOF
-}
-header_info
-echo -e "Loading..."
+## App Default Values
 APP="Hoarder"
+TAGS="bookmark;links"
 var_disk="8"
-var_cpu="2"
+var_cpu="3"
 var_ram="4096"
 var_os="debian"
 var_version="12"
+#var_verbose="yes"
+
+# App Output & Base Settings
+header_info "$APP"
+base_settings
+
+# Core 
 variables
 color
 catch_errors
 
-function default_settings() {
-  CT_TYPE="1"
-  PW=""
-  CT_ID=$NEXTID
-  HN=$NSAPP
-  DISK_SIZE="$var_disk"
-  CORE_COUNT="$var_cpu"
-  RAM_SIZE="$var_ram"
-  BRG="vmbr0"
-  NET="dhcp"
-  GATE=""
-  APT_CACHER=""
-  APT_CACHER_IP=""
-  DISABLEIP6="no"
-  MTU=""
-  SD=""
-  NS=""
-  MAC=""
-  VLAN=""
-  SSH="no"
-  VERB="no"
-  echo_default
-}
 function update_script() {
 header_info
 check_container_storage
