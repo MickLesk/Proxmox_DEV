@@ -44,7 +44,7 @@ ENV_FILE="$CONFIG_DIR/hoarder.env"
 mkdir -p $INSTALLATION_DIR $DATA_DIR $CONFIG_DIR
 
 # Download and extract the latest release
-/mkdir -p /tmp/hoarder
+mkdir -p /tmp/hoarder
 cd /tmp/hoarder
 RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
