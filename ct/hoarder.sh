@@ -56,7 +56,7 @@ header_info
 check_container_storage
 check_container_resources
 if [[ ! -d /opt/hoarder ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-RELEASE=$(curl -s https://api.github.com/repos/msgbyte/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
   msg_info "Stopping ${APP} Service"
   systemctl stop hoarder-web hoarder-workers hoarder-browser hoarder.target
@@ -64,7 +64,7 @@ if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_v
   msg_info "Updating ${APP} to ${RELEASE}"
   cd /opt
   mv /opt/hoarder /opt/hoarder_bak
-  wget -q "https://github.com/msgbyte/hoarder/archive/refs/tags/v${RELEASE}.zip"
+  wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
   unzip -q v${RELEASE}.zip
   mv hoarder-${RELEASE} /opt/hoarder
   cd hoarder/apps/web
