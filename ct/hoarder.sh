@@ -57,7 +57,8 @@ check_container_storage
 check_container_resources
 if [[ ! -d /opt/hoarder ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
-if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
+PREV_VERSION=$(cat /opt/${APP}_version.txt)
+if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "${PREV_VERSION}" ]]; then
   msg_info "Stopping ${APP} Service"
   systemctl stop hoarder-web hoarder-workers hoarder-browser hoarder.target
   msg_ok "Stopped ${APP} Services"
@@ -80,6 +81,8 @@ if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_v
   pnpm migrate >/dev/null 2>&1
   echo "${RELEASE}" >/opt/${APP}_version.txt
   chown -R hoarder:hoarder /opt/hoarder
+  sed -i "s/SERVER_VERSION=${PREV_VERSION}/SERVER_VERSION=${RELEASE}/" /etc/systemd/system/hoarder-web.service
+  systemctl daemon-reload
   msg_ok "Updated ${APP} to ${RELEASE}"
   msg_info "Starting ${APP}"
   systemctl start hoarder.target
