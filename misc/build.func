@@ -203,7 +203,7 @@ echo_default() {
   echo -e "${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
   echo -e "${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
   echo -e "${DGN}Using Root Password: ${BGN}Automatic Login${CL}"
-  echo -e "${DGN}Using Container ID: ${BGN}$NEXTID${CL}"
+  echo -e "${DGN}Using Container ID: ${BGN}$CT_ID${CL}"
   echo -e "${DGN}Using Hostname: ${BGN}$NSAPP${CL}"
   echo -e "${DGN}Using Disk Size: ${BGN}$var_disk${CL}${DGN}GB${CL}"
   echo -e "${DGN}Allocated Cores ${BGN}$var_cpu${CL}"
