@@ -12,6 +12,7 @@ generate_app_name "NextPVR"
 }
 header_info
 
+## App Default Values
 APP="NextPVR"
 var_unprivileged="1"
 var_disk="3"
@@ -20,10 +21,11 @@ var_ram="1024"
 var_os="debian"
 var_version="12"
 var_verbose="yes"
+base_settings
+
 variables
 color
 catch_errors
-base_settings
 echo_default
 
 function update_script() {
