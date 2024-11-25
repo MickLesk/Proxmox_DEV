@@ -19,8 +19,8 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Hoarder"
-var_disk="10"
-var_cpu="4"
+var_disk="8"
+var_cpu="2"
 var_ram="4096"
 var_os="debian"
 var_version="12"
@@ -53,14 +53,11 @@ function default_settings() {
 }
 function update_script() {
 header_info
+check_container_storage
+check_container_resources
 if [[ ! -d /opt/hoarder ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
-  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
-  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
-fi
 RELEASE=$(curl -s https://api.github.com/repos/msgbyte/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
-  whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "SET RESOURCES" "Please set the resources in your ${APP} LXC to ${var_cpu}vCPU and ${var_ram}RAM for the build process before continuing" 10 75
   msg_info "Stopping ${APP} Service"
   systemctl stop hoarder
   msg_ok "Stopped ${APP} Service"
@@ -104,10 +101,9 @@ start
 build_container
 description
 
-msg_info "Setting Container to Normal Resources"
-pct set $CTID -memory 1024
-pct set $CTID -cores 1
-msg_ok "Set Container to Normal Resources"
+msg_info "Setting Container RAM to 2GB"
+pct set $CTID -memory 2048
+msg_ok "RAM set to 2GB"
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
