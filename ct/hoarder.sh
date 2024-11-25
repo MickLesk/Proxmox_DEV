@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -s https://raw.githubusercontent.com/vhsdream/prox-script-dev/hoarder-update/misc/build.func)
+source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/hoarder-update/misc/build.func)
 # Copyright (c) 2021-2024 tteck
 # Author: MickLesk (Canbiz)
 # License: MIT
@@ -18,7 +18,7 @@ EOF
 }
 header_info
 echo -e "Loading..."
-APP="hoarder"
+APP="Hoarder"
 var_disk="8"
 var_cpu="2"
 var_ram="4096"

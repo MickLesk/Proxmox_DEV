@@ -76,7 +76,7 @@ cp -r $INSTALL_DIR/apps/web/.next/standalone/apps/web/server.js $INSTALL_DIR/app
 # pnpm build >/dev/null 2>&1
 # msg_ok "cli installed"
 
-echo "${RELEASE}" >"/opt/hoarder_version.txt"
+echo "${RELEASE}" >"/opt/Hoarder_version.txt"
 HOARDER_SECRET="$(openssl rand -base64 32 | cut -c1-24)"
 MEILI_SECRET="$(openssl rand -base64 36)"
 echo "" >>~/hoarder.creds && chmod 600 ~/hoarder.creds
