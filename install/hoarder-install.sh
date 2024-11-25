@@ -34,14 +34,10 @@ $STD apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
 msg_info "Installing Hoarder"
-
-INSTALLATION_DIR=/opt/hoarder
-DATA_DIR=/var/lib/hoarder
-CONFIG_DIR=/etc/hoarder/hoarder.env
-ENV_FILE="$CONFIG_DIR/hoarder.env"
+ENV_FILE=/etc/hoarder/hoarder.env
 
 # Prepare the directories
-mkdir -p $INSTALLATION_DIR $DATA_DIR $CONFIG_DIR
+mkdir -p /opt/hoarder /var/lib/hoarder /etc/hoarder
 
 # Download and extract the latest release
 mkdir -p /tmp/hoarder
@@ -49,17 +45,17 @@ cd /tmp/hoarder
 RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
-mv hoarder-${RELEASE} $INSTALLATION_DIR
+mv hoarder-${RELEASE} /opt/hoarder
 
 # Install dependencies
-cd $INSTALLATION_DIR
+cd /opt/hoarder
 corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
-cd $INSTALLATION_DIR/apps/web && pnpm install --frozen-lockfile
-cd $INSTALLATION_DIR/apps/workers && pnpm install --frozen-lockfile
+cd /opt/hoarder/apps/web && pnpm install --frozen-lockfile
+cd /opt/hoarder/apps/workers && pnpm install --frozen-lockfile
 
 # Build the web app
-cd $INSTALLATION_DIR/apps/web
+cd /opt/hoarder/apps/web
 pnpm exec next build --experimental-build-mode compile
 
 echo "${RELEASE}" >"/opt/hoarder_version.txt"
@@ -83,7 +79,7 @@ After=network.target
 
 [Service]
 ExecStart=pnpm start
-WorkingDirectory=$INSTALLATION_DIR/apps/web
+WorkingDirectory=/opt/hoarder/apps/web
 Restart=always
 RestartSec=10
 
@@ -100,7 +96,7 @@ After=network.target
 
 [Service]
 ExecStart=pnpm start:prod
-WorkingDirectory=$INSTALLATION_DIR/apps/workers
+WorkingDirectory=/opt/hoarder/apps/workers
 Restart=always
 RestartSec=10
 
