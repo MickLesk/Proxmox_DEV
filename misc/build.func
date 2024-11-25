@@ -170,27 +170,34 @@ base_settings() {
   CORE_COUNT=${var_cpu:-$CORE_COUNT}
   RAM_SIZE=${var_ram:-$RAM_SIZE}
   VERB=${var_verb:-$VERB}
-  PW=${var_pw:-""}
-  CT_ID=${var_ct_id:-$NEXTID}
-  HN=${var_hostname:-$NSAPP}
-  BRG=${var_bridge:-"vmbr0"}
-  NET=${var_net:-"dhcp"}
-  GATE=${var_gate:-""}
-  APT_CACHER=${var_apt_cacher:-""}
-  APT_CACHER_IP=${var_apt_cacher_ip:-""}
-  DISABLEIP6=${var_disableip6:-"no"}
-  MTU=${var_mtu:-""}
-  SD=${var_sd:-""}
-  NS=${var_ns:-""}
-  MAC=${var_mac:-""}
-  VLAN=${var_vlan:-""}
-  SSH=${var_ssh:-"no"}
   
-  # Since these 2 are only defined outside of default_settings function, we add a temporary fallback. TODO: Align everything as constants (e.g., OSTYPE, OSVERSION)
-  var_os=${var_os:-"debian"}
-  var_version=${var_version:-"12"}
+  # Other Default Settings (unchangeable) 
+  PW=""
+  CT_ID=$NEXTID
+  HN=$NSAPP
+  BRG="vmbr0"
+  NET="dhcp"
+  GATE=""
+  APT_CACHER=""
+  APT_CACHER_IP=""
+  DISABLEIP6="no"
+  MTU=""
+  SD=""
+  NS=""
+  MAC=""
+  VLAN=""
+  SSH="no"
+  
+  # Since these 2 are only defined outside of default_settings function, we add a temporary fallback.
+  # TODO: To align everything, we should add these as constant variables (e.g. OSTYPE and OSVERSION), 
+  # but that would currently require updating the default_settings function for all existing scripts
+  if [ -z "$var_os" ]; then
+    var_os="debian"
+  fi
+  if [ -z "$var_version" ]; then
+    var_version="12"
+  fi
 }
-
 
 # This function displays the default and modified values for various settings.
 echo_default() {
