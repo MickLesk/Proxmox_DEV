@@ -58,25 +58,20 @@ wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zi
 unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
 cd /opt/hoarder
-corepack enable
+$STD corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
 export NEXT_TELEMETRY_DISABLED=1
 cd /opt/hoarder/apps/web
-echo -e "web start" 
-CI=true pnpm install --frozen-lockfile
-echo -e "web done" 
+$STD CI=true pnpm install --frozen-lockfile
 cd /opt/hoarder/apps/workers
-echo -e "worker start" 
-pnpm install --frozen-lockfile
-echo -e "worker done" 
+$STD pnpm install --frozen-lockfile
 
 # Build the web app
 echo -e "web build start" 
 cd /opt/hoarder/apps/web
-pnpm exec next build --experimental-build-mode compile
+$STD pnpm exec next build --experimental-build-mode compile
 cp -r /opt/hoarder/apps/web/.next/standalone/apps/web/server.js /opt/hoarder/apps/web
 
-echo "${RELEASE}" >"/opt/Hoarder_version.txt"
 HOARDER_SECRET="$(openssl rand -base64 32 | cut -c1-24)"
 MEILI_SECRET="$(openssl rand -base64 36)"
 {
@@ -102,6 +97,7 @@ EOF
 
 cd /opt/hoarder/packages/db
 pnpm migrate
+echo "${RELEASE}" >"/opt/Hoarder_version.txt"
 msg_ok "Installed Hoarder"
 
 msg_info "Creating Services"
@@ -116,7 +112,7 @@ WorkingDirectory=/opt/hoarder/apps/web
 Restart=always
 RestartSec=10
 
-EnvironmentFile=$ENV_FILE
+EnvironmentFile=/opt/hoarder/.env
 
 [Install]
 WantedBy=multi-user.target
@@ -133,7 +129,7 @@ WorkingDirectory=/opt/hoarder/apps/workers
 Restart=always
 RestartSec=10
 
-EnvironmentFile=$ENV_FILE
+EnvironmentFile=/opt/hoarder/.env
 
 [Install]
 WantedBy=multi-user.target
