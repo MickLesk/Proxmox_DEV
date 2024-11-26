@@ -86,7 +86,7 @@ MEILI_SECRET="$(openssl rand -base64 36)"
     echo "Hoarder-Credentials"
     echo "Meilisearch Secret: $MEILI_SECRET"
     echo "Hoarder Secret: $HOARDER_SECRET"
-} >> ~/babybuddy.creds
+} >> ~/hoarder.creds
 # Prepare the environment file
 cat <<EOF >/opt/hoarder/.env
 NEXTAUTH_SECRET="$HOARDER_SECRET"
@@ -101,11 +101,15 @@ CRAWLER_VIDEO_DOWNLOAD=true
 #INFERENCE_TEXT_MODEL=
 #INFERENCE_IMAGE_MODEL=
 EOF
-
-cd /opt/hoarder/packages/db
-pnpm migrate
 echo "${RELEASE}" >"/opt/Hoarder_version.txt"
 msg_ok "Installed Hoarder"
+
+msg_info "Running Database Migration"
+cd /opt/hoarder/packages/db
+$STD pnpm dlx @vercel/ncc build migrate.ts -o /db_migrations
+cp -R drizzle /db_migrations
+pnpm migrate
+msg_ok "Database Migration Completed"
 
 msg_info "Creating Services"
 cat <<EOF >/etc/systemd/system/hoarder-web.service
