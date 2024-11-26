@@ -52,8 +52,8 @@ echo -e "zabbix Database Name: \e[32m$DB_NAME\e[0m" >>~/zabbix.creds
 msg_ok "Set up PostgreSQL"
 
 msg_info "Starting Services"
-systemctl restart zabbix-server zabbix-agent2 apache2
-systemctl enable -q --now zabbix-server zabbix-agent2 apache2
+systemctl restart zabbix-server-pgsql zabbix-agent2 apache2
+systemctl enable -q --now zabbix-server-pgsql zabbix-agent2 apache2
 msg_ok "Started Services"
 
 motd_ssh
