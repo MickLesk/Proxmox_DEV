@@ -47,6 +47,16 @@ mv yt-dlp /usr/bin
 
 wget -q https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb
 $STD dpkg -i meilisearch.deb 
+curl https://raw.githubusercontent.com/meilisearch/meilisearch/latest/config.toml > /etc/meilisearch.toml
+MASTER_KEY=$(openssl rand -base64 12) # 12 Base64-Zeichen ergeben ~16 Bytes
+sed -i \
+    -e 's|^env =.*|env = "production"|' \
+    -e "s|^# master_key =.*|master_key = \"$MASTER_KEY\"|" \
+    -e 's|^db_path =.*|db_path = "/var/lib/meilisearch/data"|' \
+    -e 's|^dump_dir =.*|dump_dir = "/var/lib/meilisearch/dumps"|' \
+    -e 's|^snapshot_dir =.*|snapshot_dir = "/var/lib/meilisearch/snapshots"|' \
+	-e 's|^# no_analytics = true|no_analytics = true|' \
+    /etc/meilisearch.toml
 msg_ok "Installed Hoarder Dependencies"
 
 msg_info "Installing Node.js"
@@ -64,6 +74,7 @@ wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zi
 unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
 cd /opt/hoarder
+mkdir -p /opt/hoarder_data
 $STD corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
 export NEXT_TELEMETRY_DISABLED=1
@@ -72,14 +83,11 @@ cd /opt/hoarder/apps/web
 $STD pnpm install --frozen-lockfile
 cd /opt/hoarder/apps/workers
 $STD pnpm install --frozen-lockfile
-
-# Build the web app
-echo -e "web build start" 
 cd /opt/hoarder/apps/web
 $STD pnpm exec next build --experimental-build-mode compile
 cp -r /opt/hoarder/apps/web/.next/standalone/apps/web/server.js /opt/hoarder/apps/web
 
-HOARDER_SECRET="$(openssl rand -base64 32 | cut -c1-24)"
+HOARDER_SECRET="$(openssl rand -base64 36 | cut -c1-24)"
 MEILI_SECRET="$(openssl rand -base64 36)"
 {
     echo ""
@@ -91,7 +99,7 @@ MEILI_SECRET="$(openssl rand -base64 36)"
 cat <<EOF >/opt/hoarder/.env
 NEXTAUTH_SECRET="$HOARDER_SECRET"
 NEXTAUTH_URL="http://localhost:3000"
-DATA_DIR="/opt/hoarder"
+DATA_DIR="/opt/hoarder_data"
 MEILI_ADDR="http://127.0.0.1:7700"
 MEILI_MASTER_KEY="$MEILI_SECRET"
 BROWSER_WEB_URL="http://127.0.0.1:9222"
@@ -148,6 +156,23 @@ EnvironmentFile=/opt/hoarder/.env
 [Install]
 WantedBy=multi-user.target
 EOF
+cat << EOF > /etc/systemd/system/meilisearch.service
+[Unit]
+Description=Meilisearch
+After=systemd-user-sessions.service
+
+[Service]
+Type=simple
+WorkingDirectory=/var/lib/meilisearch
+ExecStart=/usr/bin/meilisearch --config-file-path /etc/meilisearch.toml
+User=root
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl enable -q --now meilisearch
 systemctl enable -q --now hoarder-web.service
 systemctl enable -q --now hoarder-workers.service
 msg_ok "Created Services"
