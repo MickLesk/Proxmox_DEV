@@ -56,7 +56,12 @@ cd /opt/hoarder/apps/workers && pnpm install --frozen-lockfile
 cd /opt/hoarder/apps/web
 pnpm exec next build --experimental-build-mode compile
 
-echo "${RELEASE}" >"/opt/hoarder_version.txt"
+echo "${RELEASE}" >"/opt/Hoarder_version.txt"
+HOARDER_SECRET="$(openssl rand -base64 32 | cut -c1-24)"
+MEILI_SECRET="$(openssl rand -base64 36)"
+echo "" >>~/hoarder.creds && chmod 600 ~/hoarder.creds
+echo -e "NextAuth Secret: $HOARDER_SECRET" >>~/hoarder.creds
+echo -e "Meilisearch Master Key: $MEILI_SECRET" >>~/hoarder.creds
 
 # Prepare the environment file
 cat <<EOF >$ENV_FILE
