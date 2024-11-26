@@ -60,6 +60,19 @@ if [[ "$DISTRO" != "debian" && "$DISTRO" != "ubuntu" ]]; then
   exit 1
 fi
 
+# Check, ob das LXC läuft, wenn nicht, starte es
+LXC_STATUS=$(pct status "$CTID" | awk '{print $2}')
+if [[ "$LXC_STATUS" != "running" ]]; then
+  msg "\e[1;33m The container $CTID is not running. Starting it now...\e[0m"
+  pct start "$CTID"
+  # Warten, bis der Container vollständig gestartet ist
+  while [[ "$(pct status "$CTID" | awk '{print $2}')" != "running" ]]; do
+    msg "\e[1;33m Waiting for the container to start...\e[0m"
+    sleep 2
+  done
+  msg "\e[1;32m Container $CTID is now running.\e[0m"
+fi
+
 CTID_CONFIG_PATH=/etc/pve/lxc/${CTID}.conf
 cat <<EOF >>$CTID_CONFIG_PATH
 lxc.cgroup2.devices.allow: c 10:200 rwm
