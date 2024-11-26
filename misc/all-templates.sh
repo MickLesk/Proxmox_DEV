@@ -31,16 +31,16 @@ function error_exit() {
 function warn() {
   local REASON="\e[97m$1\e[39m"
   local FLAG="\e[93m[WARNING]\e[39m"
-  msg "$FLAG $REASON"
+  msg " $FLAG $REASON"
 }
 function info() {
   local REASON="$1"
   local FLAG="\e[36m[INFO]\e[39m"
-  msg "$FLAG $REASON"
+  msg " $FLAG $REASON"
 }
 function msg() {
   local TEXT="$1"
-  echo -e "$TEXT"
+  echo -e " $TEXT"
 }
 function cleanup_ctid() {
   if pct status $CTID &>/dev/null; then
