@@ -19,6 +19,7 @@ $STD apt-get install -y \
   g++ \
   build-essential \
   curl \
+  git \
   sudo \
   gnupg \
   ca-certificates \
@@ -55,7 +56,7 @@ wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zi
 unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
 cd /opt/hoarder
-$STD corepack enable
+corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
 export NEXT_TELEMETRY_DISABLED=1
 cd /opt/hoarder/apps/web
