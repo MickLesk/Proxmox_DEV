@@ -9,7 +9,7 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 ## App Default Values
 APP="Hoarder"
 TAGS="bookmark;links"
-var_disk="8"
+var_disk="10"
 var_cpu="3"
 var_ram="4096"
 var_os="debian"
@@ -75,10 +75,6 @@ exit
 start
 build_container
 description
-
-msg_info "Setting Container RAM to 2GB"
-pct set $CTID -memory 2048
-msg_ok "RAM set to 2GB"
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
