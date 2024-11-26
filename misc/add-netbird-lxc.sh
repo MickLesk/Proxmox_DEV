@@ -10,9 +10,9 @@ clear
 cat <<"EOF"
     _   __     __  ____  _          __
    / | / /__  / /_/ __ )(_)________/ /
-  /  |/ / _ \/ __/ __  / / ___/ __  /
- / /|  /  __/ /_/ /_/ / / /  / /_/ /
-/_/ |_/\___/\__/_____/_/_/   \__,_/
+  /  |/ / _ \/ __/ __  / / ___/ __  / 
+ / /|  /  __/ /_/ /_/ / / /  / /_/ / 
+/_/ |_/\___/\__/_____/_/_/   \__,_/  
 
 EOF
 }
@@ -28,6 +28,7 @@ while true; do
 done
 header_info
 echo "Loading..."
+
 function msg() {
   local TEXT="$1"
   echo -e "$TEXT"
@@ -51,6 +52,13 @@ while [ -z "${CTID:+x}" ]; do
     16 $(($MSG_MAX_LENGTH + 23)) 6 \
     "${CTID_MENU[@]}" 3>&1 1>&2 2>&3) || exit
 done
+
+# Prüfung der Distribution
+DISTRO=$(pct exec "$CTID" -- cat /etc/os-release | grep -w "ID" | cut -d'=' -f2 | tr -d '"')
+if [[ "$DISTRO" != "debian" && "$DISTRO" != "ubuntu" ]]; then
+  msg "\e[1;31m Error: This script only supports Debian or Ubuntu LXC containers. Detected: $DISTRO. Aborting...\e[0m"
+  exit 1
+fi
 
 CTID_CONFIG_PATH=/etc/pve/lxc/${CTID}.conf
 cat <<EOF >>$CTID_CONFIG_PATH
