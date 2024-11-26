@@ -16,6 +16,7 @@ update_os
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
   python3 \
+  python3-distutils \
   g++ \
   build-essential \
   curl \
@@ -23,6 +24,7 @@ $STD apt-get install -y \
   sudo \
   gnupg \
   ca-certificates \
+  pkg-config \
   mc
 msg_ok "Installed Dependencies"
 
