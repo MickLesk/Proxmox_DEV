@@ -27,6 +27,7 @@ msg_ok "Installed Dependencies"
 
 msg_info "Installing Hoarder Dependencies"
 cd /tmp
+
 wget -q https://github.com/Y2Z/monolith/releases/latest/download/monolith-gnu-linux-x86_64 -O monolith 
 chmod +x monolith
 mv monolith /usr/bin
@@ -35,9 +36,8 @@ wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -
 chmod +x yt-dlp 
 mv yt-dlp /usr/bin
 
-wget -q https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb && \
+wget -q https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb
 $STD dpkg -i meilisearch.deb 
-rm -rf meilisearch.deb
 msg_ok "Installed Hoarder Dependencies"
 
 msg_info "Installing Node.js"
@@ -49,10 +49,6 @@ $STD apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
 msg_info "Installing Hoarder"
-ENV_FILE=/opt/hoarder/hoarder.env
-mkdir -p /var/lib/hoarder 
-mkdir -p /etc/hoarder 
-
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
@@ -63,15 +59,19 @@ $STD corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
 export NEXT_TELEMETRY_DISABLED=1
 cd /opt/hoarder/apps/web
+echo -e "web start" 
 yes | pnpm install --frozen-lockfile 
 echo -e "web done" 
 cd /opt/hoarder/apps/workers
+echo -e "worker start" 
 pnpm install --frozen-lockfile
 echo -e "worker done" 
 
 # Build the web app
+echo -e "web build start" 
 cd /opt/hoarder/apps/web
 pnpm exec next build --experimental-build-mode compile
+cp -r /opt/hoarder/apps/web/.next/standalone/apps/web/server.js /opt/hoarder/apps/web
 
 echo "${RELEASE}" >"/opt/Hoarder_version.txt"
 HOARDER_SECRET="$(openssl rand -base64 32 | cut -c1-24)"
@@ -96,6 +96,9 @@ CRAWLER_VIDEO_DOWNLOAD=true
 #INFERENCE_TEXT_MODEL=
 #INFERENCE_IMAGE_MODEL=
 EOF
+
+cd /opt/hoarder/packages/db
+pnpm migrate
 msg_ok "Installed Hoarder"
 
 msg_info "Creating Services"
