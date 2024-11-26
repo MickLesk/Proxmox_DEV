@@ -20,7 +20,7 @@ header_info
 echo -e "Loading..."
 APP="Zabbix"
 var_disk="6"
-var_cpu="2"
+var_cpu="3"
 var_ram="4096"
 var_os="debian"
 var_version="12"
