@@ -143,14 +143,14 @@ function select_storage() {
 header_info
 # Get template storage
 TEMPLATE_STORAGE=$(select_storage template) || exit
-info "Using '$TEMPLATE_STORAGE' for template storage."
+info " Using '$TEMPLATE_STORAGE' for template storage."
 
 # Get container storage
 CONTAINER_STORAGE=$(select_storage container) || exit
-info "Using '$CONTAINER_STORAGE' for container storage."
+info " Using '$CONTAINER_STORAGE' for container storage."
 
 # Download template
-msg "Downloading LXC template (Patience)..."
+msg " Downloading LXC template (Patience)..."
 pveam download $TEMPLATE_STORAGE $TEMPLATE >/dev/null || die "A problem occured while downloading the LXC template."
 
 # Create variable for 'pct' options
@@ -158,15 +158,15 @@ PCT_OPTIONS=(${PCT_OPTIONS[@]:-${DEFAULT_PCT_OPTIONS[@]}})
 [[ " ${PCT_OPTIONS[@]} " =~ " -rootfs " ]] || PCT_OPTIONS+=(-rootfs $CONTAINER_STORAGE:${PCT_DISK_SIZE:-8})
 
 # Create LXC
-msg "Creating LXC container..."
+msg " Creating LXC container..."
 pct create $CTID ${TEMPLATE_STORAGE}:vztmpl/${TEMPLATE} ${PCT_OPTIONS[@]} >/dev/null ||
-  die "A problem occured while trying to create container."
+  die " A problem occured while trying to create container."
 
 # Save password
 echo "$NAME password: ${PASS}" >>~/$NAME.creds # file is located in the Proxmox root directory
 
 # Start container
-msg "Starting LXC Container..."
+msg " Starting LXC Container..."
 pct start "$CTID"
 sleep 5
 
@@ -200,9 +200,9 @@ fi
 # Success message
 header_info
 echo
-info "LXC container '$CTID' was successfully created, and its IP address is ${IP}."
+info " LXC container '$CTID' was successfully created, and its IP address is ${IP}."
 echo
-info "Proceed to the LXC console to complete the setup."
+info " Proceed to the LXC console to complete the setup."
 echo
 info "login: root"
 info "password: $PASS"
