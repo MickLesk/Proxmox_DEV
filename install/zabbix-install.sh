@@ -21,19 +21,12 @@ $STD apt-get install -y \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Zabbix"
-#RELEASE=$(curl -s https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-release/ | grep -oP 'zabbix-release_[0-9.-]+(?=\+debian12_all\.deb)' | sort -V | tail -n 1)
-#wget -q "https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-release/${RELEASE}+debian12_all.deb" -O /tmp/zabbix-release.deb
-#AGENT2_RELEASE=$(curl -s https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-agent2/ | grep -oP 'zabbix-agent2_[0-9.-]+(?=\+debian12_amd64\.deb)' | sort -V | tail -n 1)
-#wget -q "https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-agent2/${AGENT2_RELEASE}+debian12_amd64.deb" -O /tmp/zabbix-agent2.deb
 cd /tmp
 wget https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-release/zabbix-release_latest+debian12_all.deb
-
-
 $STD dpkg -i /tmp/zabbix-release_latest+debian12_all.deb
 $STD apt-get update
 $STD apt-get install -y zabbix-server-pgsql zabbix-frontend-php php8.2-pgsql zabbix-apache-conf zabbix-sql-scripts 
-$STD apt-get install -y zabbix-agent zabbix-agent2 zabbix-agent2-plugin-*
-echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
+$STD apt-get install -y zabbix-agent2 zabbix-agent2-plugin-*
 msg_ok "Installed Zabbix"
 
 msg_info "Setting up PostgreSQL"
