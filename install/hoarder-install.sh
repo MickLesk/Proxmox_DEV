@@ -58,14 +58,16 @@ RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/late
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
-
 cd /opt/hoarder
-corepack enable
+$STD corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
+export NEXT_TELEMETRY_DISABLED=1
 cd /opt/hoarder/apps/web
 yes | pnpm install --frozen-lockfile 
+echo -e "web done" 
 cd /opt/hoarder/apps/workers
 pnpm install --frozen-lockfile
+echo -e "worker done" 
 
 # Build the web app
 cd /opt/hoarder/apps/web
