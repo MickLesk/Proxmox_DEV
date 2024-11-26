@@ -61,7 +61,7 @@ export PUPPETEER_SKIP_DOWNLOAD="true"
 export NEXT_TELEMETRY_DISABLED=1
 cd /opt/hoarder/apps/web
 echo -e "web start" 
-yes | pnpm install --frozen-lockfile 
+CI=true pnpm install --frozen-lockfile
 echo -e "web done" 
 cd /opt/hoarder/apps/workers
 echo -e "worker start" 
