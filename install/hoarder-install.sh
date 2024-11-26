@@ -96,10 +96,6 @@ MEILI_ADDR="http://127.0.0.1:7700"
 MEILI_MASTER_KEY="$MEILI_SECRET"
 BROWSER_WEB_URL="http://127.0.0.1:9222"
 CRAWLER_VIDEO_DOWNLOAD=true
-#CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE=
-#OLLAMA_BASE_URL=
-#INFERENCE_TEXT_MODEL=
-#INFERENCE_IMAGE_MODEL=
 EOF
 echo "${RELEASE}" >"/opt/Hoarder_version.txt"
 msg_ok "Installed Hoarder"
@@ -110,6 +106,13 @@ $STD pnpm dlx @vercel/ncc build migrate.ts -o /db_migrations
 cp -R drizzle /db_migrations
 pnpm migrate
 msg_ok "Database Migration Completed"
+
+msg_info "Setting up Hoarder CLI"
+cd /opt/hoarder/apps/cli
+pnpm build
+ln -s /opt/hoarder/apps/cli/dist/index.mjs /usr/local/bin/hoarder-cli
+chmod +x /usr/local/bin/hoarder-cli
+msg_ok "Hoarder CLI installed"
 
 msg_info "Creating Services"
 cat <<EOF >/etc/systemd/system/hoarder-web.service
