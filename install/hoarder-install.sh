@@ -25,6 +25,21 @@ $STD apt-get install -y \
   mc
 msg_ok "Installed Dependencies"
 
+msg_info "Installing Hoarder Dependencies"
+cd /tmp
+wget -q https://github.com/Y2Z/monolith/releases/latest/download/monolith-gnu-linux-x86_64 -O monolith 
+chmod +x monolith
+mv monolith /usr/bin
+
+wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -O yt-dlp
+chmod +x yt-dlp 
+mv yt-dlp /usr/bin
+
+wget -q https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb && \
+$STD dpkg -i meilisearch.deb 
+rm -rf meilisearch.deb
+msg_ok "Installed Hoarder Dependencies"
+
 msg_info "Installing Node.js"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
@@ -34,23 +49,23 @@ $STD apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
 msg_info "Installing Hoarder"
-ENV_FILE=/etc/hoarder/hoarder.env
+ENV_FILE=/opt/hoarder/hoarder.env
 mkdir -p /var/lib/hoarder 
 mkdir -p /etc/hoarder 
 
-# Download and extract the latest release
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
 mv hoarder-${RELEASE} /opt/hoarder
 
-# Install dependencies
 cd /opt/hoarder
 corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
-cd /opt/hoarder/apps/web && pnpm install --frozen-lockfile
-cd /opt/hoarder/apps/workers && pnpm install --frozen-lockfile
+cd /opt/hoarder/apps/web
+yes | pnpm install --frozen-lockfile 
+cd /opt/hoarder/apps/workers
+pnpm install --frozen-lockfile
 
 # Build the web app
 cd /opt/hoarder/apps/web
@@ -59,18 +74,25 @@ pnpm exec next build --experimental-build-mode compile
 echo "${RELEASE}" >"/opt/Hoarder_version.txt"
 HOARDER_SECRET="$(openssl rand -base64 32 | cut -c1-24)"
 MEILI_SECRET="$(openssl rand -base64 36)"
-echo "" >>~/hoarder.creds && chmod 600 ~/hoarder.creds
-echo -e "NextAuth Secret: $HOARDER_SECRET" >>~/hoarder.creds
-echo -e "Meilisearch Master Key: $MEILI_SECRET" >>~/hoarder.creds
-
+{
+    echo ""
+    echo "Hoarder-Credentials"
+    echo "Meilisearch Secret: $MEILI_SECRET"
+    echo "Hoarder Secret: $HOARDER_SECRET"
+} >> ~/babybuddy.creds
 # Prepare the environment file
-cat <<EOF >$ENV_FILE
-NEXTAUTH_SECRET="$(openssl rand -base64 36)"
-DATA_DIR="/var/lib/hoarder"
-MEILI_ADDR="http://127.0.0.1:7700"
-MEILI_MASTER_KEY="$(openssl rand -base64 36)"
+cat <<EOF >/opt/hoarder/.env
+NEXTAUTH_SECRET="$HOARDER_SECRET"
 NEXTAUTH_URL="http://localhost:3000"
-NODE_ENV=production
+DATA_DIR="/opt/hoarder"
+MEILI_ADDR="http://127.0.0.1:7700"
+MEILI_MASTER_KEY="$MEILI_SECRET"
+BROWSER_WEB_URL="http://127.0.0.1:9222"
+CRAWLER_VIDEO_DOWNLOAD=true
+#CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE=
+#OLLAMA_BASE_URL=
+#INFERENCE_TEXT_MODEL=
+#INFERENCE_IMAGE_MODEL=
 EOF
 msg_ok "Installed Hoarder"
 
@@ -116,6 +138,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
+rm -rf /tmp/meilisearch.deb
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
