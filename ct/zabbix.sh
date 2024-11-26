@@ -42,7 +42,8 @@ cp -R /usr/share/zabbix-* /opt/zabbix-backup/
 cd /tmp
 wget -q https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-release/zabbix-release_latest+debian12_all.deb
 dpkg -i zabbix-release_latest+debian12_all.deb &>/dev/null
-apt-get install --only-upgrade zabbix-server-pgsql zabbix-frontend-php zabbix-agent2 &>/dev/null
+apt-get update &>/dev/null
+apt-get install --only-upgrade zabbix-server-pgsql zabbix-frontend-php zabbix-agent2 zabbix-agent2-plugin-* &>/dev/null
 
 msg_info "Starting ${APP} Services"
 systemctl start zabbix-server-pgsql zabbix-agent2
