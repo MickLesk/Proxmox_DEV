@@ -24,6 +24,12 @@ $STD apt-get install -y \
   sudo \
   gnupg \
   ca-certificates \
+  libpixman-1-dev \
+  libcairo2-dev \
+  libjpeg-dev \
+  libpango1.0-dev \
+  libgif-dev \
+  librsvg2-dev \
   pkg-config \
   mc
 msg_ok "Installed Dependencies"
