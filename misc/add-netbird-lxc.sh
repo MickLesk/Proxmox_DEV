@@ -53,13 +53,6 @@ while [ -z "${CTID:+x}" ]; do
     "${CTID_MENU[@]}" 3>&1 1>&2 2>&3) || exit
 done
 
-# Prüfung der Distribution
-DISTRO=$(pct exec "$CTID" -- cat /etc/os-release | grep -w "ID" | cut -d'=' -f2 | tr -d '"')
-if [[ "$DISTRO" != "debian" && "$DISTRO" != "ubuntu" ]]; then
-  msg "\e[1;31m Error: This script only supports Debian or Ubuntu LXC containers. Detected: $DISTRO. Aborting...\e[0m"
-  exit 1
-fi
-
 # Check, ob das LXC läuft, wenn nicht, starte es
 LXC_STATUS=$(pct status "$CTID" | awk '{print $2}')
 if [[ "$LXC_STATUS" != "running" ]]; then
@@ -71,6 +64,13 @@ if [[ "$LXC_STATUS" != "running" ]]; then
     sleep 2
   done
   msg "\e[1;32m Container $CTID is now running.\e[0m"
+fi
+
+# Nun, nachdem der Container läuft, überprüfen wir die Distribution
+DISTRO=$(pct exec "$CTID" -- cat /etc/os-release | grep -w "ID" | cut -d'=' -f2 | tr -d '"')
+if [[ "$DISTRO" != "debian" && "$DISTRO" != "ubuntu" ]]; then
+  msg "\e[1;31m Error: This script only supports Debian or Ubuntu LXC containers. Detected: $DISTRO. Aborting...\e[0m"
+  exit 1
 fi
 
 CTID_CONFIG_PATH=/etc/pve/lxc/${CTID}.conf
