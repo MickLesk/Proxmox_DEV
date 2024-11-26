@@ -42,20 +42,13 @@ error_handler() {
 spinner() {
     local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
     local spin_i=0
-    local interval=0.1  # Sekunden
-    printf "\e[?25l"  # Cursor ausblenden
-
-    # Farbcodes für Orange (ANSI 256 Farben)
+    local interval=0.1 
+    printf "\e[?25l"  
     local orange="\e[38;5;214m"
 
     while true; do
-        # Spinner mit 1 Leerzeichen davor und 1 Leerzeichen danach anzeigen
         printf "\r ${orange}%s\e[0m " "${frames[spin_i]}"
-        
-        # Frame-Index erhöhen und zurücksetzen, wenn notwendig
         spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
-        
-        # Verzögerung für das Intervall
         sleep "$interval"
     done
 }
@@ -64,8 +57,8 @@ spinner() {
 msg_info() {
     local msg="$1"
     echo -ne " ${HOLD} ${YW}${msg}   "
-    spinner &  # Start spinner in the background
-    SPINNER_PID=$!  # Save spinner process ID
+    spinner & 
+    SPINNER_PID=$!  
 }
 
 # This function displays a success message with a green color.
@@ -128,16 +121,12 @@ arch_check() {
   fi
 }
 
+# This function sets the APP-Name into an ASCII Header in Slant, figlet needed on proxmox main node.
 header_info() {
-    # Prüfen, ob figlet installiert ist, und ggf. installieren
     if ! command -v figlet &> /dev/null; then
         sudo apt-get install -y figlet &> /dev/null
     fi
-
-    # ASCII-Art basierend auf der APP-Variable erstellen
     ascii_art=$(figlet -f slant "$APP")
-
-    # Ausgabe formatieren und anzeigen
     clear
     cat <<EOF
 $ascii_art
@@ -204,12 +193,12 @@ echo_default() {
   fi
 
   # Output the selected values with icons
-  echo -e "🖥️  ${DGN}Operating System: ${BGN}$var_os${CL}"
-  echo -e "🌟  ${DGN}Version: ${BGN}$var_version${CL}"
-  echo -e "📦  ${DGN}Container Type: ${BGN}$CT_TYPE_DESC${CL}"
-  echo -e "💾  ${DGN}Disk Size: ${BGN}${DISK_SIZE}GB${CL}"
-  echo -e "🧠  ${DGN}CPU Cores: ${BGN}${CORE_COUNT}${CL}"
-  echo -e "🛠️  ${DGN}RAM Size: ${BGN}${RAM_SIZE}MB${CL}"
+  echo -e "🖥️  ${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
+  echo -e "🌟  ${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
+  echo -e "📦  ${BOLD}${DGN}Container Type: ${BGN}$CT_TYPE_DESC${CL}"
+  echo -e "💾  ${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE}GB${CL}"
+  echo -e "🧠  ${BOLD}${DGN}CPU Cores: ${BGN}${CORE_COUNT}${CL}"
+  echo -e "🛠️  ${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE}MB${CL}"
   echo -e "${BOLD}${BL}Creating a ${APP} LXC using the above default settings${CL}"
   echo -e "  " 
 
