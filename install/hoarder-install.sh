@@ -61,8 +61,9 @@ cd /opt/hoarder
 $STD corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
 export NEXT_TELEMETRY_DISABLED=1
+export CI="true"
 cd /opt/hoarder/apps/web
-$STD CI=true pnpm install --frozen-lockfile
+CI=true pnpm install --frozen-lockfile
 cd /opt/hoarder/apps/workers
 $STD pnpm install --frozen-lockfile
 
