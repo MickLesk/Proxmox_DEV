@@ -88,7 +88,7 @@ fi
 
 msg_info "Installing Prerequisites"
 apt-get update &>/dev/null
-apt-get install -y ipcalc net-tools &>/dev/null
+apt-get install -y ipcalc &>/dev/null
 msg_ok "Installed Prerequisites"
 
 msg_info "Setting up IP-Tag Scripts"
