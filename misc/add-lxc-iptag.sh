@@ -62,7 +62,7 @@ done
 
 function msg_info() {
     local msg="$1"
-    echo -e " ${HOLD} ${YW}${msg}${CL}"
+    echo -ne " ${HOLD} ${YW}${msg}${CL}"
 }
 
 function msg_ok() {
