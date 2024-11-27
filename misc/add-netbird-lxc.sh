@@ -53,20 +53,20 @@ while [ -z "${CTID:+x}" ]; do
     "${CTID_MENU[@]}" 3>&1 1>&2 2>&3) || exit
 done
 
-status=$(pct status $CTID)
-template=$(pct config $CTID | grep -q "template:" && echo "true" || echo "false")
-if [ "$template" == "false" ] && [ "$status" == "status: stopped" ]; then
-  echo -e "${BL}[Info]${GN} Starting${BL} $CTID ${CL} \n"
-  pct start $CTID
-  echo -e "${BL}[Info]${GN} Waiting For${BL} $CTID${CL}${GN} To Start ${CL} \n"
-  sleep 5
-  clean_container $CTID
-  echo -e "${BL}[Info]${GN} Shutting down${BL} $CTID ${CL} \n"
-  pct shutdown $CTID &
-elif [ "$status" == "status: running" ]; then
-  clean_container $CTID
+# Check, ob das LXC läuft, wenn nicht, starte es
+LXC_STATUS=$(pct status "$CTID" | awk '{print $2}')
+if [[ "$LXC_STATUS" != "running" ]]; then
+  msg "\e[1;33m The container $CTID is not running. Starting it now...\e[0m"
+  pct start "$CTID"
+  # Warten, bis der Container vollständig gestartet ist
+  while [[ "$(pct status "$CTID" | awk '{print $2}')" != "running" ]]; do
+    msg "\e[1;33m Waiting for the container to start...\e[0m"
+    sleep 2
+  done
+  msg "\e[1;32m Container $CTID is now running.\e[0m"
 fi
 
+# Nun, nachdem der Container läuft, überprüfen wir die Distribution
 DISTRO=$(pct exec "$CTID" -- cat /etc/os-release | grep -w "ID" | cut -d'=' -f2 | tr -d '"')
 if [[ "$DISTRO" != "debian" && "$DISTRO" != "ubuntu" ]]; then
   msg "\e[1;31m Error: This script only supports Debian or Ubuntu LXC containers. Detected: $DISTRO. Aborting...\e[0m"
