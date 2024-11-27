@@ -40,6 +40,7 @@ wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -
 msg_ok "Installed Additional Tools"
 
 msg_info "Installing Meilisearch"
+cd /tmp
 wget -q https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb
 $STD dpkg -i meilisearch.deb
 wget -q https://raw.githubusercontent.com/meilisearch/meilisearch/latest/config.toml -O /etc/meilisearch.toml
@@ -147,11 +148,11 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-#systemctl enable --now meilisearch hoarder-web.service hoarder-workers.service
+systemctl enable --now meilisearch hoarder-web.service hoarder-workers.service
 msg_ok "Set up Services"
 
 msg_info "Cleaning up"
-#rm -rf /tmp/meilisearch.deb
+rm -rf /tmp/meilisearch.deb
 $STD apt-get autoremove -y
 $STD apt-get autoclean -y
 msg_ok "Cleaned"
