@@ -74,6 +74,7 @@ cd /opt/hoarder
 corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
 export NEXT_TELEMETRY_DISABLED=1
+export CI="true"
 cd /opt/hoarder/apps/web && $STD pnpm install --frozen-lockfile
 cd /opt/hoarder/apps/workers && $STD pnpm install --frozen-lockfile
 cd /opt/hoarder/apps/web && $STD pnpm exec next build --experimental-build-mode compile
@@ -146,11 +147,11 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-systemctl enable --now meilisearch hoarder-web.service hoarder-workers.service
+#systemctl enable --now meilisearch hoarder-web.service hoarder-workers.service
 msg_ok "Set up Services"
 
 msg_info "Cleaning up"
-rm -rf /tmp/meilisearch.deb
+#rm -rf /tmp/meilisearch.deb
 $STD apt-get autoremove -y
 $STD apt-get autoclean -y
 msg_ok "Cleaned"
