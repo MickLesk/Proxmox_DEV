@@ -53,18 +53,18 @@ while [ -z "${CTID:+x}" ]; do
     "${CTID_MENU[@]}" 3>&1 1>&2 2>&3) || exit
 done
 
-status=$(pct status $container)
-template=$(pct config $container | grep -q "template:" && echo "true" || echo "false")
+status=$(pct status $CTID)
+template=$(pct config $CTID | grep -q "template:" && echo "true" || echo "false")
 if [ "$template" == "false" ] && [ "$status" == "status: stopped" ]; then
-  echo -e "${BL}[Info]${GN} Starting${BL} $container ${CL} \n"
-  pct start $container
-  echo -e "${BL}[Info]${GN} Waiting For${BL} $container${CL}${GN} To Start ${CL} \n"
+  echo -e "${BL}[Info]${GN} Starting${BL} $CTID ${CL} \n"
+  pct start $CTID
+  echo -e "${BL}[Info]${GN} Waiting For${BL} $CTID${CL}${GN} To Start ${CL} \n"
   sleep 5
-  clean_container $container
-  echo -e "${BL}[Info]${GN} Shutting down${BL} $container ${CL} \n"
-  pct shutdown $container &
+  clean_container $CTID
+  echo -e "${BL}[Info]${GN} Shutting down${BL} $CTID ${CL} \n"
+  pct shutdown $CTID &
 elif [ "$status" == "status: running" ]; then
-  clean_container $container
+  clean_container $CTID
 fi
 
 DISTRO=$(pct exec "$CTID" -- cat /etc/os-release | grep -w "ID" | cut -d'=' -f2 | tr -d '"')
