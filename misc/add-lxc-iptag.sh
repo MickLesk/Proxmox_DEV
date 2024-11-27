@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2024 MickLesk
+# Copyright (c) 2021-2024 community-scripts ORG
+# Author: MickLesk (Canbiz)
+# Maker/Programmer: gitsang 
 # License: MIT
-# https://github.com/MickLesk/Proxmox_DEV
+# https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
+# Original-Source: https://github.com/gitsang/lxc-iptag
 
 function header_info {
     cat <<"EOF"
