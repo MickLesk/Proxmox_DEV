@@ -67,16 +67,16 @@ cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip && mv hoarder-${RELEASE} /opt/hoarder
-cd /opt/hoarder
+
 mkdir -p /opt/hoarder_data
 
+cd /opt/hoarder
 corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
 export NEXT_TELEMETRY_DISABLED=1
-
-cd apps/web && $STD pnpm install --frozen-lockfile
-cd ../workers && $STD pnpm install --frozen-lockfile
-cd ../web && $STD pnpm exec next build --experimental-build-mode compile
+cd /opt/hoarder/apps/web && $STD pnpm install --frozen-lockfile
+cd /opt/hoarder/workers && $STD pnpm install --frozen-lockfile
+cd /opt/hoarder/apps/web && $STD pnpm exec next build --experimental-build-mode compile
 cp -r .next/standalone/apps/web/server.js .
 
 HOARDER_SECRET=$(openssl rand -base64 36 | cut -c1-24)

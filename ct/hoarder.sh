@@ -14,7 +14,7 @@ var_cpu="3"
 var_ram="4096"
 var_os="debian"
 var_version="12"
-var_verbose="no"
+var_verbose="yes"
 
 # App Output & Base Settings
 header_info "$APP"
