@@ -75,7 +75,7 @@ corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
 export NEXT_TELEMETRY_DISABLED=1
 cd /opt/hoarder/apps/web && $STD pnpm install --frozen-lockfile
-cd /opt/hoarder/workers && $STD pnpm install --frozen-lockfile
+cd /opt/hoarder/apps/workers && $STD pnpm install --frozen-lockfile
 cd /opt/hoarder/apps/web && $STD pnpm exec next build --experimental-build-mode compile
 cp -r .next/standalone/apps/web/server.js .
 
