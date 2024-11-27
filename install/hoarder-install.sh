@@ -34,30 +34,25 @@ $STD apt-get install -y \
   mc
 msg_ok "Installed Dependencies"
 
-msg_info "Installing Hoarder Dependencies"
-cd /tmp
+msg_info "Installing Additional Tools"
+wget -q https://github.com/Y2Z/monolith/releases/latest/download/monolith-gnu-linux-x86_64 -O /usr/bin/monolith && chmod +x /usr/bin/monolith
+wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -O /usr/bin/yt-dlp && chmod +x /usr/bin/yt-dlp
+msg_ok "Installed Additional Tools"
 
-wget -q https://github.com/Y2Z/monolith/releases/latest/download/monolith-gnu-linux-x86_64 -O monolith 
-chmod +x monolith
-mv monolith /usr/bin
-
-wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -O yt-dlp
-chmod +x yt-dlp 
-mv yt-dlp /usr/bin
-
+msg_info "Installing Meilisearch"
 wget -q https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb
-$STD dpkg -i meilisearch.deb 
-wget -q https://raw.githubusercontent.com/meilisearch/meilisearch/latest/config.toml > /etc/meilisearch.toml
-MASTER_KEY=$(openssl rand -base64 12) # 12 Base64-Zeichen ergeben ~16 Bytes
+$STD dpkg -i meilisearch.deb
+wget -q https://raw.githubusercontent.com/meilisearch/meilisearch/latest/config.toml -O /etc/meilisearch.toml
+MASTER_KEY=$(openssl rand -base64 12)
 sed -i \
     -e 's|^env =.*|env = "production"|' \
     -e "s|^# master_key =.*|master_key = \"$MASTER_KEY\"|" \
     -e 's|^db_path =.*|db_path = "/var/lib/meilisearch/data"|' \
     -e 's|^dump_dir =.*|dump_dir = "/var/lib/meilisearch/dumps"|' \
     -e 's|^snapshot_dir =.*|snapshot_dir = "/var/lib/meilisearch/snapshots"|' \
-	-e 's|^# no_analytics = true|no_analytics = true|' \
+    -e 's|^# no_analytics = true|no_analytics = true|' \
     /etc/meilisearch.toml
-msg_ok "Installed Hoarder Dependencies"
+msg_ok "Installed Meilisearch"
 
 msg_info "Installing Node.js"
 mkdir -p /etc/apt/keyrings
@@ -71,58 +66,55 @@ msg_info "Installing Hoarder"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hoarder-app/hoarder/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 wget -q "https://github.com/hoarder-app/hoarder/archive/refs/tags/v${RELEASE}.zip"
-unzip -q v${RELEASE}.zip
-mv hoarder-${RELEASE} /opt/hoarder
+unzip -q v${RELEASE}.zip && mv hoarder-${RELEASE} /opt/hoarder
 cd /opt/hoarder
 mkdir -p /opt/hoarder_data
-$STD corepack enable
+
+corepack enable
 export PUPPETEER_SKIP_DOWNLOAD="true"
 export NEXT_TELEMETRY_DISABLED=1
-export CI="true"
-cd /opt/hoarder/apps/web
-$STD pnpm install --frozen-lockfile
-cd /opt/hoarder/apps/workers
-$STD pnpm install --frozen-lockfile
-cd /opt/hoarder/apps/web
-$STD pnpm exec next build --experimental-build-mode compile
-cp -r /opt/hoarder/apps/web/.next/standalone/apps/web/server.js /opt/hoarder/apps/web
 
-HOARDER_SECRET="$(openssl rand -base64 36 | cut -c1-24)"
-MEILI_SECRET="$(openssl rand -base64 36)"
-{
-    echo ""
-    echo "Hoarder-Credentials"
-    echo "Meilisearch Secret: $MEILI_SECRET"
-    echo "Hoarder Secret: $HOARDER_SECRET"
-} >> ~/hoarder.creds
-# Prepare the environment file
-cat <<EOF >/opt/hoarder/.env
+cd apps/web && $STD pnpm install --frozen-lockfile
+cd ../workers && $STD pnpm install --frozen-lockfile
+cd ../web && $STD pnpm exec next build --experimental-build-mode compile
+cp -r .next/standalone/apps/web/server.js .
+
+HOARDER_SECRET=$(openssl rand -base64 36 | cut -c1-24)
+#MEILI_SECRET=$(openssl rand -base64 36)
+
+cat <<EOF >.env
 NEXTAUTH_SECRET="$HOARDER_SECRET"
 NEXTAUTH_URL="http://localhost:3000"
 DATA_DIR="/opt/hoarder_data"
 MEILI_ADDR="http://127.0.0.1:7700"
-MEILI_MASTER_KEY="$MEILI_SECRET"
-BROWSER_WEB_URL="http://127.0.0.1:9222"
-CRAWLER_VIDEO_DOWNLOAD=true
+MEILI_MASTER_KEY="$MASTER_KEY"
 EOF
 echo "${RELEASE}" >"/opt/Hoarder_version.txt"
 msg_ok "Installed Hoarder"
 
 msg_info "Running Database Migration"
 cd /opt/hoarder/packages/db
-$STD pnpm dlx @vercel/ncc build migrate.ts -o /db_migrations
+pnpm dlx @vercel/ncc build migrate.ts -o /db_migrations
 cp -R drizzle /db_migrations
 pnpm migrate
 msg_ok "Database Migration Completed"
 
-msg_info "Setting up Hoarder CLI"
-cd /opt/hoarder/apps/cli
-pnpm build
-ln -s /opt/hoarder/apps/cli/dist/index.mjs /usr/local/bin/hoarder-cli
-chmod +x /usr/local/bin/hoarder-cli
-msg_ok "Hoarder CLI installed"
+msg_info "Setting up Services"
+# Meilisearch Service
+cat <<EOF >/etc/systemd/system/meilisearch.service
+[Unit]
+Description=Meilisearch
+After=network.target
 
-msg_info "Creating Services"
+[Service]
+ExecStart=/usr/bin/meilisearch --config-file-path /etc/meilisearch.toml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Hoarder Web Service
 cat <<EOF >/etc/systemd/system/hoarder-web.service
 [Unit]
 Description=Hoarder Web
@@ -131,15 +123,14 @@ After=network.target
 [Service]
 ExecStart=pnpm start
 WorkingDirectory=/opt/hoarder/apps/web
-Restart=always
-RestartSec=10
-
 EnvironmentFile=/opt/hoarder/.env
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
+# Hoarder Workers Service
 cat <<EOF >/etc/systemd/system/hoarder-workers.service
 [Unit]
 Description=Hoarder Workers
@@ -148,40 +139,18 @@ After=network.target
 [Service]
 ExecStart=pnpm start:prod
 WorkingDirectory=/opt/hoarder/apps/workers
-Restart=always
-RestartSec=10
-
 EnvironmentFile=/opt/hoarder/.env
-
-[Install]
-WantedBy=multi-user.target
-EOF
-cat << EOF > /etc/systemd/system/meilisearch.service
-[Unit]
-Description=Meilisearch
-After=systemd-user-sessions.service
-
-[Service]
-Type=simple
-WorkingDirectory=/var/lib/meilisearch
-ExecStart=/usr/bin/meilisearch --config-file-path /etc/meilisearch.toml
-User=root
-Restart=on-failure
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-systemctl enable -q --now meilisearch
-systemctl enable -q --now hoarder-web.service
-systemctl enable -q --now hoarder-workers.service
-msg_ok "Created Services"
-
-motd_ssh
-customize
+systemctl enable --now meilisearch hoarder-web.service hoarder-workers.service
+msg_ok "Set up Services"
 
 msg_info "Cleaning up"
 rm -rf /tmp/meilisearch.deb
-$STD apt-get -y autoremove
-$STD apt-get -y autoclean
+$STD apt-get autoremove -y
+$STD apt-get autoclean -y
 msg_ok "Cleaned"
