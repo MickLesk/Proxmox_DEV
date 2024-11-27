@@ -83,7 +83,7 @@ cp -r .next/standalone/apps/web/server.js .
 HOARDER_SECRET=$(openssl rand -base64 36 | cut -c1-24)
 #MEILI_SECRET=$(openssl rand -base64 36)
 
-cat <<EOF >.env
+cat <<EOF >/opt/hoarder/.env
 NEXTAUTH_SECRET="$HOARDER_SECRET"
 NEXTAUTH_URL="http://localhost:3000"
 DATA_DIR="/opt/hoarder_data"
