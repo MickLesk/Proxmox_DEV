@@ -67,6 +67,22 @@ function msg_ok() {
     echo -e "${BFR} ${CM} ${GN}${msg}${CL}"
 }
 
+msg_error() {
+  local msg="$1"
+  echo -e "${BFR} ${CROSS} ${RD}${msg}${CL}"
+}
+
+if ! pveversion | grep -Eq "pve-manager/8.[0-3]"; then
+  msg_error "This script can only be executed on the Proxmox main node."
+  exit 1
+fi
+
+FILE_PATH="/usr/local/bin/iptag"
+if [[ -f "$FILE_PATH" ]]; then
+  msg_info "The file already exists in the path: '$FILE_PATH' . Skip Installation."
+  exit 0
+fi
+
 msg_info "Installing Prerequisites"
 apt-get update &>/dev/null
 apt-get install -y ipcalc &>/dev/null
