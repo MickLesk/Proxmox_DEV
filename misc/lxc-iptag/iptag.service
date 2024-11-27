@@ -1,10 +1,10 @@
 [Unit]
-Description=Start lxc-iptag service
+Description=LXC IP-Tag service
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/lxc-iptag
+ExecStart=/usr/local/bin/iptag
 Restart=always
 
 [Install]

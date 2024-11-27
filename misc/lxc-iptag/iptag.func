@@ -12,10 +12,8 @@ FW_NET_INTERFACE_CHECK_INTERVAL=60
 LXC_STATUS_CHECK_INTERVAL=-1
 FORCE_UPDATE_INTERVAL=1800
 
-if [ -f "/usr/local/etc/lxc-iptag.conf" ]; then
-    # shellcheck source=./lxc-iptag.conf
-    # shellcheck source=/usr/local/etc/lxc-iptag.conf
-    source /usr/local/etc/lxc-iptag.conf
+if [ -f "/usr/local/etc/iptag.conf" ]; then
+    source /usr/local/etc/iptag.conf
 fi
 
 # =============== UTIL_FUNCTION =============== #
