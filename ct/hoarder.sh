@@ -9,8 +9,8 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 ## App Default Values
 APP="Hoarder"
 TAGS="bookmark;links"
-var_disk="10"
-var_cpu="3"
+var_disk="11"
+var_cpu="4"
 var_ram="4096"
 var_os="debian"
 var_version="12"
