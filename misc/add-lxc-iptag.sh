@@ -29,7 +29,6 @@ set -o errexit
 set -o errtrace
 set -o nounset
 set -o pipefail
-set -xe
 shopt -s expand_aliases
 alias die='EXIT=$? LINE=$LINENO error_exit'
 trap die ERR
