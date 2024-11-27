@@ -47,7 +47,7 @@ mv yt-dlp /usr/bin
 
 wget -q https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb
 $STD dpkg -i meilisearch.deb 
-curl https://raw.githubusercontent.com/meilisearch/meilisearch/latest/config.toml > /etc/meilisearch.toml
+wget -q https://raw.githubusercontent.com/meilisearch/meilisearch/latest/config.toml > /etc/meilisearch.toml
 MASTER_KEY=$(openssl rand -base64 12) # 12 Base64-Zeichen ergeben ~16 Bytes
 sed -i \
     -e 's|^env =.*|env = "production"|' \
