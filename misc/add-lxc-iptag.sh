@@ -95,10 +95,10 @@ curl -sSL https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main
 curl -sSL https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/lxc-iptag/iptag.service -o /lib/systemd/system/iptag.service
 msg_ok "Setup IP-Tag Scripts"
 
-msg_info "Configuring Systemd Service"
+msg_info "Starting Systemd Service"
 systemctl daemon-reload &>/dev/null
 systemctl enable -q --now iptag.service &>/dev/null
-msg_ok "Configured and Started IPTAG Service"
+msg_ok "Started Systemd Service"
 
 echo -e "\n${APP} installation completed successfully!"
 
