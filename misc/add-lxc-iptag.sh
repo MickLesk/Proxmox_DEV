@@ -20,8 +20,7 @@ EOF
 
 clear
 header_info
-APP="LXC IP-Tag"
-hostname=$(hostname)
+
 
 # Farbvariablen
 YW=$(echo "\033[33m")
@@ -33,60 +32,25 @@ HOLD=" "
 CM=" ✔️ ${CL}"
 CROSS=" ✖️ ${CL}"
 
-# This function enables error handling in the script by setting options and defining a trap for the ERR signal.
-catch_errors() {
-  set -Eeuo pipefail
-  trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
+set -o errexit
+set -o errtrace
+set -o nounset
+set -o pipefail
+shopt -s expand_aliases
+alias die='EXIT=$? LINE=$LINENO error_exit'
+trap die ERR
+
+function error_exit() {
+    trap - ERR
+    local reason="Unknown failure occurred."
+    local msg="${1:-$reason}"
+    local flag="${CROSS} ERROR ${CL}$EXIT@$LINE"
+    echo -e "$flag $msg" 1>&2
+    exit $EXIT
 }
 
-# This function is called when an error occurs. It receives the exit code, line number, and command that caused the error, and displays an error message.
-error_handler() {
-  if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
-  printf "\e[?25h"
-  local exit_code="$?"
-  local line_number="$1"
-  local command="$2"
-  local error_message="${RD}[ERROR]${CL} in line ${RD}$line_number${CL}: exit code ${RD}$exit_code${CL}: while executing command ${YW}$command${CL}"
-  echo -e "\n$error_message\n"
-}
-
-spinner() {
-    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-    local spin_i=0
-    local interval=0.1 
-    printf "\e[?25l"  
-    local orange="\e[38;5;214m"
-
-    while true; do
-        printf "\r ${orange}%s\e[0m " "${frames[spin_i]}"
-        spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
-        sleep "$interval"
-    done
-}
-
-# This function displays an informational message with a yellow color.
-msg_info() {
-    local msg="$1"
-    echo -ne " ${HOLD} ${YW}${msg}   "
-    spinner & 
-    SPINNER_PID=$!  
-}
-
-# This function displays a success message with a green color.
-msg_ok() {
-  if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
-  printf "\e[?25h"
-  local msg="$1"
-  echo -e "${BFR}${CM} ${GN}${msg}${CL}"
-}
-
-# This function displays a error message with a red color.
-msg_error() {
-  if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
-  printf "\e[?25h"
-  local msg="$1"
-  echo -e "${BFR}${CROSS} ${RD}${msg}${CL}"
-}
+APP="LXC IP-Tag"
+hostname=$(hostname)
 
 while true; do
     read -p "This will install ${APP} on ${hostname}. Proceed? (y/n): " yn
@@ -96,6 +60,21 @@ while true; do
     *) echo "Please answer yes or no." ;;
     esac
 done
+
+function msg_info() {
+    local msg="$1"
+    echo -ne " ${HOLD} ${YW}${msg}${CL}"
+}
+
+function msg_ok() {
+    local msg="$1"
+    echo -e "${BFR} ${CM} ${GN}${msg}${CL}"
+}
+
+function msg_error() {
+  local msg="$1"
+  echo -e "${BFR} ${CROSS} ${RD}${msg}${CL}"
+}
 
 if ! pveversion | grep -Eq "pve-manager/8.[0-3]"; then
   msg_error "This version of Proxmox Virtual Environment is not supported"
