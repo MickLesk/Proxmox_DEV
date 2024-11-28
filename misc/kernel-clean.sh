@@ -61,12 +61,19 @@ remove_kernels=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Curre
   clear
   exit
 }
-whiptail --backtitle "Proxmox VE Helper Scripts" --title "Remove Kernels" --yesno "Would you like to remove the $(echo $remove_kernels | awk '{print NF}') previously selected Kernels?" 10 68 || exit
+echo "$remove_kernels"
 
+whiptail --backtitle "Proxmox VE Helper Scripts" --title "Remove Kernels" --yesno "Would you like to remove the $(echo $remove_kernels | awk '{print NF}') previously selected Kernels?" 10 68 || exit
+echo "Removing the following kernels: $remove_kernels"
 msg_info "Removing ${CL}${RD}$(echo $remove_kernels | awk '{print NF}') ${CL}${YW}old Kernels${CL}"
 for kernel in $remove_kernels; do
-  sudo apt purge -y $kernel >/dev/null 2>&1
-  sleep 5
+  echo "Processing kernel: $kernel"
+  if dpkg --list | grep -qw "$kernel"; then
+    echo "Removing kernel: $kernel"
+    sudo apt purge -y "$kernel" || echo "Failed to purge $kernel"
+  else
+    echo "Kernel not found: $kernel"
+  fi
 done
 msg_ok "Successfully Removed Kernels"
 
