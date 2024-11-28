@@ -53,12 +53,12 @@ error_handler() {
 spinner() {
     local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
     local spin_i=0
-    local interval=0.1 
+    local interval=0.1
     printf "\e[?25l"  
-    local orange="\e[38;5;214m"
+    local purple="\e[38;5;171m"  # Lila statt Orange
 
     while true; do
-        printf "\r ${orange}%s\e[0m " "${frames[spin_i]}"
+        printf "\r ${purple}%s\e[0m " "${frames[spin_i]}"
         spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
         sleep "$interval"
     done
