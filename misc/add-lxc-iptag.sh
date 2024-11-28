@@ -348,4 +348,4 @@ systemctl daemon-reload &>/dev/null
 systemctl enable -q --now iptag.service &>/dev/null
 msg_ok "Started Service"
 
-echo -e "\n${APP} installation completed successfully!"
+echo -e "\n${APP} installation completed successfully! ${CL}\n"
