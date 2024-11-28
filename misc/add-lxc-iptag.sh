@@ -348,3 +348,4 @@ systemctl enable -q --now iptag.service &>/dev/null
 msg_ok "Started Service"
 
 echo -e "${APP} installation completed successfully! ${CL}\n"
+SPINNER_PID=""
