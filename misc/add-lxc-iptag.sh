@@ -96,6 +96,9 @@ apt-get install -y ipcalc net-tools &>/dev/null
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up IP-Tag Scripts"
+# create folder in /opt
+mkdir -p /opt/lxc-iptag
+
 # Setting up default conf
 if [[ ! -f /opt/lxc-iptag/iptag.conf ]]; then
     cat <<EOF > /opt/lxc-iptag/iptag.conf
