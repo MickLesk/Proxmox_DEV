@@ -3,7 +3,7 @@
 # Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
-# https://github.com/tteck/Proxmox/raw/main/LICENSE
+# https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 
 function header_info {
   clear
@@ -64,7 +64,10 @@ remove_kernels=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Curre
 whiptail --backtitle "Proxmox VE Helper Scripts" --title "Remove Kernels" --yesno "Would you like to remove the $(echo $remove_kernels | awk '{print NF}') previously selected Kernels?" 10 68 || exit
 
 msg_info "Removing ${CL}${RD}$(echo $remove_kernels | awk '{print NF}') ${CL}${YW}old Kernels${CL}"
-/usr/bin/apt purge -y $remove_kernels >/dev/null 2>&1
+for kernel in $remove_kernels; do
+  sudo apt purge -y $kernel >/dev/null 2>&1
+  sleep 5
+done
 msg_ok "Successfully Removed Kernels"
 
 msg_info "Updating GRUB"
