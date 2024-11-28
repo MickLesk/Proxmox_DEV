@@ -16,6 +16,8 @@ function header_info {
 
 EOF
 }
+
+# Color variables for output
 YW=$(echo "\033[33m")
 RD=$(echo "\033[01;31m")
 GN=$(echo "\033[1;92m")
@@ -23,10 +25,8 @@ CL=$(echo "\033[m")
 BFR="\\r\\033[K"
 HOLD="-"
 CM="${GN}✓${CL}"
-current_kernel=$(uname -r)
-available_kernels=$(dpkg --list | grep 'kernel-.*-pve' | awk '{print $2}' | grep -v "$current_kernel" | sort -V)
-header_info
 
+# Functions for logging messages
 function msg_info() {
   local msg="$1"
   echo -ne " ${HOLD} ${YW}${msg}..."
@@ -37,51 +37,73 @@ function msg_ok() {
   echo -e "${BFR} ${CM} ${GN}${msg}${CL}"
 }
 
-whiptail --backtitle "Proxmox VE Helper Scripts" --title "Proxmox VE Kernel Clean" --yesno "This will Clean Unused Kernel Images, USE AT YOUR OWN RISK. Proceed?" 10 68 || exit
+# Detect current kernel
+current_kernel=$(uname -r)
+
+# Detect all installed kernels except the current one
+available_kernels=$(dpkg --list | grep 'kernel-.*-pve' | awk '{print $2}' | grep -v "$current_kernel" | sort -V)
+
+header_info
+
+# If no old kernels are available, exit with a message
 if [ -z "$available_kernels" ]; then
-  whiptail --backtitle "Proxmox VE Helper Scripts" --title "No Old Kernels" --msgbox "It appears there are no old Kernels on your system. \nCurrent kernel ($current_kernel)." 10 68
+  whiptail --backtitle "Proxmox VE Helper Scripts" --title "No Old Kernels" \
+    --msgbox "It appears there are no old kernels on your system.\nCurrent kernel: $current_kernel" 10 68
   echo "Exiting..."
   sleep 2
   clear
   exit
 fi
-  KERNEL_MENU=()
-  MSG_MAX_LENGTH=0
+
+# Prepare kernel options for selection
+KERNEL_MENU=()
 while read -r TAG ITEM; do
   OFFSET=2
-  ((${#ITEM} + OFFSET > MSG_MAX_LENGTH)) && MSG_MAX_LENGTH=${#ITEM}+OFFSET
+  MSG_MAX_LENGTH=$((MSG_MAX_LENGTH < ${#ITEM} + OFFSET ? ${#ITEM} + OFFSET : MSG_MAX_LENGTH))
   KERNEL_MENU+=("$TAG" "$ITEM " "OFF")
 done < <(echo "$available_kernels")
 
-remove_kernels=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Current Kernel $current_kernel" --checklist "\nSelect Kernels to remove:\n" 16 $((MSG_MAX_LENGTH + 58)) 6 "${KERNEL_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
+# Display checklist to select kernels for removal
+remove_kernels=$(whiptail --backtitle "Proxmox VE Helper Scripts" \
+  --title "Current Kernel: $current_kernel" \
+  --checklist "\nSelect kernels to remove:\n" \
+  16 $((MSG_MAX_LENGTH + 58)) 6 "${KERNEL_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
+
+# Exit if no kernel was selected
 [ -z "$remove_kernels" ] && {
-  whiptail --backtitle "Proxmox VE Helper Scripts" --title "No Kernel Selected" --msgbox "It appears that no Kernel was selected" 10 68
+  whiptail --backtitle "Proxmox VE Helper Scripts" --title "No Kernel Selected" \
+    --msgbox "It appears no kernel was selected." 10 68
   echo "Exiting..."
   sleep 2
   clear
   exit
 }
-echo "$remove_kernels"
 
-whiptail --backtitle "Proxmox VE Helper Scripts" --title "Remove Kernels" --yesno "Would you like to remove the $(echo $remove_kernels | awk '{print NF}') previously selected Kernels?" 10 68 || exit
-echo "Removing the following kernels: $remove_kernels"
-msg_info "Removing ${CL}${RD}$(echo $remove_kernels | awk '{print NF}') ${CL}${YW}old Kernels${CL}"
+# Confirm removal
+whiptail --backtitle "Proxmox VE Helper Scripts" --title "Remove Kernels" \
+  --yesno "Would you like to remove the $(echo $remove_kernels | awk '{print NF}') selected kernels?" 10 68 || exit
+
+# Process kernel removal
+msg_info "Removing ${RD}$(echo $remove_kernels | awk '{print NF}') ${YW}old kernels${CL}"
 for kernel in $remove_kernels; do
-  echo "Processing kernel: $kernel"
-  if dpkg --list | grep -qw "$kernel"; then
-    echo "Removing kernel: $kernel"
-    touch /please-remove-proxmox-ve
-    /usr/bin/apt purge -y "$kernel" || echo "Failed to purge $kernel"
-    rm -f /please-remove-proxmox-ve
+  # Remove kernel package
+  if sudo apt-get purge -y "$kernel" >/dev/null 2>&1; then
+    msg_ok "Removed kernel: $kernel"
   else
-    echo "Kernel not found: $kernel"
+    msg_info "Failed to remove kernel: $kernel"
   fi
+  sleep 1
 done
-msg_ok "Successfully Removed Kernels"
 
+# Update GRUB configuration
 msg_info "Updating GRUB"
-/usr/sbin/update-grub >/dev/null 2>&1
-msg_ok "Successfully Updated GRUB"
+if /usr/sbin/update-grub >/dev/null 2>&1; then
+  msg_ok "GRUB updated successfully"
+else
+  msg_info "Failed to update GRUB"
+fi
+
+# Completion message
 msg_info "Exiting"
 sleep 2
 msg_ok "Finished"
