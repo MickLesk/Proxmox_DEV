@@ -142,7 +142,7 @@ fi
 
 # setting up main function
 if [[ ! -f /opt/lxc-iptag/iptag ]]; then
-    cat <<EOF > /opt/lxc-iptag/iptag
+    cat <<'EOF' > /opt/lxc-iptag/iptag
 #!/bin/bash
 
 # =============== CONFIGURATION =============== #
