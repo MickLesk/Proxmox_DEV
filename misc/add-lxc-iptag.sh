@@ -2,13 +2,13 @@
 
 # Copyright (c) 2021-2024 community-scripts ORG
 # Author: MickLesk (Canbiz)
-# Maker/Programmer: gitsang 
 # License: MIT
 # https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 # Original-Source: https://github.com/gitsang/lxc-iptag
 
 function header_info {
-    cat <<"EOF"
+  clear
+  cat <<"EOF"
     __   _  ________   ________      ______           
    / /  | |/ / ____/  /  _/ __ \    /_  __/___ _____ _
   / /   |   / /       / // /_/ /_____/ / / __ `/ __ `/
@@ -117,10 +117,9 @@ apt-get install -y ipcalc net-tools &>/dev/null
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up IP-Tag Scripts"
-# create folder in /opt
 mkdir -p /opt/lxc-iptag
 
-# Setting up default conf
+msg_info "Setup Default Config"
 if [[ ! -f /opt/lxc-iptag/iptag.conf ]]; then
     cat <<EOF > /opt/lxc-iptag/iptag.conf
 # Configuration file for LXC IP tagging
@@ -138,9 +137,12 @@ FW_NET_INTERFACE_CHECK_INTERVAL=60
 LXC_STATUS_CHECK_INTERVAL=-1
 FORCE_UPDATE_INTERVAL=1800
 EOF
+    msg_ok "Setup default config"
+else
+    msg_ok "Default config already exists"
 fi
 
-# setting up main function
+msg_info "Setup Main Function"
 if [[ ! -f /opt/lxc-iptag/iptag ]]; then
     cat <<'EOF' > /opt/lxc-iptag/iptag
 #!/bin/bash
@@ -312,9 +314,13 @@ main() {
 
 main
 EOF
+    msg_ok "Setup Main Function"
+else
+    msg_ok "Main Function already exists"
 fi
+chmod +x /opt/lxc-iptag/iptag 
 
-# setting up service file
+msg_info "Creating Service"
 if [[ ! -f /lib/systemd/system/iptag.service ]]; then
     echo "Systemd service file not found. Creating it now..."
     cat <<EOF > /lib/systemd/system/iptag.service
@@ -330,9 +336,11 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
+    msg_ok "Created Service"
+else
+    msg_ok "Service already exists."
 fi
 
-chmod +x /opt/lxc-iptag/iptag 
 msg_ok "Setup IP-Tag Scripts"
 
 msg_info "Starting Service"
