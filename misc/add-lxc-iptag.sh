@@ -332,6 +332,8 @@ WantedBy=multi-user.target
 EOF
 fi
 
+chmod +x /opt/lxc-iptag/iptag 
+
 #curl -sSL https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/lxc-iptag/iptag.func -o /usr/local/bin/iptag
 #chmod +x /usr/local/bin/iptag
 #curl -sSL https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/lxc-iptag/iptag.conf -o /usr/local/etc/iptag.conf
