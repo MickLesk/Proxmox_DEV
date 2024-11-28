@@ -70,7 +70,9 @@ for kernel in $remove_kernels; do
   echo "Processing kernel: $kernel"
   if dpkg --list | grep -qw "$kernel"; then
     echo "Removing kernel: $kernel"
-    sudo apt purge -y "$kernel" || echo "Failed to purge $kernel"
+    touch /please-remove-proxmox-ve
+    /usr/bin/apt purge -y "$kernel" || echo "Failed to purge $kernel"
+    rm -f /please-remove-proxmox-ve
   else
     echo "Kernel not found: $kernel"
   fi
