@@ -86,11 +86,22 @@ whiptail --backtitle "Proxmox VE Helper Scripts" --title "Remove Kernels" \
 # Process kernel removal
 msg_info "Removing ${RD}$(echo $remove_kernels | awk '{print NF}') ${YW}old kernels${CL}"
 for kernel in $remove_kernels; do
-  # Remove kernel package
-  if sudo apt-get purge -y "$kernel" >/dev/null 2>&1; then
-    msg_ok "Removed kernel: $kernel"
+  if [[ $kernel == *"-signed" ]]; then
+    # Handle signed kernels with dependencies
+    touch /please-remove-proxmox-ve  # Temporarily bypass Proxmox warnings
+    if sudo apt-get purge -y "$kernel" >/dev/null 2>&1; then
+      msg_ok "Removed kernel: $kernel"
+    else
+      msg_info "Failed to remove kernel: $kernel. Check dependencies or manual removal."
+    fi
+    rm -f /please-remove-proxmox-ve  # Clean up bypass file
   else
-    msg_info "Failed to remove kernel: $kernel"
+    # Standard kernel removal
+    if sudo apt-get purge -y "$kernel" >/dev/null 2>&1; then
+      msg_ok "Removed kernel: $kernel"
+    else
+      msg_info "Failed to remove kernel: $kernel. Check dependencies or manual removal."
+    fi
   fi
   sleep 1
 done
