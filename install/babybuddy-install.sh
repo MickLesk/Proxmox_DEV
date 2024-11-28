@@ -28,17 +28,16 @@ $STD apt-get install -y \
   nginx \
   python3 \
   python3-pip \
+  python3-venv \
   pipx
 msg_ok "Installed Dependencies"
 
 # Installiere Python3 und PipX
-msg_info "Installing Python3 & PipX" 
-$STD apt-get install -y python3 python3-dev python3-dotenv python3-pip 
+#msg_info "Installing Python3 & PipX" 
+#$STD apt-get install -y python3 python3-dev python3-dotenv python3-pip 
 
-pipx ensurepath
-pipx install pipenv
-pipx install dotenv
-msg_ok "Installed Python3 & PipX"
+#source /opt/babybuddy/.venv/bin/activate
+#msg_ok "Installed Python3 & PipX"
 
 # Variablen
 INSTALL_DIR="/opt/babybuddy"
@@ -55,6 +54,7 @@ wget -q "https://github.com/babybuddy/babybuddy/archive/refs/tags/v${RELEASE}.zi
 unzip -q v${RELEASE}.zip
 mv babybuddy-${RELEASE} /opt/babybuddy
 cd /opt/babybuddy
+source /opt/babybuddy/.venv/bin/activate
 export PIPENV_VENV_IN_PROJECT=1
 pipenv install
 pipenv shell
