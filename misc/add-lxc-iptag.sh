@@ -92,15 +92,15 @@ while true; do
     read -p "This will install ${APP} on ${hostname}. Proceed? (y/n): " yn
     case $yn in
     [Yy]*) break ;;
-    [Nn]*) echo "Installation cancelled."; exit ;;
-    *) echo "Please answer yes or no." ;;
+    [Nn]*) msg_info "Installation cancelled."; exit ;;
+    *) msg_info "Please answer yes or no." ;;
     esac
 done
 
 if ! pveversion | grep -Eq "pve-manager/8.[0-3]"; then
   msg_error "This version of Proxmox Virtual Environment is not supported"
-  echo -e "⚠️ Requires Proxmox Virtual Environment Version 8.0 or later."
-  echo -e "Exiting..."
+  msg_error "⚠️ Requires Proxmox Virtual Environment Version 8.0 or later."
+  msg_error "Exiting..."
   sleep 2
   exit
 fi
@@ -333,11 +333,6 @@ EOF
 fi
 
 chmod +x /opt/lxc-iptag/iptag 
-
-#curl -sSL https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/lxc-iptag/iptag.func -o /usr/local/bin/iptag
-#chmod +x /usr/local/bin/iptag
-#curl -sSL https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/lxc-iptag/iptag.conf -o /usr/local/etc/iptag.conf
-#curl -sSL https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/lxc-iptag/iptag.service -o /lib/systemd/system/iptag.service
 msg_ok "Setup IP-Tag Scripts"
 
 msg_info "Starting Service"
