@@ -21,7 +21,7 @@ color() {
   BOLD=$(echo "\033[1m")
   BFR="\\r\\033[K"
   HOLD=" "
-  TAB=$(echo -e "\t")
+  TAB="  "
 
   # Functions
   CM="${TAB}✔️${TAB}${CL}"
