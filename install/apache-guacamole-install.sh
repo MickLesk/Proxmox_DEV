@@ -73,7 +73,9 @@ msg_ok "Installed Apache Tomcat 9.0.97"
 msg_info "Installing Apache Guacamole 1.5.5"
 GUACAMOLE_VERSION="1.5.5"
 
-wget -q "https://apache.org/dyn/closer.lua/guacamole/${GUACAMOLE_VERSION}/source/guacamole-server-${GUACAMOLE_VERSION}.tar.gz"
+wget -q "https://apache.org/dyn/closer.lua/guacamole/${GUACAMOLE_VERSION}/source/guacamole-server-${GUACAMOLE_VERSION}.tar.gz?action=download"
+https://apache.org/dyn/closer.lua/guacamole/1.5.5/source/guacamole-server-1.5.5.tar.gz?action=download
+https://guacamole.apache.org/
 tar -xzf guacamole-server-${GUACAMOLE_VERSION}.tar.gz
 cd guacamole-server-${GUACAMOLE_VERSION}/
 ./configure --with-init-dir=/etc/init.d
