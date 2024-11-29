@@ -6,6 +6,7 @@ variables() {
 
 # This function sets various color variables using ANSI escape codes for formatting text in the terminal.
 color() {
+  # Colors
   YW=$(echo "\033[33m")
   YWB=$(echo "\033[93m")
   BL=$(echo "\033[36m")
@@ -13,13 +14,19 @@ color() {
   BGN=$(echo "\033[4;92m")
   GN=$(echo "\033[1;92m")
   DGN=$(echo "\033[32m")
+
+  # Formatting
   CL=$(echo "\033[m")
-  CM=" ✔️ ${CL}"
-  CROSS=" ✖️ ${CL}"
-  BFR="\\r\\033[K"
   UL=$(echo "\033[4m")
   BOLD=$(echo "\033[1m")
+  BFR="\\r\\033[K"
   HOLD=" "
+  TAB=$(echo -e "\t")
+
+  # Functions
+  CM="${TAB}✔️${TAB}${CL}"
+  CROSS="${TAB}✖️${TAB}${CL}"
+  INFO="${TAB}💡${TAB}${CL}"
 }
 
 # This function enables error handling in the script by setting options and defining a trap for the ERR signal.
@@ -42,21 +49,23 @@ error_handler() {
 spinner() {
     local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
     local spin_i=0
-    local interval=0.1 
-    printf "\e[?25l"  
-    local orange="\e[38;5;214m"
+    local interval=0.1
+    printf "\e[?25l" 
+
+    local color="${YWB}"
 
     while true; do
-        printf "\r ${orange}%s\e[0m " "${frames[spin_i]}"
+        printf "\r ${color}%s${CL}" "${frames[spin_i]}"
         spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
         sleep "$interval"
     done
 }
 
+
 # This function displays an informational message with a yellow color.
 msg_info() {
     local msg="$1"
-    echo -ne " ${HOLD} ${YW}${msg}   "
+    echo -ne " ${TAB}${YW}${msg}   "
     spinner & 
     SPINNER_PID=$!  
 }
@@ -66,7 +75,7 @@ msg_ok() {
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
   printf "\e[?25h"
   local msg="$1"
-  echo -e "${BFR}${CM} ${GN}${msg}${CL}"
+  echo -e "${BFR}${CM}${GN}${msg}${CL}"
 }
 
 # This function displays a error message with a red color.
@@ -74,14 +83,14 @@ msg_error() {
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
   printf "\e[?25h"
   local msg="$1"
-  echo -e "${BFR}${CROSS} ${RD}${msg}${CL}"
+  echo -e "${BFR}${CROSS}${RD}${msg}${CL}"
 }
 
 # Check if the shell is using bash
 shell_check() {
   if [[ "$(basename "$SHELL")" != "bash" ]]; then
     clear
-    msg_error "Your default shell is currently not set to Bash. To use these scripts, please switch to the Bash shell."
+    msg_error "${CROSS}${RD}Your default shell is currently not set to Bash. To use these scripts, please switch to the Bash shell."
     echo -e "\nExiting..."
     sleep 2
     exit
@@ -92,7 +101,7 @@ shell_check() {
 root_check() {
   if [[ "$(id -u)" -ne 0 || $(ps -o comm= -p $PPID) == "sudo" ]]; then
     clear
-    msg_error "Please run this script as root."
+    msg_error "${CROSS}${RD}Please run this script as root."
     echo -e "\nExiting..."
     sleep 2
     exit
@@ -102,7 +111,7 @@ root_check() {
 # This function checks the version of Proxmox Virtual Environment (PVE) and exits if the version is not supported.
 pve_check() {
   if ! pveversion | grep -Eq "pve-manager/8.[1-3]"; then
-    msg_error "This version of Proxmox Virtual Environment is not supported"
+    msg_error "${CROSS}${RD}This version of Proxmox Virtual Environment is not supported"
     echo -e "Requires Proxmox Virtual Environment Version 8.1 or later."
     echo -e "Exiting..."
     sleep 2
@@ -113,8 +122,8 @@ fi
 # This function checks the system architecture and exits if it's not "amd64".
 arch_check() {
   if [ "$(dpkg --print-architecture)" != "amd64" ]; then
-    echo -e "\n ${CROSS} This script will not work with PiMox! \n"
-    echo -e "\n Visit https://github.com/asylumexp/Proxmox for ARM64 support. \n"
+    echo -e "\n ${INFO}${YWB}This script will not work with PiMox! \n"
+    echo -e "\n ${YWB}Visit https://github.com/asylumexp/Proxmox for ARM64 support. \n"
     echo -e "Exiting..."
     sleep 2
     exit
@@ -199,19 +208,18 @@ echo_default() {
   echo -e "💾  ${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE}GB${CL}"
   echo -e "🧠  ${BOLD}${DGN}CPU Cores: ${BGN}${CORE_COUNT}${CL}"
   echo -e "🛠️  ${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE}MB${CL}"
+  # Include VERBOSE if enabled
+  if [ "$VERB" == "yes" ]; then
+    echo -e "🔍  ${BOLD}${DGN}Verbose Mode: ${BGN}Enabled${CL}"
+  fi
   echo -e "${BOLD}${BL}Creating a ${APP} LXC using the above default settings${CL}"
   echo -e "  " 
-
-  # Include VERBOSE if enabled
-  if [ "$VERBOSE" == "yes" ]; then
-    echo -e "🔍  ${DGN}Verbose Mode: ${BGN}Enabled${CL}"
-  fi
 }
 
 # This function is called when the user decides to exit the script. It clears the screen and displays an exit message.
 exit-script() {
   clear
-  echo -e "⚠  User exited script \n"
+  echo -e "${CROSS}${RD}User exited script${CL}\n"
   exit
 }
 
@@ -227,7 +235,7 @@ advanced_settings() {
         "ubuntu" "" OFF \
         3>&1 1>&2 2>&3); then
         if [ -n "$var_os" ]; then
-          echo -e "🖥️  ${DGN}Using Distribution: ${BGN}$var_os${CL}"
+          echo -e "🖥️${TAB}${DGN}Using Distribution: ${BGN}$var_os${CL}"
         fi
       else
         exit-script
@@ -243,7 +251,7 @@ advanced_settings() {
         "12" "Bookworm" OFF \
         3>&1 1>&2 2>&3); then
         if [ -n "$var_version" ]; then
-          echo -e "🌟  ${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
+          echo -e "🌟${TAB}${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
         fi
       else
         exit-script
@@ -261,7 +269,7 @@ advanced_settings() {
 		"24.10" "Oracular" OFF \
 		3>&1 1>&2 2>&3); then
         if [ -n "$var_version" ]; then
-          echo -e "🌟  ${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
+          echo -e "🌟${TAB}${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
         fi
       else
         exit-script
@@ -276,7 +284,7 @@ advanced_settings() {
       "0" "Privileged" OFF \
       3>&1 1>&2 2>&3); then
       if [ -n "$CT_TYPE" ]; then
-        echo -e "📦  ${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
+        echo -e "📦${TAB}${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
       fi
     else
       exit-script
@@ -294,7 +302,7 @@ advanced_settings() {
           if PW2=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "\nVerify Root Password" 9 58 --title "PASSWORD VERIFICATION" 3>&1 1>&2 2>&3); then
             if [[ "$PW1" == "$PW2" ]]; then
               PW="-password $PW1"
-              echo -e "🔐  ${DGN}Using Root Password: ${BGN}********${CL}"
+              echo -e "🔐${TAB}${DGN}Using Root Password: ${BGN}********${CL}"
               break
             else
               whiptail --msgbox "Passwords do not match. Please try again." 8 58
@@ -306,7 +314,7 @@ advanced_settings() {
       else
         PW1="Automatic Login"
         PW=""
-        echo -e "🔐  ${DGN}Using Root Password: ${BGN}$PW1${CL}"
+        echo -e "🔐${TAB}${DGN}Using Root Password: ${BGN}$PW1${CL}"
         break
       fi
     else
@@ -318,9 +326,9 @@ advanced_settings() {
   if CT_ID=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Container ID" 8 58 $NEXTID --title "CONTAINER ID" 3>&1 1>&2 2>&3); then
     if [ -z "$CT_ID" ]; then
       CT_ID="$NEXTID"
-      echo -e "🆔  ${DGN}Using Container ID: ${BGN}$CT_ID${CL}"
+      echo -e "🆔${TAB}${DGN}Using Container ID: ${BGN}$CT_ID${CL}"
     else
-      echo -e "🆔  ${DGN}Container ID: ${BGN}$CT_ID${CL}"
+      echo -e "🆔${TAB}${DGN}Container ID: ${BGN}$CT_ID${CL}"
     fi
   else
     exit
@@ -332,7 +340,7 @@ advanced_settings() {
     else
       HN=$(echo ${CT_NAME,,} | tr -d ' ')
     fi
-    echo -e "🏠  ${DGN}Using Hostname: ${BGN}$HN${CL}"
+    echo -e "🏠${TAB}${DGN}Using Hostname: ${BGN}$HN${CL}"
   else
     exit-script
   fi
@@ -340,13 +348,13 @@ advanced_settings() {
   if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB" 8 58 $var_disk --title "DISK SIZE" 3>&1 1>&2 2>&3); then
     if [ -z "$DISK_SIZE" ]; then
       DISK_SIZE="$var_disk"
-      echo -e "💾  ${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
+      echo -e "💾${TAB}${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
     else
       if ! [[ $DISK_SIZE =~ $INTEGER ]]; then
         echo -e "${RD}⚠ DISK SIZE MUST BE AN INTEGER NUMBER!${CL}"
         advanced_settings
       fi
-      echo -e "💾  ${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
+      echo -e "💾${TAB}${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
     fi
   else
     exit-script
@@ -355,9 +363,9 @@ advanced_settings() {
   if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores" 8 58 $var_cpu --title "CORE COUNT" 3>&1 1>&2 2>&3); then
     if [ -z "$CORE_COUNT" ]; then
       CORE_COUNT="$var_cpu"
-      echo -e "🧠  ${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
+      echo -e "🧠${TAB}${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     else
-      echo -e "🧠  ${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
+      echo -e "🧠${TAB}${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     fi
   else
     exit-script
@@ -366,9 +374,9 @@ advanced_settings() {
   if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB" 8 58 $var_ram --title "RAM" 3>&1 1>&2 2>&3); then
     if [ -z "$RAM_SIZE" ]; then
       RAM_SIZE="$var_ram"
-      echo -e "🛠️  ${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
+      echo -e "🛠️${TAB}${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     else
-      echo -e "🛠️  ${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
+      echo -e "🛠️${TAB}${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     fi
   else
     exit-script
@@ -377,9 +385,9 @@ advanced_settings() {
   if BRG=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Bridge" 8 58 vmbr0 --title "BRIDGE" 3>&1 1>&2 2>&3); then
     if [ -z "$BRG" ]; then
       BRG="vmbr0"
-      echo -e "🌉  ${DGN}Using Bridge: ${BGN}$BRG${CL}"
+      echo -e "🌉${TAB}${DGN}Using Bridge: ${BGN}$BRG${CL}"
     else
-      echo -e "🌉  ${DGN}Using Bridge: ${BGN}$BRG${CL}"
+      echo -e "🌉${TAB}${DGN}Using Bridge: ${BGN}$BRG${CL}"
     fi
   else
     exit-script
@@ -390,11 +398,11 @@ advanced_settings() {
     exit_status=$?
     if [ $exit_status -eq 0 ]; then
       if [ "$NET" = "dhcp" ]; then
-        echo -e "📡  ${DGN}Using IP Address: ${BGN}$NET${CL}"
+        echo -e "📡${TAB}${DGN}Using IP Address: ${BGN}$NET${CL}"
         break
       else
         if [[ "$NET" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
-          echo -e "📡  ${DGN}Using IP Address: ${BGN}$NET${CL}"
+          echo -e "📡${TAB}${DGN}Using IP Address: ${BGN}$NET${CL}"
           break
         else
           whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox "$NET is an invalid IPv4 CIDR address. Please enter a valid IPv4 CIDR address or 'dhcp'" 8 58
@@ -414,13 +422,13 @@ advanced_settings() {
         whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox "Invalid IP address format" 8 58
       else
         GATE=",gw=$GATE1"
-        echo -e "🌐  ${DGN}Using Gateway IP Address: ${BGN}$GATE1${CL}"
+        echo -e "🌐${TAB}${DGN}Using Gateway IP Address: ${BGN}$GATE1${CL}"
         break
       fi
     done
   else
     GATE=""
-    echo -e "🌐  ${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
+    echo -e "🌐${TAB}${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
   fi
 
   if [ "$var_os" == "alpine" ]; then
@@ -429,7 +437,7 @@ advanced_settings() {
   else
     if APT_CACHER_IP=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set APT-Cacher IP (leave blank for default)" 8 58 --title "APT-Cacher IP" 3>&1 1>&2 2>&3); then
       APT_CACHER="${APT_CACHER_IP:+yes}"
-      echo -e "📡  ${DGN}Using APT-Cacher IP Address: ${BGN}${APT_CACHER_IP:-Default}${CL}"
+      echo -e "📡${TAB}${DGN}Using APT-Cacher IP Address: ${BGN}${APT_CACHER_IP:-Default}${CL}"
     else
       exit-script
     fi
@@ -440,7 +448,7 @@ advanced_settings() {
   else
     DISABLEIP6="no"
   fi
-  echo -e "🚫  ${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
+  echo -e "🚫${TAB}${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
 
   if MTU1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Interface MTU Size (leave blank for default)" 8 58 --title "MTU SIZE" 3>&1 1>&2 2>&3); then
     if [ -z $MTU1 ]; then
@@ -449,7 +457,7 @@ advanced_settings() {
     else
       MTU=",mtu=$MTU1"
     fi
-    echo -e "⚙️  ${DGN}Using Interface MTU Size: ${BGN}$MTU1${CL}"
+    echo -e "⚙️${TAB}${DGN}Using Interface MTU Size: ${BGN}$MTU1${CL}"
   else
     exit-script
   fi
@@ -462,7 +470,7 @@ advanced_settings() {
       SX=$SD
       SD="-searchdomain=$SD"
     fi
-    echo -e "🔍  ${DGN}Using DNS Search Domain: ${BGN}$SX${CL}"
+    echo -e "🔍${TAB}${DGN}Using DNS Search Domain: ${BGN}$SX${CL}"
   else
     exit-script
   fi
@@ -474,7 +482,7 @@ advanced_settings() {
     else
       NS="-nameserver=$NX"
     fi
-    echo -e "📡  ${DGN}Using DNS Server IP Address: ${BGN}$NX${CL}"
+    echo -e "📡${TAB}${DGN}Using DNS Server IP Address: ${BGN}$NX${CL}"
   else
     exit-script
   fi
@@ -485,7 +493,7 @@ advanced_settings() {
       MAC=""
     else
       MAC=",hwaddr=$MAC1"
-      echo -e "🔗  ${DGN}Using MAC Address: ${BGN}$MAC1${CL}"
+      echo -e "🔗${TAB}${DGN}Using MAC Address: ${BGN}$MAC1${CL}"
     fi
   else
     exit-script
@@ -498,7 +506,7 @@ advanced_settings() {
     else
       VLAN=",tag=$VLAN1"
     fi
-    echo -e "🏷️  ${DGN}Using Vlan: ${BGN}$VLAN1${CL}"
+    echo -e "🏷️${TAB}${DGN}Using Vlan: ${BGN}$VLAN1${CL}"
   else
     exit-script
   fi
@@ -509,10 +517,10 @@ advanced_settings() {
     else
       SSH="no"
     fi
-    echo -e "🔑  ${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
+    echo -e "🔑${TAB}${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
   else
     SSH="no"
-    echo -e "🔑  ${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
+    echo -e "🔑${TAB}${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
   fi
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?" 10 58); then
@@ -520,14 +528,14 @@ advanced_settings() {
   else
     VERB="no"
   fi
-  echo -e "🔍  ${DGN}Enable Verbose Mode: ${BGN}$VERB${CL}"
+  echo -e "🔍${TAB}${DGN}Enable Verbose Mode: ${BGN}$VERB${CL}"
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create ${APP} LXC?" 10 58); then
-    echo -e "🚀  ${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
+    echo -e "🚀${TAB}${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
   else
     clear
     header_info
-    echo -e "🧩  ${RD}Using Advanced Settings${CL}"
+    echo -e "🧩${TAB}${RD}Using Advanced Settings${CL}"
     advanced_settings
   fi
 }
@@ -547,12 +555,12 @@ install_script() {
   header_info
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "SETTINGS" --yesno "Use Default Settings?" --no-button Advanced 10 58); then
     header_info
-    echo -e "⚙️  ${BOLD}${BL}Using Default Settings${CL}"
+    echo -e "⚙️${TAB}${BOLD}${BL}Using Default Settings${CL}"
     echo_default
     base_settings
   else
     header_info
-    echo -e "🧩  ${BOLD}${RD}Using Advanced Settings${CL}"
+    echo -e "🧩${TAB}${BOLD}${RD}Using Advanced Settings${CL}"
     advanced_settings
   fi
 }
@@ -598,7 +606,7 @@ start() {
   if command -v pveversion >/dev/null 2>&1; then
     if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a New ${APP} LXC. Proceed?" 10 58); then
       clear
-      echo -e "⚠  User exited script \n"
+      exit_script
       exit
     fi
     SPINNER_PID=""
@@ -608,7 +616,7 @@ start() {
   if ! command -v pveversion >/dev/null 2>&1; then
     if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --yesno "Support/Update functions for ${APP} LXC.  Proceed?" 10 58); then
       clear
-      echo -e "⚠  User exited script \n"
+      exit_script
       exit
     fi
     SPINNER_PID=""
