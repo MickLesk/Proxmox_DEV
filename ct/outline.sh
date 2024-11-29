@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
 # Copyright (c) 2024 community-scripts ORG
 # Author: Gerhard Burger (burgerga)
 # License: MIT
