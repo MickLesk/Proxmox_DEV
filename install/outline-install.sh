@@ -104,22 +104,27 @@ $STD yarn build
 rm -rf ./node_modules
 $STD yarn install --production=true --frozen-lockfile
 $STD yarn cache clean
-
-mkdir -p /var/opt/outline/data
-
-cat <<EOF >/opt/outline/.env
+cat <<EOF > /opt/outline/.env
 NODE_ENV=production
-URL=
 SECRET_KEY=$SECRET_KEY
 UTILS_SECRET=$UTILS_SECRET
-DATABASE_URL=$DATABASE_URL
+DATABASE_URL=postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME
 REDIS_URL=redis://localhost:6379
+URL=http://127.0.0.1
+PORT=3000
+
+# Storage
 FILE_STORAGE=local
-FILE_STORAGE_LOCAL_ROOT_DIR=/var/opt/outline/data
+FILE_STORAGE_LOCAL_ROOT_DIR=/opt/outline_data
 FILE_STORAGE_UPLOAD_MAX_SIZE=262144000
-WEB_CONCURRENCY=2
+
+# ––––– AUTHENTICATION –––––
+SLACK_CLIENT_ID=get_a_key_from_slack
+SLACK_CLIENT_SECRET=get_the_secret_of_above_key
+
 EOF
 
+mkdir -p /opt/outline_data
 echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed Outline"
 
