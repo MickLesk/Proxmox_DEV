@@ -5,52 +5,24 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # License: MIT
 # https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 
-function header_info {
-clear
-cat <<"EOF"
-   ____        __  ___
-  / __ \__  __/ /_/ (_)___  ___
- / / / / / / / __/ / / __ \/ _ \
-/ /_/ / /_/ / /_/ / / / / /  __/
-\____/\__,_/\__/_/_/_/ /_/\___/
-
-EOF
-}
-header_info
-echo -e "Loading..."
+## App Default Values
 APP="Outline"
-var_disk="6"
+TAGS="team;management"
+var_disk="5"
 var_cpu="2"
 var_ram="2048"
 var_os="debian"
 var_version="12"
+#var_verbose="yes"
+
+# App Output & Base Settings
+header_info "$APP"
+base_settings
+
+# Core 
 variables
 color
 catch_errors
-
-function default_settings() {
-  CT_TYPE="1"
-  PW=""
-  CT_ID=$NEXTID
-  HN=$NSAPP
-  DISK_SIZE="$var_disk"
-  CORE_COUNT="$var_cpu"
-  RAM_SIZE="$var_ram"
-  BRG="vmbr0"
-  NET="dhcp"
-  GATE=""
-  APT_CACHER=""
-  APT_CACHER_IP=""
-  DISABLEIP6="no"
-  MTU=""
-  SD=""
-  NS=""
-  MAC=""
-  VLAN=""
-  SSH="no"
-  VERB="no"
-  echo_default
-}
 
 function update_script() {
 header_info
