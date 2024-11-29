@@ -10,10 +10,10 @@ APP="Outline"
 TAGS="team;management"
 var_disk="5"
 var_cpu="2"
-var_ram="2048"
+var_ram="4096"
 var_os="debian"
 var_version="12"
-#var_verbose="yes"
+var_verbose="yes"
 
 # App Output & Base Settings
 header_info "$APP"
@@ -77,3 +77,5 @@ build_container
 description
 
 msg_ok "Completed Successfully!\n"
+echo -e "${APP} Setup should be reachable by going to the following URL.
+         ${BL}http://${IP}:3000${CL} \n"
