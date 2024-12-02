@@ -23,10 +23,30 @@ color() {
   HOLD=" "
   TAB="  "
 
-  # Functions
+  # Icons
   CM="${TAB}✔️${TAB}${CL}"
   CROSS="${TAB}✖️${TAB}${CL}"
   INFO="${TAB}💡${TAB}${CL}"
+  OS="${TAB}🖥️${TAB}${CL}"
+  OSVERSION="${TAB}🌟${TAB}${CL}"
+  CONTAINERTYPE="${TAB}📦${TAB}${CL}" 
+  DISKSIZE="${TAB}💾${TAB}${CL}"
+  CPUCORE="${TAB}🧠${TAB}${CL}"
+  RAMSIZE="${TAB}🛠️${TAB}${CL}"
+  SEARCH="${TAB}🔍${TAB}${CL}"
+  VERIFYPW="${TAB}🔐${TAB}${CL}"
+  CONTAINERID="${TAB}🆔${TAB}${CL}"
+  HOSTNAME="${TAB}🏠${TAB}${CL}"
+  BRIDGE="${TAB}🌉${TAB}${CL}"
+  NETWORK="${TAB}📡${TAB}${CL}"
+  GATEWAY="${TAB}🌐${TAB}${CL}"
+  DISABLEIPV6="${TAB}🚫${TAB}${CL}"
+  DEFAULT="${TAB}⚙️${TAB}${CL}"
+  MACADDRESS="${TAB}🔗${TAB}${CL}"
+  VLAN="${TAB}🏷️${TAB}${CL}"
+  ROOTSSH="${TAB}🔑${TAB}${CL}"
+  CREATING="${TAB}🚀${TAB}${CL}"
+  ADVANCED="${TAB}🧩${TAB}${CL}"
 }
 
 # This function enables error handling in the script by setting options and defining a trap for the ERR signal.
@@ -90,7 +110,7 @@ msg_error() {
 shell_check() {
   if [[ "$(basename "$SHELL")" != "bash" ]]; then
     clear
-    msg_error "${CROSS}${RD}Your default shell is currently not set to Bash. To use these scripts, please switch to the Bash shell."
+    msg_error "Your default shell is currently not set to Bash. To use these scripts, please switch to the Bash shell."
     echo -e "\nExiting..."
     sleep 2
     exit
@@ -101,7 +121,7 @@ shell_check() {
 root_check() {
   if [[ "$(id -u)" -ne 0 || $(ps -o comm= -p $PPID) == "sudo" ]]; then
     clear
-    msg_error "${CROSS}${RD}Please run this script as root."
+    msg_error "Please run this script as root."
     echo -e "\nExiting..."
     sleep 2
     exit
@@ -202,15 +222,15 @@ echo_default() {
   fi
 
   # Output the selected values with icons
-  echo -e "🖥️  ${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
-  echo -e "🌟  ${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
-  echo -e "📦  ${BOLD}${DGN}Container Type: ${BGN}$CT_TYPE_DESC${CL}"
-  echo -e "💾  ${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE}GB${CL}"
-  echo -e "🧠  ${BOLD}${DGN}CPU Cores: ${BGN}${CORE_COUNT}${CL}"
-  echo -e "🛠️  ${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE}MB${CL}"
+  echo -e "${OS}${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
+  echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
+  echo -e "${CONTAINERTYPE}${BOLD}${DGN}Container Type: ${BGN}$CT_TYPE_DESC${CL}"
+  echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE}GB${CL}"
+  echo -e "${CPUCORE}${BOLD}${DGN}CPU Cores: ${BGN}${CORE_COUNT}${CL}"
+  echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE}MB${CL}"
   # Include VERBOSE if enabled
   if [ "$VERB" == "yes" ]; then
-    echo -e "🔍  ${BOLD}${DGN}Verbose Mode: ${BGN}Enabled${CL}"
+    echo -e "${SEARCH}${BOLD}${DGN}Verbose Mode: ${BGN}Enabled${CL}"
   fi
   echo -e "${BOLD}${BL}Creating a ${APP} LXC using the above default settings${CL}"
   echo -e "  " 
@@ -235,7 +255,7 @@ advanced_settings() {
         "ubuntu" "" OFF \
         3>&1 1>&2 2>&3); then
         if [ -n "$var_os" ]; then
-          echo -e "🖥️${TAB}${DGN}Using Distribution: ${BGN}$var_os${CL}"
+          echo -e "${OS}${DGN}Using Distribution: ${BGN}$var_os${CL}"
         fi
       else
         exit-script
@@ -251,7 +271,7 @@ advanced_settings() {
         "12" "Bookworm" OFF \
         3>&1 1>&2 2>&3); then
         if [ -n "$var_version" ]; then
-          echo -e "🌟${TAB}${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
+          echo -e "${OSVERSION}${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
         fi
       else
         exit-script
@@ -269,7 +289,7 @@ advanced_settings() {
 		"24.10" "Oracular" OFF \
 		3>&1 1>&2 2>&3); then
         if [ -n "$var_version" ]; then
-          echo -e "🌟${TAB}${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
+          echo -e "${OSVERSION}${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
         fi
       else
         exit-script
@@ -284,7 +304,7 @@ advanced_settings() {
       "0" "Privileged" OFF \
       3>&1 1>&2 2>&3); then
       if [ -n "$CT_TYPE" ]; then
-        echo -e "📦${TAB}${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
+        echo -e "${CONTAINERTYPE}${DGN}Using Container Type: ${BGN}$CT_TYPE${CL}"
       fi
     else
       exit-script
@@ -302,7 +322,7 @@ advanced_settings() {
           if PW2=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "\nVerify Root Password" 9 58 --title "PASSWORD VERIFICATION" 3>&1 1>&2 2>&3); then
             if [[ "$PW1" == "$PW2" ]]; then
               PW="-password $PW1"
-              echo -e "🔐${TAB}${DGN}Using Root Password: ${BGN}********${CL}"
+              echo -e "${VERIFYPW}${DGN}Using Root Password: ${BGN}********${CL}"
               break
             else
               whiptail --msgbox "Passwords do not match. Please try again." 8 58
@@ -314,7 +334,7 @@ advanced_settings() {
       else
         PW1="Automatic Login"
         PW=""
-        echo -e "🔐${TAB}${DGN}Using Root Password: ${BGN}$PW1${CL}"
+        echo -e "${VERIFYPW}${DGN}Using Root Password: ${BGN}$PW1${CL}"
         break
       fi
     else
@@ -326,9 +346,9 @@ advanced_settings() {
   if CT_ID=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Container ID" 8 58 $NEXTID --title "CONTAINER ID" 3>&1 1>&2 2>&3); then
     if [ -z "$CT_ID" ]; then
       CT_ID="$NEXTID"
-      echo -e "🆔${TAB}${DGN}Using Container ID: ${BGN}$CT_ID${CL}"
+      echo -e "${CONTAINERID}${DGN}Using Container ID: ${BGN}$CT_ID${CL}"
     else
-      echo -e "🆔${TAB}${DGN}Container ID: ${BGN}$CT_ID${CL}"
+      echo -e "${CONTAINERID}${DGN}Container ID: ${BGN}$CT_ID${CL}"
     fi
   else
     exit
@@ -340,7 +360,7 @@ advanced_settings() {
     else
       HN=$(echo ${CT_NAME,,} | tr -d ' ')
     fi
-    echo -e "🏠${TAB}${DGN}Using Hostname: ${BGN}$HN${CL}"
+    echo -e "${HOSTNAME}${DGN}Using Hostname: ${BGN}$HN${CL}"
   else
     exit-script
   fi
@@ -348,13 +368,13 @@ advanced_settings() {
   if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB" 8 58 $var_disk --title "DISK SIZE" 3>&1 1>&2 2>&3); then
     if [ -z "$DISK_SIZE" ]; then
       DISK_SIZE="$var_disk"
-      echo -e "💾${TAB}${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
+      echo -e "${DISKSIZE}${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
     else
       if ! [[ $DISK_SIZE =~ $INTEGER ]]; then
         echo -e "${RD}⚠ DISK SIZE MUST BE AN INTEGER NUMBER!${CL}"
         advanced_settings
       fi
-      echo -e "💾${TAB}${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
+      echo -e "${DISKSIZE}${DGN}Using Disk Size: ${BGN}$DISK_SIZE${CL}"
     fi
   else
     exit-script
@@ -363,9 +383,9 @@ advanced_settings() {
   if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores" 8 58 $var_cpu --title "CORE COUNT" 3>&1 1>&2 2>&3); then
     if [ -z "$CORE_COUNT" ]; then
       CORE_COUNT="$var_cpu"
-      echo -e "🧠${TAB}${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
+      echo -e "${CPUCORE}${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     else
-      echo -e "🧠${TAB}${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
+      echo -e "${CPUCORE}${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     fi
   else
     exit-script
@@ -374,9 +394,9 @@ advanced_settings() {
   if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB" 8 58 $var_ram --title "RAM" 3>&1 1>&2 2>&3); then
     if [ -z "$RAM_SIZE" ]; then
       RAM_SIZE="$var_ram"
-      echo -e "🛠️${TAB}${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
+      echo -e "${RAMSIZE}${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     else
-      echo -e "🛠️${TAB}${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
+      echo -e "${RAMSIZE}${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     fi
   else
     exit-script
@@ -385,9 +405,9 @@ advanced_settings() {
   if BRG=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Bridge" 8 58 vmbr0 --title "BRIDGE" 3>&1 1>&2 2>&3); then
     if [ -z "$BRG" ]; then
       BRG="vmbr0"
-      echo -e "🌉${TAB}${DGN}Using Bridge: ${BGN}$BRG${CL}"
+      echo -e "${BRIDGE}${DGN}Using Bridge: ${BGN}$BRG${CL}"
     else
-      echo -e "🌉${TAB}${DGN}Using Bridge: ${BGN}$BRG${CL}"
+      echo -e "${BRIDGE}${DGN}Using Bridge: ${BGN}$BRG${CL}"
     fi
   else
     exit-script
@@ -398,11 +418,11 @@ advanced_settings() {
     exit_status=$?
     if [ $exit_status -eq 0 ]; then
       if [ "$NET" = "dhcp" ]; then
-        echo -e "📡${TAB}${DGN}Using IP Address: ${BGN}$NET${CL}"
+        echo -e "${NETWORK}${DGN}Using IP Address: ${BGN}$NET${CL}"
         break
       else
         if [[ "$NET" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
-          echo -e "📡${TAB}${DGN}Using IP Address: ${BGN}$NET${CL}"
+          echo -e "${NETWORK}${DGN}Using IP Address: ${BGN}$NET${CL}"
           break
         else
           whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox "$NET is an invalid IPv4 CIDR address. Please enter a valid IPv4 CIDR address or 'dhcp'" 8 58
@@ -422,13 +442,13 @@ advanced_settings() {
         whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox "Invalid IP address format" 8 58
       else
         GATE=",gw=$GATE1"
-        echo -e "🌐${TAB}${DGN}Using Gateway IP Address: ${BGN}$GATE1${CL}"
+        echo -e "${GATEWAY}${DGN}Using Gateway IP Address: ${BGN}$GATE1${CL}"
         break
       fi
     done
   else
     GATE=""
-    echo -e "🌐${TAB}${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
+    echo -e "${GATEWAY}${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
   fi
 
   if [ "$var_os" == "alpine" ]; then
@@ -437,7 +457,7 @@ advanced_settings() {
   else
     if APT_CACHER_IP=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set APT-Cacher IP (leave blank for default)" 8 58 --title "APT-Cacher IP" 3>&1 1>&2 2>&3); then
       APT_CACHER="${APT_CACHER_IP:+yes}"
-      echo -e "📡${TAB}${DGN}Using APT-Cacher IP Address: ${BGN}${APT_CACHER_IP:-Default}${CL}"
+      echo -e "${NETWORK}${DGN}Using APT-Cacher IP Address: ${BGN}${APT_CACHER_IP:-Default}${CL}"
     else
       exit-script
     fi
@@ -448,7 +468,7 @@ advanced_settings() {
   else
     DISABLEIP6="no"
   fi
-  echo -e "🚫${TAB}${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
+  echo -e "${DISABLEIPV6}${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
 
   if MTU1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Interface MTU Size (leave blank for default)" 8 58 --title "MTU SIZE" 3>&1 1>&2 2>&3); then
     if [ -z $MTU1 ]; then
@@ -457,7 +477,7 @@ advanced_settings() {
     else
       MTU=",mtu=$MTU1"
     fi
-    echo -e "⚙️${TAB}${DGN}Using Interface MTU Size: ${BGN}$MTU1${CL}"
+    echo -e "${DEFAULT}${DGN}Using Interface MTU Size: ${BGN}$MTU1${CL}"
   else
     exit-script
   fi
@@ -470,7 +490,7 @@ advanced_settings() {
       SX=$SD
       SD="-searchdomain=$SD"
     fi
-    echo -e "🔍${TAB}${DGN}Using DNS Search Domain: ${BGN}$SX${CL}"
+    echo -e "${SEARCH}${DGN}Using DNS Search Domain: ${BGN}$SX${CL}"
   else
     exit-script
   fi
@@ -482,7 +502,7 @@ advanced_settings() {
     else
       NS="-nameserver=$NX"
     fi
-    echo -e "📡${TAB}${DGN}Using DNS Server IP Address: ${BGN}$NX${CL}"
+    echo -e "${NETWORK}${DGN}Using DNS Server IP Address: ${BGN}$NX${CL}"
   else
     exit-script
   fi
@@ -493,7 +513,7 @@ advanced_settings() {
       MAC=""
     else
       MAC=",hwaddr=$MAC1"
-      echo -e "🔗${TAB}${DGN}Using MAC Address: ${BGN}$MAC1${CL}"
+      echo -e "${MACADDRESS}${DGN}Using MAC Address: ${BGN}$MAC1${CL}"
     fi
   else
     exit-script
@@ -506,7 +526,7 @@ advanced_settings() {
     else
       VLAN=",tag=$VLAN1"
     fi
-    echo -e "🏷️${TAB}${DGN}Using Vlan: ${BGN}$VLAN1${CL}"
+    echo -e "${VLAN}${DGN}Using Vlan: ${BGN}$VLAN1${CL}"
   else
     exit-script
   fi
@@ -517,10 +537,10 @@ advanced_settings() {
     else
       SSH="no"
     fi
-    echo -e "🔑${TAB}${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
+    echo -e "${ROOTSSH}${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
   else
     SSH="no"
-    echo -e "🔑${TAB}${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
+    echo -e "${ROOTSSH}${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
   fi
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?" 10 58); then
@@ -528,14 +548,14 @@ advanced_settings() {
   else
     VERB="no"
   fi
-  echo -e "🔍${TAB}${DGN}Enable Verbose Mode: ${BGN}$VERB${CL}"
+  echo -e "${SEARCH}${DGN}Enable Verbose Mode: ${BGN}$VERB${CL}"
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create ${APP} LXC?" 10 58); then
-    echo -e "🚀${TAB}${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
+    echo -e "${CREATING}${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
   else
     clear
     header_info
-    echo -e "🧩${TAB}${RD}Using Advanced Settings${CL}"
+    echo -e "${ADVANCED}${RD}Using Advanced Settings${CL}"
     advanced_settings
   fi
 }
@@ -555,12 +575,12 @@ install_script() {
   header_info
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "SETTINGS" --yesno "Use Default Settings?" --no-button Advanced 10 58); then
     header_info
-    echo -e "⚙️${TAB}${BOLD}${BL}Using Default Settings${CL}"
+    echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings${CL}"
     echo_default
     base_settings
   else
     header_info
-    echo -e "🧩${TAB}${BOLD}${RD}Using Advanced Settings${CL}"
+    echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings${CL}"
     advanced_settings
   fi
 }
@@ -572,12 +592,12 @@ check_container_resources() {
 
   # Check whether the current RAM is less than the required RAM or the CPU cores are less than required
   if [[ "$current_ram" -lt "$var_ram" ]] || [[ "$current_cpu" -lt "$var_cpu" ]]; then
-    echo -e "\n⚠️${HOLD} ${GN}Required: ${var_cpu} CPU, ${var_ram}MB RAM ${CL}| ${RD}Current: ${current_cpu} CPU, ${current_ram}MB RAM${CL}"
+    echo -e "\n${INFO}${HOLD} ${GN}Required: ${var_cpu} CPU, ${var_ram}MB RAM ${CL}| ${RD}Current: ${current_cpu} CPU, ${current_ram}MB RAM${CL}"
     echo -e "${YWB}Please ensure that the ${APP} LXC is configured with at least ${var_cpu} vCPU and ${var_ram} MB RAM for the build process.${CL}\n"
-    read -r -p "⚠️ May cause data loss! ⚠️ Continue update with under-provisioned LXC? <yes/No>  " prompt  
+    read -r -p "${INFO}${HOLD} May cause data loss! ${INFO} Continue update with under-provisioned LXC? <yes/No>  " prompt  
     # Check if the input is 'yes', otherwise exit with status 1
     if [[ ! ${prompt,,} =~ ^(yes)$ ]]; then
-      echo -e "❌${HOLD} ${YWB}Exiting based on user input.${CL}"
+      echo -e "${CROSS}${HOLD} ${YWB}Exiting based on user input.${CL}"
       exit 1
     fi
   else
@@ -592,11 +612,11 @@ check_container_storage() {
   usage=$(( 100 * used_size / total_size ))
   if (( usage > 80 )); then
     # Prompt the user for confirmation to continue
-    echo -e "⚠️${HOLD} ${YWB}Warning: Storage is dangerously low (${usage}%).${CL}"
+    echo -e "${INFO}${HOLD} ${YWB}Warning: Storage is dangerously low (${usage}%).${CL}"
     read -r -p "Continue anyway? <y/N>  " prompt  
     # Check if the input is 'y' or 'yes', otherwise exit with status 1
     if [[ ! ${prompt,,} =~ ^(y|yes)$ ]]; then
-      echo -e "❌${HOLD} ${YWB}Exiting based on user input.${CL}"
+      echo -e "${CROSS}${HOLD}${YWB}Exiting based on user input.${CL}"
       exit 1
     fi
   fi
@@ -729,8 +749,6 @@ EOF
         pct exec "$CTID" -- /bin/sh -c 'cat <<EOF >/etc/apk/repositories
 http://dl-cdn.alpinelinux.org/alpine/latest-stable/main
 http://dl-cdn.alpinelinux.org/alpine/latest-stable/community
-#http://dl-cdn.alpinelinux.org/alpine/v3.19/main
-#http://dl-cdn.alpinelinux.org/alpine/v3.19/community
 EOF'
     pct exec "$CTID" -- ash -c "apk add bash >/dev/null"
   fi
