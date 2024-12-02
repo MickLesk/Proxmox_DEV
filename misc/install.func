@@ -5,16 +5,11 @@ color() {
   YWB=$(echo "\033[93m")
   BL=$(echo "\033[36m")
   RD=$(echo "\033[01;31m")
-  BGN=$(echo "\033[4;92m")
   GN=$(echo "\033[1;92m")
-  DGN=$(echo "\033[32m")
 
   # Formatting
   CL=$(echo "\033[m")
-  UL=$(echo "\033[4m")
-  BOLD=$(echo "\033[1m")
   BFR="\\r\\033[K"
-  HOLD=" "
   TAB="  "
   
   # System
@@ -25,26 +20,7 @@ color() {
   CM="${TAB}✔️${TAB}${CL}"
   CROSS="${TAB}✖️${TAB}${CL}"
   INFO="${TAB}💡${TAB}${CL}"
-  OS="${TAB}🖥️${TAB}${CL}"
-  OSVERSION="${TAB}🌟${TAB}${CL}"
-  CONTAINERTYPE="${TAB}📦${TAB}${CL}" 
-  DISKSIZE="${TAB}💾${TAB}${CL}"
-  CPUCORE="${TAB}🧠${TAB}${CL}"
-  RAMSIZE="${TAB}🛠️${TAB}${CL}"
-  SEARCH="${TAB}🔍${TAB}${CL}"
-  VERIFYPW="${TAB}🔐${TAB}${CL}"
-  CONTAINERID="${TAB}🆔${TAB}${CL}"
-  HOSTNAME="${TAB}🏠${TAB}${CL}"
-  BRIDGE="${TAB}🌉${TAB}${CL}"
   NETWORK="${TAB}📡${TAB}${CL}"
-  GATEWAY="${TAB}🌐${TAB}${CL}"
-  DISABLEIPV6="${TAB}🚫${TAB}${CL}"
-  DEFAULT="${TAB}⚙️${TAB}${CL}"
-  MACADDRESS="${TAB}🔗${TAB}${CL}"
-  VLAN="${TAB}🏷️${TAB}${CL}"
-  ROOTSSH="${TAB}🔑${TAB}${CL}"
-  CREATING="${TAB}🚀${TAB}${CL}"
-  ADVANCED="${TAB}🧩${TAB}${CL}"
 }
 
 # This function enables IPv6 if it's not disabled and sets verbose mode if the global variable is set to "yes"
@@ -79,6 +55,7 @@ error_handler() {
   fi
 }
 
+# This function displays a spinner.
 spinner() {
     local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
     local spin_i=0
@@ -175,9 +152,9 @@ network_check() {
   if [[ $ipv4_connected == false && $ipv6_connected == false ]]; then
     read -r -p "No Internet detected,would you like to continue anyway? <y/N> " prompt
     if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
-      echo -e " ⚠️  ${RD}Expect Issues Without Internet${CL}"
+      echo -e "${INFO}${RD}Expect Issues Without Internet${CL}"
     else
-      echo -e " 🖧  Check Network Settings"
+      echo -e "${NETWORK}Check Network Settings"
       exit 1
     fi
   fi
@@ -206,7 +183,7 @@ EOF
   if grep -qEi "debian|ubuntu" /etc/os-release; then
      $STD apt-get update
      $STD apt-get -o Dpkg::Options::="--force-confold" -y dist-upgrade
-   # RPM-basierte Systeme (Fedora, CentOS, Rocky, AlmaLinux)
+   # RPM-based Systems
    elif grep -qEi "fedora|centos|rocky|almalinux" /etc/os-release; then
      $STD dnf -y upgrade
    # openSUSE
@@ -221,15 +198,38 @@ EOF
 
 # This function modifies the message of the day (motd) and SSH settings
 motd_ssh() {
-  echo "export TERM='xterm-256color'" >>/root/.bashrc
-  echo -e "$APPLICATION LXC provided by https://helper-scripts.com/\n" >/etc/motd
+  # Set terminal to 256-color mode if not already set
+  grep -qxF "export TERM='xterm-256color'" /root/.bashrc || echo "export TERM='xterm-256color'" >> /root/.bashrc
+  
+  # Set MOTD with application info
+  MOTD_FILE="/etc/motd"
+  if [ -f "$MOTD_FILE" ]; then
+    echo -e "$APPLICATION LXC provided by https://helper-scripts.com/\n" > "$MOTD_FILE"
+  else
+    echo "MotD file does not exist!" >&2
+  fi
+
+  # Disable default MOTD scripts
   chmod -x /etc/update-motd.d/*
+
+  # SSH Root Login: Enable only if SSH_ROOT is 'yes'
   if [[ "${SSH_ROOT}" == "yes" ]]; then
-    sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/g" /etc/ssh/sshd_config
-    systemctl restart sshd
+    # Ensure the sshd_config exists before modifying
+    if [ -f /etc/ssh/sshd_config ]; then
+      sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/g" /etc/ssh/sshd_config
+      # Restart sshd only if the file was modified
+      systemctl restart sshd
+    else
+      echo "sshd_config not found!" >&2
+    fi
+  else
+    # Optionally, you could ensure that root login is disabled if SSH_ROOT != 'yes'
+    if [ -f /etc/ssh/sshd_config ]; then
+      sed -i "s/PermitRootLogin yes/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config
+      systemctl restart sshd
+    fi
   fi
 }
-
 # This function customizes the container by modifying the getty service and enabling auto-login for the root user
 customize() {
   if [[ "$PASSWORD" == "" ]]; then
