@@ -9,7 +9,7 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 ## For Information: Only APP needed, TAGS can be removed to
 ## 91 Lines | 2398 Chars (with all comments)
 APP="Koel"
-TAGS="music"
+TAGS_APPEND="music"
 
 # App Output & Base Settings
 header_info "$APP"

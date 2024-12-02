@@ -7,7 +7,7 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 
 ## App Default Values
 APP="Koel"
-TAGS="music;player;homelab"
+TAGS_APPEND="music;player;homelab"
 var_disk="9"
 var_cpu="3"
 var_ram="3072"
