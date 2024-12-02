@@ -11,8 +11,8 @@ var_tags="music;player;homelab"
 var_disk="9"
 var_cpu="3"
 var_ram="3072"
-var_os="ubuntu"
-var_version="24.04"
+var_os="debian"
+var_version="12"
 var_verbose="yes"
 
 # App Output & Base Settings
