@@ -16,6 +16,10 @@ color() {
   BFR="\\r\\033[K"
   HOLD=" "
   TAB="  "
+  
+  # System
+  RETRY_NUM=10
+  RETRY_EVERY=3
 
   # Icons
   CM="${TAB}✔️${TAB}${CL}"
