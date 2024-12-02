@@ -577,8 +577,8 @@ install_script() {
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "SETTINGS" --yesno "Use Default Settings?" --no-button Advanced 10 58); then
     header_info
     echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings${CL}"
+	base_settings
     echo_default
-    base_settings
   else
     header_info
     echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings${CL}"
