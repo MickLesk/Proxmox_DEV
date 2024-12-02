@@ -66,6 +66,7 @@ error_handler() {
   echo -e "\n$error_message\n"
 }
 
+# This function displays a spinner.
 spinner() {
     local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
     local spin_i=0
@@ -80,7 +81,6 @@ spinner() {
         sleep "$interval"
     done
 }
-
 
 # This function displays an informational message with a yellow color.
 msg_info() {
