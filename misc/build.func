@@ -43,7 +43,7 @@ color() {
   DISABLEIPV6="${TAB}🚫${TAB}${CL}"
   DEFAULT="${TAB}⚙️${TAB}${CL}"
   MACADDRESS="${TAB}🔗${TAB}${CL}"
-  VLAN="${TAB}🏷️${TAB}${CL}"
+  VLANTAG="${TAB}🏷️${TAB}${CL}"
   ROOTSSH="${TAB}🔑${TAB}${CL}"
   CREATING="${TAB}🚀${TAB}${CL}"
   ADVANCED="${TAB}🧩${TAB}${CL}"
@@ -526,7 +526,7 @@ advanced_settings() {
     else
       VLAN=",tag=$VLAN1"
     fi
-    echo -e "${VLAN}${DGN}Using Vlan: ${BGN}$VLAN1${CL}"
+    echo -e "${VLANTAG}${DGN}Using Vlan: ${BGN}$VLAN1${CL}"
   else
     exit-script
   fi
