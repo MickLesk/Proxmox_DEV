@@ -232,7 +232,7 @@ echo_default() {
   if [ "$VERB" == "yes" ]; then
     echo -e "${SEARCH}${BOLD}${DGN}Verbose Mode: ${BGN}Enabled${CL}"
   fi
-  echo -e "${BOLD}${BL}Creating a ${APP} LXC using the above default settings${CL}"
+  echo -e "${CREATING}${BOLD}${BL}Creating a ${APP} LXC using the above default settings${CL}"
   echo -e "  " 
 }
 
