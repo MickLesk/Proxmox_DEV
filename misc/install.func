@@ -17,10 +17,30 @@ color() {
   HOLD=" "
   TAB="  "
 
-  # Functions
+  # Icons
   CM="${TAB}✔️${TAB}${CL}"
   CROSS="${TAB}✖️${TAB}${CL}"
   INFO="${TAB}💡${TAB}${CL}"
+  OS="${TAB}🖥️${TAB}${CL}"
+  OSVERSION="${TAB}🌟${TAB}${CL}"
+  CONTAINERTYPE="${TAB}📦${TAB}${CL}" 
+  DISKSIZE="${TAB}💾${TAB}${CL}"
+  CPUCORE="${TAB}🧠${TAB}${CL}"
+  RAMSIZE="${TAB}🛠️${TAB}${CL}"
+  SEARCH="${TAB}🔍${TAB}${CL}"
+  VERIFYPW="${TAB}🔐${TAB}${CL}"
+  CONTAINERID="${TAB}🆔${TAB}${CL}"
+  HOSTNAME="${TAB}🏠${TAB}${CL}"
+  BRIDGE="${TAB}🌉${TAB}${CL}"
+  NETWORK="${TAB}📡${TAB}${CL}"
+  GATEWAY="${TAB}🌐${TAB}${CL}"
+  DISABLEIPV6="${TAB}🚫${TAB}${CL}"
+  DEFAULT="${TAB}⚙️${TAB}${CL}"
+  MACADDRESS="${TAB}🔗${TAB}${CL}"
+  VLAN="${TAB}🏷️${TAB}${CL}"
+  ROOTSSH="${TAB}🔑${TAB}${CL}"
+  CREATING="${TAB}🚀${TAB}${CL}"
+  ADVANCED="${TAB}🧩${TAB}${CL}"
 }
 
 # This function enables IPv6 if it's not disabled and sets verbose mode if the global variable is set to "yes"
@@ -69,7 +89,6 @@ spinner() {
         sleep "$interval"
     done
 }
-
 
 # This function displays an informational message with a yellow color.
 msg_info() {
