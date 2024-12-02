@@ -26,6 +26,11 @@ BFR="\\r\\033[K"
 HOLD=" "
 TAB="  "
 
+# Icons
+CM="${TAB}✔️${TAB}${CL}"
+CROSS="${TAB}✖️${TAB}${CL}"
+INFO="${TAB}💡${TAB}${CL}"
+
 # This sets error handling options and defines the error_handler function to handle errors
 set -Eeuo pipefail
 trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
