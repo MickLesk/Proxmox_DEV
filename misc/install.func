@@ -207,9 +207,8 @@ motd_ssh() {
   # Set terminal to 256-color mode if not already set
   grep -qxF "export TERM='xterm-256color'" /root/.bashrc || echo "export TERM='xterm-256color'" >> /root/.bashrc
 
-  # Get the current private and/or public IP address
-  IP=$(hostname -I | awk '{print $1}')         # Private IP
-  IP_PUBLIC=$(curl -s ifconfig.me)             # Public IP (optional)
+  # Get the current private IP address
+  IP=$(hostname -I | awk '{print $1}')  # Private IP
 
   # Get OS information (Debian / Ubuntu)
   if [ -f "/etc/os-release" ]; then
@@ -231,8 +230,7 @@ motd_ssh() {
     echo -e "${TAB}${OS}${YW} OS: ${GN}${OS_NAME} ${OS_VERSION}${CL}" >> "$MOTD_FILE"
     echo -e "${TAB}${OSVERSION}${YW} Version: ${GN}${OS_VERSION}${CL}" >> "$MOTD_FILE"
     echo -e "${TAB}${HOSTNAME}${YW} Hostname: ${GN}$(hostname)${CL}" >> "$MOTD_FILE"
-    echo -e "${TAB}${INFO}${YW} IP Address: ${GN}${IP}${CL}" >> "$MOTD_FILE"        # Private IP
-    echo -e "${TAB}${INFO}${YW} Public IP: ${GN}${IP_PUBLIC}${CL}\n" >> "$MOTD_FILE"  # Optional public IP
+    echo -e "${TAB}${INFO}${YW} IP Address: ${GN}${IP}${CL}" >> "$MOTD_FILE"
   else
     echo "MotD file does not exist!" >&2
   fi
