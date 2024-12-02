@@ -577,7 +577,7 @@ install_script() {
     header_info
     echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings${CL}"
     echo_default
-    base_settings
+    #base_settings
   else
     header_info
     echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings${CL}"
