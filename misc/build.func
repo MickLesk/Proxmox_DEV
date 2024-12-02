@@ -197,6 +197,7 @@ base_settings() {
   MAC=""
   VLAN=""
   SSH="no"
+  TAGS="community-script;"
   
   # Changed From CT.sh 
   CT_TYPE=${var_unprivileged:-$CT_TYPE}
@@ -577,7 +578,7 @@ install_script() {
     header_info
     echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings${CL}"
     echo_default
-    #base_settings
+    base_settings
   else
     header_info
     echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings${CL}"
