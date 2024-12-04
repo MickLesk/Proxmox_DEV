@@ -305,7 +305,7 @@ advanced_settings() {
       fi
     done
   fi
-  
+
   # Setting Default Tag for Advanced Settings
   TAGS="community-script;"
 
@@ -564,7 +564,7 @@ advanced_settings() {
   else
     VERB="no"
   fi
-  echo -e "${SEARCH}${DGN}Enable Verbose Mode: ${BGN}$VERB${CL}"
+  echo -e "${SEARCH}${DGN}Verbose Mode: ${BGN}$VERB${CL}"
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create ${APP} LXC?" 10 58); then
     echo -e "${CREATING}${BOLD}${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
