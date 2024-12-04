@@ -2,8 +2,9 @@
 
 # Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
+# Co-Author: MickLesk
 # License: MIT
-# https://github.com/tteck/Proxmox/raw/main/LICENSE
+# https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 
 # This sets verbose mode if the global variable is set to "yes"
 # if [ "$VERBOSE" == "yes" ]; then set -x; fi
@@ -48,26 +49,26 @@ function error_handler() {
 
 # This function displays a spinner.
 function spinner() {
-    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-    local spin_i=0
-    local interval=0.1
-    printf "\e[?25l" 
+  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local spin_i=0
+  local interval=0.1
+  printf "\e[?25l" 
 
-    local color="${YWB}"
+  local color="${YWB}"
 
-    while true; do
-        printf "\r ${color}%s${CL}" "${frames[spin_i]}"
-        spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
-        sleep "$interval"
-    done
+  while true; do
+    printf "\r ${color}%s${CL}" "${frames[spin_i]}"
+    spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
+    sleep "$interval"
+  done
 }
 
 # This function displays an informational message with a yellow color.
 function msg_info() {
   local msg="$1"
-  echo -ne " ${TAB}${YW}${msg}   "
-  spinner & 
-  SPINNER_PID=$! 
+  echo -ne " ${TAB}${YW}${msg}"
+  spinner &
+  SPINNER_PID=$!
 }
 
 # This function displays a success message with a green color.
@@ -136,7 +137,7 @@ function select_storage() {
   else
     local STORAGE
     while [ -z "${STORAGE:+x}" ]; do
-      STORAGE=$(whiptail --backtitle "ProxmoxVE Community Scripts" --title "Storage Pools" --radiolist \
+      STORAGE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Storage Pools" --radiolist \
       "Which storage pool you would like to use for the ${CONTENT_LABEL,,}?\nTo make a selection, use the Spacebar.\n" \
       16 $(($MSG_MAX_LENGTH + 23)) 6 \
       "${MENU[@]}" 3>&1 1>&2 2>&3) || exit "Menu aborted."
