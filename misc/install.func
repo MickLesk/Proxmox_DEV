@@ -212,18 +212,14 @@ motd_ssh() {
     if [[ "$OS_NAME" == *"Ubuntu"* || "$OS_NAME" == *"Debian"* ]]; then
       # Define MOTD file path
       MOTD_FILE="/etc/motd"
-
-      # Create or overwrite the MOTD file
-      cat << EOF > "$MOTD_FILE"
-${BOLD}${APPLICATION} LXC Container${CL}
-
-${TAB}${GATEWAY}${YW} Provided by: ${GN}community-scripts ORG ${YW}| Project: ${GN}ProxmoxVE ${YW}| GitHub: ${GN}https://github.com/community-scripts/ProxmoxVE${CL}
-
-${TAB}${OS}${YW} OS: ${GN}${OS_NAME} ${OS_VERSION}${CL}
-${TAB}${OSVERSION}${YW} Version: ${GN}${OS_VERSION}${CL}
-${TAB}${HOSTNAME}${YW} Hostname: ${GN}$(hostname)${CL}
-${TAB}${INFO}${YW} IP Address: ${GN}${IP}${CL}
-EOF
+	  echo -e "\n${BOLD}${APPLICATION} LXC Container${CL}" > "$MOTD_FILE"
+	  echo -e "${TAB}${GATEWAY}${YW} Provided by: ${GN}community-scripts ORG ${YW}| Project: ${GN}ProxmoxVE ${YW}| GitHub: ${GN}https://github.com/MickLesk/Proxmox_DEV${CL}\n" >> "$MOTD_FILE"
+  
+	  # Add system information with icons
+	  echo -e "${TAB}${OS}${YW} OS: ${GN}${OS_NAME} ${OS_VERSION}${CL}" >> "$MOTD_FILE"
+	  echo -e "${TAB}${OSVERSION}${YW} Version: ${GN}${OS_VERSION}${CL}" >> "$MOTD_FILE"
+	  echo -e "${TAB}${HOSTNAME}${YW} Hostname: ${GN}$(hostname)${CL}" >> "$MOTD_FILE"
+	  echo -e "${TAB}${INFO}${YW} IP Address: ${GN}${IP}${CL}" >> "$MOTD_FILE"
 
       # Disable default MOTD scripts (optional for Ubuntu)
       chmod -x /etc/update-motd.d/*
