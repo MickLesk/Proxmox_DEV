@@ -305,6 +305,9 @@ advanced_settings() {
       fi
     done
   fi
+  
+  # Setting Tags for Advanced Settings
+  TAGS="community-script;"
 
   CT_TYPE=""
   while [ -z "$CT_TYPE" ]; do
