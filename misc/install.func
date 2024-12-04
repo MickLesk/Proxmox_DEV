@@ -189,19 +189,10 @@ else
 fi
 EOF
   chmod +x /usr/local/bin/apt-proxy-detect.sh
-  if grep -qEi "debian|ubuntu" /etc/os-release; then
-     $STD apt-get update
-     $STD apt-get -o Dpkg::Options::="--force-confold" -y dist-upgrade
-   # RPM-based systems
-   elif grep -qEi "fedora|centos|rocky|almalinux" /etc/os-release; then
-     $STD dnf -y upgrade
-   # openSUSE
-   elif grep -qEi "opensuse" /etc/os-release; then
-     $STD zypper -n update
-   else
-     msg_error "Unsupported OS detected!"
-     exit 1
-   fi
+  fi
+  $STD apt-get update
+  $STD apt-get -o Dpkg::Options::="--force-confold" -y dist-upgrade
+  rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
   msg_ok "Updated Container OS"
 }
 
