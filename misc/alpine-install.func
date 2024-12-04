@@ -136,9 +136,8 @@ update_os() {
 # This function modifies the message of the day (motd) and SSH settings
 motd_ssh() {
   # Set terminal to 256-color mode
-  grep -qxF "export TERM='xterm-256color'" /root/.bashrc || echo "export TERM='xterm-256color'" >> /root/.bashrc
-  IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1)
-
+  echo "export TERM='xterm-256color'" >>/root/.bashrc
+  IP=$(ip -4 addr show eth0 | awk '/inet / {print $2}' | cut -d/ -f1 | head -n 1)
   # Get OS information
   if [ -f "/etc/os-release" ]; then
     OS_NAME=$(grep ^NAME /etc/os-release | cut -d= -f2 | tr -d '"')
