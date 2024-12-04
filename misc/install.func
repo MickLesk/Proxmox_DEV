@@ -199,7 +199,7 @@ EOF
 # This function modifies the message of the day (motd) and SSH settings
 motd_ssh() {
   # Set terminal to 256-color mode
-  echo "export TERM='xterm-256color'" >>/root/.bashrc
+  grep -qxF "export TERM='xterm-256color'" /root/.bashrc || echo "export TERM='xterm-256color'" >> /root/.bashrc
 
   # Get the current private IP address
   IP=$(hostname -I | awk '{print $1}')  # Private IP
