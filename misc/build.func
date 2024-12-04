@@ -306,7 +306,7 @@ advanced_settings() {
     done
   fi
   
-  # Setting Tags for Advanced Settings
+  # Setting Default Tag for Advanced Settings
   TAGS="community-script;"
 
   CT_TYPE=""
