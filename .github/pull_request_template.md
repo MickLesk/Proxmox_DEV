@@ -6,8 +6,8 @@
 
 ## ✍️ Description
 Provide a summary of the changes made and/or reference the issue being addressed.
-<br>  
-<br>
+- 
+
 **Fixes**: # (issue number, if applicable)  
 
 ---
