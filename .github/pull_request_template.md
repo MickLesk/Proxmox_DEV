@@ -37,9 +37,3 @@ The following steps must be completed for the pull request to be considered:
 ## 📋 Additional Information (optional)
 Provide any extra context or screenshots about the feature or fix here.  
 
----
-
-## 🔗 Related Pull Requests / Discussions
-If there are other pull requests or discussions related to this change, please link them here:  
-- Related PR: # (if applicable)  
-- Discussion: [Link](https://github.com/community-scripts/ProxmoxVE/discussions)  
