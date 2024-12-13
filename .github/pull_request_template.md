@@ -1,5 +1,3 @@
-# 📦 Pull Request Template
-
 > **🛠️ Note:**  
 > We are meticulous about merging code into the main branch, so please understand that pull requests not meeting the project's standards may be rejected. It's never personal!  
 > 🎮 **Note for game-related scripts:** These have a lower likelihood of being merged.
@@ -8,6 +6,8 @@
 
 ## ✍️ Description
 Provide a summary of the changes made and/or reference the issue being addressed.
+
+
 
 **Fixes**: # (issue number, if applicable)  
 
