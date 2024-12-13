@@ -9,7 +9,11 @@ Provide a summary of the changes made and/or reference the issue being addressed
 
 - 
 
-**Fixes**: # (issue number, if applicable)  
+-- 
+
+- Related Issue: # (issue number, if applicable)  
+- Related PR: # (if applicable)  
+- Related Discussion: [Link](https://github.com/community-scripts/ProxmoxVE/discussions)  
 
 ---
 
