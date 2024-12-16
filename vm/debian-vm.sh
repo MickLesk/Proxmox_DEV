@@ -407,9 +407,10 @@ pvesm alloc $STORAGE $VMID $DISK0 4M 1>&/dev/null
 qm importdisk $VMID ${FILE} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 qm set $VMID \
   -efidisk0 ${DISK0_REF}${FORMAT} \
-  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=4G \
+  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=2G \
   -boot order=scsi0 \
   -serial0 socket >/dev/null
+qm resize $VMID scsi0 4G >/dev/null
   DESCRIPTION=$(cat <<EOF
 <div align='center'>
   <a href='https://Helper-Scripts.com' target='_blank' rel='noopener noreferrer'>
