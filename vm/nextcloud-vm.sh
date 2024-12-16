@@ -8,52 +8,31 @@
 function header_info {
   clear
   cat <<"EOF"
-    ____       __    _                ______
-   / __ \___  / /_  (_)___ _____     <  /__ \
-  / / / / _ \/ __ \/ / __ `/ __ \    / /__/ /
- / /_/ /  __/ /_/ / / /_/ / / / /   / // __/
-/_____/\___/_.___/_/\__,_/_/ /_/   /_//____/
-
+ ______              __ __           _  __            __             __  _   ____  ___
+/_  __/_ _________  / //_/__ __ __  / |/ /____ ______/ /__  __ _____/ / | | / /  |/  /
+ / / / // / __/ _ \/ ,< / -_) // / /    / -_) \ / __/ / _ \/ // / _  /  | |/ / /|_/ /
+/_/  \_,_/_/ /_//_/_/|_|\__/\_, / /_/|_/\__/_\_\\__/_/\___/\_,_/\_,_/   |___/_/  /_/
+                           /___/
 EOF
 }
 header_info
 echo -e "\n Loading..."
 GEN_MAC=02:$(openssl rand -hex 5 | awk '{print toupper($0)}' | sed 's/\(..\)/\1:/g; s/.$//')
 NEXTID=$(pvesh get /cluster/nextid)
-
+NAME="TurnKey Nexcloud VM"
 YW=$(echo "\033[33m")
 BL=$(echo "\033[36m")
+HA=$(echo "\033[1;34m")
 RD=$(echo "\033[01;31m")
 BGN=$(echo "\033[4;92m")
 GN=$(echo "\033[1;92m")
 DGN=$(echo "\033[32m")
 CL=$(echo "\033[m")
-
-CL=$(echo "\033[m")
-BOLD=$(echo "\033[1m")
 BFR="\\r\\033[K"
-HOLD=" "
-TAB="  "
-
-CM="${TAB}✔️${TAB}${CL}"
-CROSS="${TAB}✖️${TAB}${CL}"
-INFO="${TAB}💡${TAB}${CL}"
-OS="${TAB}🖥️${TAB}${CL}"
-CONTAINERTYPE="${TAB}📦${TAB}${CL}" 
-DISKSIZE="${TAB}💾${TAB}${CL}"
-CPUCORE="${TAB}🧠${TAB}${CL}"
-RAMSIZE="${TAB}🛠️${TAB}${CL}"
-CONTAINERID="${TAB}🆔${TAB}${CL}"
-HOSTNAME="${TAB}🏠${TAB}${CL}"
-BRIDGE="${TAB}🌉${TAB}${CL}"
-GATEWAY="${TAB}🌐${TAB}${CL}"
-DEFAULT="${TAB}⚙️${TAB}${CL}"
-MACADDRESS="${TAB}🔗${TAB}${CL}"
-VLANTAG="${TAB}🏷️${TAB}${CL}"
-CREATING="${TAB}🚀${TAB}${CL}"
-ADVANCED="${TAB}🧩${TAB}${CL}"
-
-THIN="discard=on,ssd=1,"
+HOLD="-"
+CM="${GN}✓${CL}"
+CROSS="${RD}✗${CL}"
+THIN="discard=on,ssd=1"
 set -e
 trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
 trap cleanup EXIT
@@ -80,7 +59,7 @@ function cleanup() {
 
 TEMP_DIR=$(mktemp -d)
 pushd $TEMP_DIR >/dev/null
-if whiptail --backtitle "Proxmox VE Helper Scripts" --title "Debian 12 VM" --yesno "This will create a New Debian 12 VM. Proceed?" 10 58; then
+if whiptail --backtitle "Proxmox VE Helper Scripts" --title "$NAME" --yesno "This will create a New $NAME. Proceed?" 10 58; then
   :
 else
   header_info && echo -e "⚠ User exited script \n" && exit
@@ -88,17 +67,17 @@ fi
 
 function msg_info() {
   local msg="$1"
-  echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
+  echo -ne " ${HOLD} ${YW}${msg}..."
 }
 
 function msg_ok() {
   local msg="$1"
-  echo -e "${BFR}${CM}${GN}${msg}${CL}"
+  echo -e "${BFR} ${CM} ${GN}${msg}${CL}"
 }
 
 function msg_error() {
   local msg="$1"
-  echo -e "${BFR}${CROSS}${RD}${msg}${CL}"
+  echo -e "${BFR} ${CROSS} ${RD}${msg}${CL}"
 }
 
 function check_root() {
@@ -113,18 +92,17 @@ function check_root() {
 
 function pve_check() {
   if ! pveversion | grep -Eq "pve-manager/8.[1-3]"; then
-    msg_error "${CROSS}${RD}This version of Proxmox Virtual Environment is not supported"
+    msg_error "This version of Proxmox Virtual Environment is not supported"
     echo -e "Requires Proxmox Virtual Environment Version 8.1 or later."
     echo -e "Exiting..."
     sleep 2
     exit
-  fi
+fi
 }
 
 function arch_check() {
   if [ "$(dpkg --print-architecture)" != "amd64" ]; then
-    echo -e "\n ${INFO}${YWB}This script will not work with PiMox! \n"
-    echo -e "\n ${YWB}Visit https://github.com/asylumexp/Proxmox for ARM64 support. \n"
+    msg_error "This script will not work with PiMox! \n"
     echo -e "Exiting..."
     sleep 2
     exit
@@ -146,7 +124,7 @@ function ssh_check() {
 
 function exit-script() {
   clear
-  echo -e "\n${CROSS}${RD}User exited script${CL}\n"
+  echo -e "⚠  User exited script \n"
   exit
 }
 
@@ -155,7 +133,7 @@ function default_settings() {
   FORMAT=",efitype=4m"
   MACHINE=""
   DISK_CACHE=""
-  HN="debian"
+  HN="turnkey-nextcloud-vm"
   CPU_TYPE=""
   CORE_COUNT="2"
   RAM_SIZE="2048"
@@ -163,20 +141,20 @@ function default_settings() {
   MAC="$GEN_MAC"
   VLAN=""
   MTU=""
-  START_VM="yes"
-  echo -e "${CONTAINERID}${BOLD}${DGN}Virtual Machine ID: ${BGN}${VMID}${CL}"
-  echo -e "${CONTAINERTYPE}${BOLD}${DGN}Machine Type: ${BGN}i440fx${CL}"
-  echo -e "${DISKSIZE}${DGN}Disk Cache: ${BGN}None${CL}"
-  echo -e "${HOSTNAME}${BOLD}${DGN}Hostname: ${BGN}${HN}${CL}"
-  echo -e "${OS}${BOLD}${DGN}CPU Model: ${BGN}KVM64${CL}"
-  echo -e "${CPUCORE}${BOLD}${DGN}CPU Cores: ${BGN}${CORE_COUNT}${CL}"
-  echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE}${CL}"
-  echo -e "${BRIDGE}${BOLD}${DGN}Bridge: ${BGN}${BRG}${CL}"
-  echo -e "${MACADDRESS}${BOLD}${DGN}MAC Address: ${BGN}${MAC}${CL}"
-  echo -e "${VLANTAG}${BOLD}${DGN}VLAN: ${BGN}Default${CL}"
-  echo -e "${DEFAULT}${BOLD}${DGN}Interface MTU Size: ${BGN}Default${CL}"
-  echo -e "${GATEWAY}${BOLD}${DGN}Start VM when completed: ${BGN}yes${CL}"
-  echo -e "${CREATING}${BOLD}${DGN}Creating a Debian 12 VM using the above default settings${CL}"
+  START_VM="no"
+  echo -e "${DGN}Using Virtual Machine ID: ${BGN}${VMID}${CL}"
+  echo -e "${DGN}Using Machine Type: ${BGN}i440fx${CL}"
+  echo -e "${DGN}Using Disk Cache: ${BGN}None${CL}"
+  echo -e "${DGN}Using Hostname: ${BGN}${HN}${CL}"
+  echo -e "${DGN}Using CPU Model: ${BGN}KVM64${CL}"
+  echo -e "${DGN}Allocated Cores: ${BGN}${CORE_COUNT}${CL}"
+  echo -e "${DGN}Allocated RAM: ${BGN}${RAM_SIZE}${CL}"
+  echo -e "${DGN}Using Bridge: ${BGN}${BRG}${CL}"
+  echo -e "${DGN}Using MAC Address: ${BGN}${MAC}${CL}"
+  echo -e "${DGN}Using VLAN: ${BGN}Default${CL}"
+  echo -e "${DGN}Using Interface MTU Size: ${BGN}Default${CL}"
+  echo -e "${DGN}Start VM when completed: ${BGN}no${CL}"
+  echo -e "${BL}Creating a $NAME using the above default settings${CL}"
 }
 
 function advanced_settings() {
@@ -190,7 +168,7 @@ function advanced_settings() {
         sleep 2
         continue
       fi
-      echo -e "${CONTAINERID}${BOLD}${DGN}Virtual Machine ID: ${BGN}$VMID${CL}"
+      echo -e "${DGN}Virtual Machine ID: ${BGN}$VMID${CL}"
       break
     else
       exit-script
@@ -202,11 +180,11 @@ function advanced_settings() {
     "q35" "Machine q35" OFF \
     3>&1 1>&2 2>&3); then
     if [ $MACH = q35 ]; then
-      echo -e "${CONTAINERTYPE}${BOLD}${DGN}Machine Type: ${BGN}$MACH${CL}"
+      echo -e "${DGN}Using Machine Type: ${BGN}$MACH${CL}"
       FORMAT=""
       MACHINE=" -machine q35"
     else
-      echo -e "${CONTAINERTYPE}${BOLD}${DGN}Machine Type: ${BGN}$MACH${CL}"
+      echo -e "${DGN}Using Machine Type: ${BGN}$MACH${CL}"
       FORMAT=",efitype=4m"
       MACHINE=""
     fi
@@ -219,23 +197,23 @@ function advanced_settings() {
     "1" "Write Through" OFF \
     3>&1 1>&2 2>&3); then
     if [ $DISK_CACHE = "1" ]; then
-      echo -e "${DISKSIZE}${BOLD}${DGN}Disk Cache: ${BGN}Write Through${CL}"
+      echo -e "${DGN}Using Disk Cache: ${BGN}Write Through${CL}"
       DISK_CACHE="cache=writethrough,"
     else
-      echo -e "${DISKSIZE}${BOLD}${DGN}Disk Cache: ${BGN}None${CL}"
+      echo -e "${DGN}Using Disk Cache: ${BGN}None${CL}"
       DISK_CACHE=""
     fi
   else
     exit-script
   fi
 
-  if VM_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Hostname" 8 58 debian --title "HOSTNAME" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
+  if VM_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Hostname" 8 58 turnkey-nextcloud-vm --title "HOSTNAME" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z $VM_NAME ]; then
-      HN="debian"
-      echo -e "${HOSTNAME}${BOLD}${DGN}Hostname: ${BGN}$HN${CL}"
+      HN="$HN"
+      echo -e "${DGN}Using Hostname: ${BGN}$HN${CL}"
     else
       HN=$(echo ${VM_NAME,,} | tr -d ' ')
-      echo -e "${HOSTNAME}${BOLD}${DGN}Hostname: ${BGN}$HN${CL}"
+      echo -e "${DGN}Using Hostname: ${BGN}$HN${CL}"
     fi
   else
     exit-script
@@ -246,10 +224,10 @@ function advanced_settings() {
     "1" "Host" OFF \
     3>&1 1>&2 2>&3); then
     if [ $CPU_TYPE1 = "1" ]; then
-      echo -e "${OS}${BOLD}${DGN}CPU Model: ${BGN}Host${CL}"
+      echo -e "${DGN}Using CPU Model: ${BGN}Host${CL}"
       CPU_TYPE=" -cpu host"
     else
-      echo -e "${OS}${BOLD}${DGN}CPU Model: ${BGN}KVM64${CL}"
+      echo -e "${DGN}Using CPU Model: ${BGN}KVM64${CL}"
       CPU_TYPE=""
     fi
   else
@@ -259,9 +237,9 @@ function advanced_settings() {
   if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores" 8 58 2 --title "CORE COUNT" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z $CORE_COUNT ]; then
       CORE_COUNT="2"
-      echo -e "${CPUCORE}${BOLD}${DGN}CPU Cores: ${BGN}$CORE_COUNT${CL}"
+      echo -e "${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     else
-      echo -e "${CPUCORE}${BOLD}${DGN}CPU Cores: ${BGN}$CORE_COUNT${CL}"
+      echo -e "${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     fi
   else
     exit-script
@@ -270,9 +248,9 @@ function advanced_settings() {
   if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB" 8 58 2048 --title "RAM" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z $RAM_SIZE ]; then
       RAM_SIZE="2048"
-      echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}$RAM_SIZE${CL}"
+      echo -e "${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     else
-      echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}$RAM_SIZE${CL}"
+      echo -e "${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     fi
   else
     exit-script
@@ -281,9 +259,9 @@ function advanced_settings() {
   if BRG=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Bridge" 8 58 vmbr0 --title "BRIDGE" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z $BRG ]; then
       BRG="vmbr0"
-      echo -e "${BRIDGE}${BOLD}${DGN}Bridge: ${BGN}$BRG${CL}"
+      echo -e "${DGN}Using Bridge: ${BGN}$BRG${CL}"
     else
-      echo -e "${BRIDGE}${BOLD}${DGN}Bridge: ${BGN}$BRG${CL}"
+      echo -e "${DGN}Using Bridge: ${BGN}$BRG${CL}"
     fi
   else
     exit-script
@@ -292,10 +270,10 @@ function advanced_settings() {
   if MAC1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a MAC Address" 8 58 $GEN_MAC --title "MAC ADDRESS" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z $MAC1 ]; then
       MAC="$GEN_MAC"
-      echo -e "${MACADDRESS}${BOLD}${DGN}MAC Address: ${BGN}$MAC${CL}"
+      echo -e "${DGN}Using MAC Address: ${BGN}$MAC${CL}"
     else
       MAC="$MAC1"
-      echo -e "${MACADDRESS}${BOLD}${DGN}MAC Address: ${BGN}$MAC1${CL}"
+      echo -e "${DGN}Using MAC Address: ${BGN}$MAC1${CL}"
     fi
   else
     exit-script
@@ -305,10 +283,10 @@ function advanced_settings() {
     if [ -z $VLAN1 ]; then
       VLAN1="Default"
       VLAN=""
-      echo -e "${VLANTAG}${BOLD}${DGN}VLAN: ${BGN}$VLAN1${CL}"
+      echo -e "${DGN}Using Vlan: ${BGN}$VLAN1${CL}"
     else
       VLAN=",tag=$VLAN1"
-      echo -e "${VLANTAG}${BOLD}${DGN}VLAN: ${BGN}$VLAN1${CL}"
+      echo -e "${DGN}Using Vlan: ${BGN}$VLAN1${CL}"
     fi
   else
     exit-script
@@ -318,28 +296,28 @@ function advanced_settings() {
     if [ -z $MTU1 ]; then
       MTU1="Default"
       MTU=""
-      echo -e "${DEFAULT}${BOLD}${DGN}Interface MTU Size: ${BGN}$MTU1${CL}"
+      echo -e "${DGN}Using Interface MTU Size: ${BGN}$MTU1${CL}"
     else
       MTU=",mtu=$MTU1"
-      echo -e "${DEFAULT}${BOLD}${DGN}Interface MTU Size: ${BGN}$MTU1${CL}"
+      echo -e "${DGN}Using Interface MTU Size: ${BGN}$MTU1${CL}"
     fi
   else
     exit-script
   fi
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "START VIRTUAL MACHINE" --yesno "Start VM when completed?" 10 58); then
-    echo -e "${GATEWAY}${BOLD}${DGN}Start VM when completed: ${BGN}yes${CL}"
+    echo -e "${DGN}Start VM when completed: ${BGN}yes${CL}"
     START_VM="yes"
   else
-    echo -e "${GATEWAY}${BOLD}${DGN}Start VM when completed: ${BGN}no${CL}"
+    echo -e "${DGN}Start VM when completed: ${BGN}no${CL}"
     START_VM="no"
   fi
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create a Debian 12 VM?" --no-button Do-Over 10 58); then
-    echo -e "${CREATING}${BOLD}${DGN}Creating a Debian 12 VM using the above advanced settings${CL}"
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create a $NAME?" --no-button Do-Over 10 58); then
+    echo -e "${RD}Creating a $NAME using the above advanced settings${CL}"
   else
     header_info
-    echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings${CL}"
+    echo -e "${RD}Using Advanced Settings${CL}"
     advanced_settings
   fi
 }
@@ -347,11 +325,11 @@ function advanced_settings() {
 function start_script() {
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "SETTINGS" --yesno "Use Default Settings?" --no-button Advanced 10 58); then
     header_info
-    echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings${CL}"
+    echo -e "${BL}Using Default Settings${CL}"
     default_settings
   else
     header_info
-    echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings${CL}"
+    echo -e "${RD}Using Advanced Settings${CL}"
     advanced_settings
   fi
 }
@@ -390,8 +368,8 @@ else
 fi
 msg_ok "Using ${CL}${BL}$STORAGE${CL} ${GN}for Storage Location."
 msg_ok "Virtual Machine ID is ${CL}${BL}$VMID${CL}."
-msg_info "Retrieving the URL for the Debian 12 Qcow2 Disk Image"
-URL=https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-nocloud-amd64.qcow2
+msg_info "Retrieving the URL for the $NAME Disk Image"
+URL=http://mirror.turnkeylinux.org/turnkeylinux/images/iso/turnkey-nextcloud-18.0-bookworm-amd64.iso
 sleep 2
 msg_ok "${CL}${BL}${URL}${CL}"
 wget -q --show-progress $URL
@@ -402,9 +380,9 @@ msg_ok "Downloaded ${CL}${BL}${FILE}${CL}"
 STORAGE_TYPE=$(pvesm status -storage $STORAGE | awk 'NR>1 {print $2}')
 case $STORAGE_TYPE in
 nfs | dir)
-  DISK_EXT=".qcow2"
+  DISK_EXT=".raw"
   DISK_REF="$VMID/"
-  DISK_IMPORT="-format qcow2"
+  DISK_IMPORT="-format raw"
   THIN=""
   ;;
 btrfs)
@@ -415,60 +393,33 @@ btrfs)
   THIN=""
   ;;
 esac
-for i in {0,1}; do
+for i in {0,1,2}; do
   disk="DISK$i"
   eval DISK${i}=vm-${VMID}-disk-${i}${DISK_EXT:-}
   eval DISK${i}_REF=${STORAGE}:${DISK_REF:-}${!disk}
 done
 
-msg_info "Creating a Debian 12 VM"
-qm create $VMID -agent 1${MACHINE} -tablet 0 -localtime 1 -bios ovmf${CPU_TYPE} -cores $CORE_COUNT -memory $RAM_SIZE \
+msg_info "Creating a $NAME"
+qm create $VMID -agent 1${MACHINE} -tablet 0 -localtime 1 -bios seabios${CPU_TYPE} -cores $CORE_COUNT -memory $RAM_SIZE \
   -name $HN -tags proxmox-helper-scripts -net0 virtio,bridge=$BRG,macaddr=$MAC$VLAN$MTU -onboot 1 -ostype l26 -scsihw virtio-scsi-pci
 pvesm alloc $STORAGE $VMID $DISK0 4M 1>&/dev/null
+pvesm alloc $STORAGE $VMID $DISK1 12G 1>&/dev/null
 qm importdisk $VMID ${FILE} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 qm set $VMID \
   -efidisk0 ${DISK0_REF}${FORMAT} \
-  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=2G \
-  -boot order=scsi0 \
-  -serial0 socket >/dev/null
-qm resize $VMID scsi0 4G >/dev/null
-DESCRIPTION=$(
-  cat <<EOF
-<div align='center'>
-  <a href='https://Helper-Scripts.com' target='_blank' rel='noopener noreferrer'>
-    <img src='https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/images/logo-81x112.png' alt='Logo' style='width:81px;height:112px;'/>
-  </a>
+  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN} \
+  -scsi1 ${DISK2_REF},${DISK_CACHE}${THIN} \
+  -boot order='scsi1;scsi0' \
+  -description "<div align='center'><a href='https://Helper-Scripts.com'><img src='https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/images/logo-81x112.png'/></a>
 
-  <h2 style='font-size: 24px; margin: 20px 0;'>Debian VM</h2>
+  # $NAME
 
-  <p style='margin: 16px 0;'>
-    <a href='https://ko-fi.com/community_scripts' target='_blank' rel='noopener noreferrer'>
-      <img src='https://img.shields.io/badge/&#x2615;-Buy us a coffee-blue' alt='spend Coffee' />
-    </a>
-  </p>
-  
-  <span style='margin: 0 10px;'>
-    <i class="fa fa-github fa-fw" style="color: #f5f5f5;"></i>
-    <a href='https://github.com/community-scripts/ProxmoxVE' target='_blank' rel='noopener noreferrer' style='text-decoration: none; color: #00617f;'>GitHub</a>
-  </span>
-  <span style='margin: 0 10px;'>
-    <i class="fa fa-comments fa-fw" style="color: #f5f5f5;"></i>
-    <a href='https://github.com/community-scripts/ProxmoxVE/discussions' target='_blank' rel='noopener noreferrer' style='text-decoration: none; color: #00617f;'>Discussions</a>
-  </span>
-  <span style='margin: 0 10px;'>
-    <i class="fa fa-exclamation-circle fa-fw" style="color: #f5f5f5;"></i>
-    <a href='https://github.com/community-scripts/ProxmoxVE/issues' target='_blank' rel='noopener noreferrer' style='text-decoration: none; color: #00617f;'>Issues</a>
-  </span>
-</div>
-EOF
-)
-qm set "$VMID" -description "$DESCRIPTION" >/dev/null
-
-msg_ok "Created a Debian 12 VM ${CL}${BL}(${HN})"
+  <a href='https://ko-fi.com/D1D7EP4GF'><img src='https://img.shields.io/badge/&#x2615;-Buy me a coffee-blue' /></a>
+  </div>" >/dev/null
+msg_ok "Created a $NAME ${CL}${BL}(${HN})"
 if [ "$START_VM" == "yes" ]; then
-  msg_info "Starting Debian 12 VM"
+  msg_info "Starting $NAME"
   qm start $VMID
-  msg_ok "Started Debian 12 VM"
+  msg_ok "Started $NAME"
 fi
 msg_ok "Completed Successfully!\n"
-echo "More Info at https://github.com/community-scripts/ProxmoxVE/discussions/836"
