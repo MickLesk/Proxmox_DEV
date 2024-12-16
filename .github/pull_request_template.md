@@ -30,7 +30,7 @@ Please check the relevant options:
 The following steps must be completed for the pull request to be considered:  
 - [ ] Self-review performed (I have reviewed my code to ensure it follows established patterns and conventions.)  
 - [ ] Testing performed (I have thoroughly tested my changes and verified expected functionality.)  
-- [ ] Documentation updated (I have updated any relevant documentation, including README files or comments.)  
+- [ ] Documentation updated (I have updated any relevant documentation)
 
 ---
 
