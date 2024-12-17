@@ -50,18 +50,20 @@ error_handler() {
   echo -e "\n$error_message\n"
 }
 
+# This function displays a spinner.
 spinner() {
-    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-    local spin_i=0
-    local interval=0.1 
-    printf "\e[?25l"  
-    local orange="\e[38;5;214m"
+  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local spin_i=0
+  local interval=0.1
+  printf "\e[?25l"
 
-    while true; do
-        printf "\r ${orange}%s\e[0m " "${frames[spin_i]}"
-        spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
-        sleep "$interval"
-    done
+  local color="${YWB}"
+
+  while true; do
+    printf "\r ${color}%s${CL}" "${frames[spin_i]}"
+    spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
+    sleep "$interval"
+  done
 }
 
 # This function displays an informational message with a yellow color.
@@ -322,7 +324,6 @@ chmod +x /opt/lxc-iptag/iptag
 
 msg_info "Creating Service"
 if [[ ! -f /lib/systemd/system/iptag.service ]]; then
-    echo "Systemd service file not found. Creating it now..."
     cat <<EOF > /lib/systemd/system/iptag.service
 [Unit]
 Description=LXC IP-Tag service
