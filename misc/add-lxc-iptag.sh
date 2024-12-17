@@ -98,7 +98,7 @@ while true; do
         msg_error "Installation cancelled."
         exit
         ;;
-    *) msg_info "Please answer yes or no." ;;
+    *) msg_error "Please answer yes or no." ;;
     esac
 done
 
