@@ -20,17 +20,39 @@ header_info
 echo -e "Loading..."
 GEN_MAC=$(echo '00 60 2f'$(od -An -N3 -t xC /dev/urandom) | sed -e 's/ /:/g' | tr '[:lower:]' '[:upper:]')
 NEXTID=$(pvesh get /cluster/nextid)
+
 YW=$(echo "\033[33m")
 BL=$(echo "\033[36m")
-HA=$(echo "\033[1;34m")
 RD=$(echo "\033[01;31m")
 BGN=$(echo "\033[4;92m")
 GN=$(echo "\033[1;92m")
 DGN=$(echo "\033[32m")
 CL=$(echo "\033[m")
+
+CL=$(echo "\033[m")
+BOLD=$(echo "\033[1m")
 BFR="\\r\\033[K"
-HOLD="-"
-CM="${GN}✓${CL}"
+HOLD=" "
+TAB="  "
+
+CM="${TAB}✔️${TAB}${CL}"
+CROSS="${TAB}✖️${TAB}${CL}"
+INFO="${TAB}💡${TAB}${CL}"
+OS="${TAB}🖥️${TAB}${CL}"
+CONTAINERTYPE="${TAB}📦${TAB}${CL}"
+DISKSIZE="${TAB}💾${TAB}${CL}"
+CPUCORE="${TAB}🧠${TAB}${CL}"
+RAMSIZE="${TAB}🛠️${TAB}${CL}"
+CONTAINERID="${TAB}🆔${TAB}${CL}"
+HOSTNAME="${TAB}🏠${TAB}${CL}"
+BRIDGE="${TAB}🌉${TAB}${CL}"
+GATEWAY="${TAB}🌐${TAB}${CL}"
+DEFAULT="${TAB}⚙️${TAB}${CL}"
+MACADDRESS="${TAB}🔗${TAB}${CL}"
+VLANTAG="${TAB}🏷️${TAB}${CL}"
+CREATING="${TAB}🚀${TAB}${CL}"
+ADVANCED="${TAB}🧩${TAB}${CL}"
+
 set -o errexit
 set -o errtrace
 set -o nounset
@@ -73,18 +95,20 @@ if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "Mikrotik RouterOS 
   echo "User selected Yes"
 else
   clear
-  echo -e "⚠ User exited script \n"
+  echo -e "${CROSS}${RD}User exited script${CL}\n"
   exit
 fi
 
 function msg_info() {
   local msg="$1"
-  echo -ne " ${HOLD} ${YW}${msg}..."
+  echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
 }
+
 function msg_ok() {
   local msg="$1"
-  echo -e "${BFR} ${CM} ${GN}${msg}${CL}"
+  echo -e "${BFR}${CM}${GN}${msg}${CL}"
 }
+
 function default_settings() {
   echo -e "${DGN}Using Virtual Machine ID: ${BGN}$NEXTID${CL}"
   VMID=$NEXTID

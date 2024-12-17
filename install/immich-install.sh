@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2024 tteck
-# Author: tteck
-# Co-Author: MickLesk (Canbiz)
+# Copyright (c) 2024 chmistry
+# Author: chmistry
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
@@ -103,16 +102,20 @@ Description=immich microservices
 Documentation=https://github.com/immich-app/immich
 Requires=redis-server.service
 Requires=postgresql.service
+
 [Service]
 User=immich
 Group=immich
 Type=simple
 Restart=on-failure
 UMask=0077
+
 ExecStart=/bin/bash /home/immich/app/start.sh microservices
+
 SyslogIdentifier=immich-microservices
 StandardOutput=append:/var/log/immich/microservices.log
 StandardError=append:/var/log/immich/microservices.log
+
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -121,18 +124,22 @@ cat <<EOF >/etc/systemd/system/immich-ml.service
 [Unit]
 Description=immich machine-learning
 Documentation=https://github.com/immich-app/immich
+
 [Service]
 User=immich
 Group=immich
 Type=simple
 Restart=on-failure
 UMask=0077
+
 WorkingDirectory=/home/immich/app
 EnvironmentFile=/home/immich/runtime.env
 ExecStart=/home/immich/app/machine-learning/start.sh
+
 SyslogIdentifier=immich-machine-learning
 StandardOutput=append:/var/log/immich/ml.log
 StandardError=append:/var/log/immich/ml.log
+
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -145,16 +152,20 @@ Requires=redis-server.service
 Requires=postgresql.service
 Requires=immich-ml.service
 Requires=immich-microservices.service
+
 [Service]
 User=immich
 Group=immich
 Type=simple
 Restart=on-failure
 UMask=0077
+
 ExecStart=/bin/bash /home/immich/app/start.sh immich
+
 SyslogIdentifier=immich-web
 StandardOutput=append:/var/log/immich/web.log
 StandardError=append:/var/log/immich/web.log
+
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -173,3 +184,4 @@ msg_info "Cleaning up"
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
+

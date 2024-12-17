@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
 source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
-# Copyright (c) 2021-2024 tteck
-# Author: MickLesk (Canbiz)
+# Copyright (c) 2024 chmistry
+# Author: chmistry
 # License: MIT
-# https://github.com/MickLesk/Proxmox_DEV/raw/main/LICENSE
+# https://github.com/tteck/Proxmox/raw/main/LICENSE
 
 function header_info {
 clear
 cat <<"EOF"
-    ____                    _      __  
-   /  _/___ ___  ____ ___  (_)____/ /_ 
-   / // __ `__ \/ __ `__ \/ / ___/ __ \
- _/ // / / / / / / / / / / / /__/ / / /
-/___/_/ /_/ /_/_/ /_/ /_/_/\___/_/ /_/ 
-                                       
+.__                .__       .__     
+|__| _____   _____ |__| ____ |  |__  
+|  |/     \ /     \|  |/ ___\|  |  \ 
+|  |  Y Y  \  Y Y  \  \  \___|   Y  \
+|__|__|_|  /__|_|  /__|\___  >___|  /
+         \/      \/        \/     \/  
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="Immich"
+APP="immich"
 var_disk="50"
 var_cpu="4"
-var_ram="4096"
-var_os="debian"
-var_version="12"
+var_ram="8192"
+var_os="ubuntu"
+var_version="24.04"
 variables
 color
 catch_errors
@@ -101,3 +101,4 @@ description
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
          ${BL}http://${IP}:3001${CL} \n"
+
