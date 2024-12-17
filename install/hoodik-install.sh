@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2024 tteck
-# Author: tteck
-# Co-Author: MickLesk (Canbiz)
+# Copyright (c) 2021-2024 community-scripts ORG
+# Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 # Source: https://github.com/hudikhq/hoodik
 
-source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
+source /dev/stdin <<<"$FUNCTIONS_FILE_PATH"
 color
 verb_ip6
 catch_errors
@@ -16,7 +15,7 @@ network_check
 update_os
 
 msg_info "Installing Dependencies (Patience)"
-$STD apt-get install -y --no-install-recommends \
+$STD apt-get install -y \
   unzip \
   pkg-config \
   libssl-dev \
@@ -33,19 +32,19 @@ $STD apt-get install -y --no-install-recommends \
   mc
 msg_ok "Installed Dependencies"
 
-msg_info "Installing Rust (Patience)" 
+msg_info "Installing Rust (Patience)"
 $STD bash <(curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs) -y
 source ~/.cargo/env
-msg_ok "Installed Rust" 
+msg_ok "Installed Rust"
 
-msg_info "Installing Hoodik (Patience)" 
+msg_info "Installing Hoodik (Patience)"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hudikhq/hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-$STD wget -q --no-check-certificate "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
-$STD unzip -q ${RELEASE}.zip
+wget -q "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
+unzip -q ${RELEASE}.zip
 CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
 mv "hoodik-${CLEAN_RELEASE}" hoodik
-rm -R ${RELEASE}.zip 
+rm -R ${RELEASE}.zip
 cd hoodik
 cargo build -q --release
 msg_ok "Installed hoodik"
