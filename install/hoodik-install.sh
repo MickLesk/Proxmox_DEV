@@ -16,7 +16,6 @@ update_os
 
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y \
-  unzip \
   pkg-config \
   libssl-dev \
   libc6-dev \
@@ -27,7 +26,6 @@ $STD apt-get install -y \
   build-essential \
   curl \
   sudo \
-  git \
   make \
   mc
 msg_ok "Installed Dependencies"
@@ -41,11 +39,10 @@ msg_info "Installing Hoodik (Patience)"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hudikhq/hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 wget -q "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
-unzip -q ${RELEASE}.zip
-CLEAN_RELEASE=$(echo "$RELEASE" | sed 's/^v//')
-mv "hoodik-${CLEAN_RELEASE}" hoodik
+unzip -q v${RELEASE}.zip
+mv "hoodik-${RELEASE:1}" hoodik
 rm -R ${RELEASE}.zip
-cd hoodik
+cd /opt/hoodik
 cargo build -q --release
 msg_ok "Installed hoodik"
 
