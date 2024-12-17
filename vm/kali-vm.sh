@@ -24,16 +24,36 @@ NEXTID=$(pvesh get /cluster/nextid)
 
 YW=$(echo "\033[33m")
 BL=$(echo "\033[36m")
-HA=$(echo "\033[1;34m")
 RD=$(echo "\033[01;31m")
 BGN=$(echo "\033[4;92m")
 GN=$(echo "\033[1;92m")
 DGN=$(echo "\033[32m")
 CL=$(echo "\033[m")
+
+CL=$(echo "\033[m")
+BOLD=$(echo "\033[1m")
 BFR="\\r\\033[K"
-HOLD="-"
-CM="${GN}✓${CL}"
-CROSS="${RD}✗${CL}"
+HOLD=" "
+TAB="  "
+
+CM="${TAB}✔️${TAB}${CL}"
+CROSS="${TAB}✖️${TAB}${CL}"
+INFO="${TAB}💡${TAB}${CL}"
+OS="${TAB}🖥️${TAB}${CL}"
+CONTAINERTYPE="${TAB}📦${TAB}${CL}"
+DISKSIZE="${TAB}💾${TAB}${CL}"
+CPUCORE="${TAB}🧠${TAB}${CL}"
+RAMSIZE="${TAB}🛠️${TAB}${CL}"
+CONTAINERID="${TAB}🆔${TAB}${CL}"
+HOSTNAME="${TAB}🏠${TAB}${CL}"
+BRIDGE="${TAB}🌉${TAB}${CL}"
+GATEWAY="${TAB}🌐${TAB}${CL}"
+DEFAULT="${TAB}⚙️${TAB}${CL}"
+MACADDRESS="${TAB}🔗${TAB}${CL}"
+VLANTAG="${TAB}🏷️${TAB}${CL}"
+CREATING="${TAB}🚀${TAB}${CL}"
+ADVANCED="${TAB}🧩${TAB}${CL}"
+
 THIN="discard=on,ssd=1,"
 set -e
 trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
@@ -64,22 +84,22 @@ pushd $TEMP_DIR >/dev/null
 if whiptail --backtitle "Proxmox VE Helper Scripts" --title "Kali Linux VM" --yesno "This will create a New Kali Linux VM. Proceed?" 10 58; then
   :
 else
-  header_info && echo -e "⚠ User exited script \n" && exit
+  header_info &&   echo -e "${CROSS}${RD}User exited script${CL}\n" && exit
 fi
 
 function msg_info() {
   local msg="$1"
-  echo -ne " ${HOLD} ${YW}${msg}..."
+  echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
 }
 
 function msg_ok() {
   local msg="$1"
-  echo -e "${BFR} ${CM} ${GN}${msg}${CL}"
+  echo -e "${BFR}${CM}${GN}${msg}${CL}"
 }
 
 function msg_error() {
   local msg="$1"
-  echo -e "${BFR} ${CROSS} ${RD}${msg}${CL}"
+  echo -e "${BFR}${CROSS}${RD}${msg}${CL}"
 }
 
 function check_root() {
@@ -93,9 +113,9 @@ function check_root() {
 }
 
 function pve_check() {
-  if ! pveversion | grep -Eq "pve-manager/(7\.4-(1[3-8])|8\.[1-2])"; then
-    msg_error "This version of Proxmox Virtual Environment is not supported"
-    echo -e "Requires PVE7 Version 7.4-13 or later, or PVE8 Version 8.1.1 or later."
+  if ! pveversion | grep -Eq "pve-manager/8.[1-3]"; then
+    msg_error "${CROSS}${RD}This version of Proxmox Virtual Environment is not supported"
+    echo -e "Requires Proxmox Virtual Environment Version 8.1 or later."
     echo -e "Exiting..."
     sleep 2
     exit
@@ -104,7 +124,8 @@ function pve_check() {
 
 function arch_check() {
   if [ "$(dpkg --print-architecture)" != "amd64" ]; then
-    msg_error "This script will not work with PiMox! \n"
+    echo -e "\n ${INFO}${YWB}This script will not work with PiMox! \n"
+    echo -e "\n ${YWB}Visit https://github.com/asylumexp/Proxmox for ARM64 support. \n"
     echo -e "Exiting..."
     sleep 2
     exit
@@ -126,7 +147,7 @@ function ssh_check() {
 
 function exit-script() {
   clear
-  echo -e "⚠  User exited script \n"
+  echo -e "\n${CROSS}${RD}User exited script${CL}\n"
   exit
 }
 
