@@ -76,18 +76,18 @@ msg_info() {
 
 # This function displays a success message with a green color.
 msg_ok() {
-  if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
-  printf "\e[?25h"
-  local msg="$1"
-  echo -e "${BFR}${CM}${GN}${msg}${CL}"
+    if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID >/dev/null; then kill $SPINNER_PID >/dev/null; fi
+    printf "\e[?25h"
+    local msg="$1"
+    echo -e "${BFR}${CM}${GN}${msg}${CL}"
 }
 
 # This function displays a error message with a red color.
 msg_error() {
-  if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
-  printf "\e[?25h"
-  local msg="$1"
-  echo -e "${BFR}${CROSS}${RD}${msg}${CL}"
+    if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID >/dev/null; then kill $SPINNER_PID >/dev/null; fi
+    printf "\e[?25h"
+    local msg="$1"
+    echo -e "${BFR}${CROSS}${RD}${msg}${CL}"
 }
 
 while true; do
