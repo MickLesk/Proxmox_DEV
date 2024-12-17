@@ -4,7 +4,7 @@
 # Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
-# Original-Source: https://github.com/gitsang/lxc-iptag
+# Source: https://github.com/gitsang/lxc-iptag
 
 function header_info {
   clear
@@ -53,17 +53,18 @@ error_handler() {
 spinner() {
     local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
     local spin_i=0
-    local interval=0.1
+    local interval=0.1 
     printf "\e[?25l"  
-    local purple="\e[38;5;171m"  # Lila statt Orange
+    local orange="\e[38;5;214m"
 
     while true; do
-        printf "\r ${purple}%s\e[0m " "${frames[spin_i]}"
+        printf "\r ${orange}%s\e[0m " "${frames[spin_i]}"
         spin_i=$(( (spin_i + 1) % ${#frames[@]} ))
         sleep "$interval"
     done
 }
 
+# This function displays an informational message with a yellow color.
 msg_info() {
     local msg="$1"
     echo -ne " ${HOLD} ${YW}${msg}   "
@@ -346,6 +347,5 @@ msg_info "Starting Service"
 systemctl daemon-reload &>/dev/null
 systemctl enable -q --now iptag.service &>/dev/null
 msg_ok "Started Service"
-
-echo -e "${APP} installation completed successfully! ${CL}\n"
 SPINNER_PID=""
+echo -e "\n${APP} installation completed successfully! ${CL}\n"
