@@ -95,7 +95,7 @@ while true; do
     case $yn in
     [Yy]*) break ;;
     [Nn]*)
-        msg_info "Installation cancelled."
+        msg_error "Installation cancelled."
         exit
         ;;
     *) msg_info "Please answer yes or no." ;;
