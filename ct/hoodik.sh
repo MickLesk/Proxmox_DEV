@@ -7,101 +7,73 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 # Source: https://github.com/matze/wastebin
 
-
-function header_info {
-clear
-cat <<"EOF"
-    __  __                ___ __  
-   / / / /___  ____  ____/ (_) /__
-  / /_/ / __ \/ __ \/ __  / / //_/
- / __  / /_/ / /_/ / /_/ / / ,<   
-/_/ /_/\____/\____/\__,_/_/_/|_|  
-                                 
-EOF
-}
-header_info
-echo -e "Loading..."
+# App Default Values
 APP="Hoodik"
-var_disk="10"
-var_cpu="4"
+var_tags="sharing"
+var_disk="7"
+var_cpu="2"
 var_ram="2048"
 var_os="debian"
 var_version="12"
+var_unprivileged="1"
+
+# App Output & Base Settings
+header_info "$APP"
+base_settings
+
+# Core
 variables
 color
 catch_errors
 
-function default_settings() {
-  CT_TYPE="1"
-  PW=""
-  CT_ID=$NEXTID
-  HN=$NSAPP
-  DISK_SIZE="$var_disk"
-  CORE_COUNT="$var_cpu"
-  RAM_SIZE="$var_ram"
-  BRG="vmbr0"
-  NET="dhcp"
-  GATE=""
-  APT_CACHER=""
-  APT_CACHER_IP=""
-  DISABLEIP6="no"
-  MTU=""
-  SD=""
-  NS=""
-  MAC=""
-  VLAN=""
-  SSH="no"
-  VERB="no"
-  echo_default
-}
-
 function update_script() {
-header_info
-if [[ ! -d /opt/hoodik ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
-  read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
-  [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
-fi
-msg_info "Stopping Hoodik"
-systemctl stop Hoodik
-msg_ok "Stopped Hoodik"
+  header_info
+  check_container_storage
+  check_container_resources
+  if [[ ! -d /opt/hoodik ]]; then
+    msg_error "No ${APP} Installation Found!"
+    exit
+  fi
+  RELEASE=$(curl -s https://api.github.com/repos/hudikhq/hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+  if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
+  msg_info "Stopping Services"
+  systemctl stop hoodik
+  msg_ok "Services Stopped"
 
-msg_info "Updating Hoodik"
-RELEASE=$(curl -s https://api.github.com/repos/hudikhq/hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }') &>/dev/null
-cd /opt
-if [ -d hoodik_bak ]; then
-  rm -rf hoodik_bak
-fi
-mv hoodik hoodik_bak
-wget -q "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
-unzip -q ${RELEASE}.zip &>/dev/null
-mv hoodik-${RELEASE} /opt/hoodik
-cd /opt/hoodik
-cargo update -q 
-cargo build -q --release
-msg_ok "Updated Hoodik"
+  msg_info "Updating ${APP} to ${RELEASE}"
+  cd /opt
+  if [ -d hoodik_bak ]; then
+    rm -rf hoodik_bak
+  fi
+  mv hoodik hoodik_bak
+  wget -q "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
+  unzip -q ${RELEASE}.zip 
+  mv hoodik-${RELEASE} /opt/hoodik
+  cd /opt/hoodik
+  cargo update -q
+  cargo build -q --release
+  msg_ok "Updated Hoodik"
 
-msg_info "Starting Hoodik"
-systemctl start hoodik
-msg_ok "Started Hoodik"
+  msg_info "Starting Services"
+  systemctl start hoodik
+  msg_ok "Started Services"
 
-msg_info "Cleaning Up"
-cd /opt
-rm -R ${RELEASE}.zip 
-rm -R hoodik_bak 
-msg_ok "Cleaned"
-msg_ok "Updated Successfully"
-exit
+  msg_info "Cleaning Up"
+  rm -R /opt/${RELEASE}.zip
+  rm -R /opt/hoodik_bak
+  msg_ok "Cleaned"
+  msg_ok "Updated Successfully"
+  else
+    msg_ok "No update required. ${APP} is already at ${RELEASE}"
+  fi
+  exit
 }
 
 start
 build_container
 description
 
-msg_info "Setting Container to Normal Resources"
-pct set $CTID -cores 2
-msg_ok "Set Container to Normal Resources"
-
 msg_ok "Completed Successfully!\n"
-echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:8088${CL} \n"
+echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
+echo -e "${INFO}${YW} Access it using the following URL:${CL}"
+echo -e "${TAB}${GATEWAY}${BGN}http://${IP}:8088${CL}"
