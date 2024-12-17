@@ -123,6 +123,7 @@ msg_ok "Installed Dependencies"
 
 msg_info "Setting up IP-Tag Scripts"
 mkdir -p /opt/lxc-iptag
+msg_ok "Setup IP-Tag Scripts"
 
 msg_info "Setup Default Config"
 if [[ ! -f /opt/lxc-iptag/iptag.conf ]]; then
