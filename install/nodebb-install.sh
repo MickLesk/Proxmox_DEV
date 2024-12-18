@@ -16,12 +16,10 @@ network_check
 update_os
 
 msg_info "Installing Dependencies (Patience)"
-$STD apt-get install -y --no-install-recommends \
+$STD apt-get install -y \
   build-essential \
   curl \
-  unzip \
   sudo \
-  git \
   make \
   gnupg \
   ca-certificates \
