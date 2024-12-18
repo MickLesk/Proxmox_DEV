@@ -11,7 +11,7 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 APP="Hoodik"
 var_tags="sharing"
 var_disk="7"
-var_cpu="2"
+var_cpu="4"
 var_ram="2048"
 var_os="debian"
 var_version="12"
@@ -19,7 +19,6 @@ var_unprivileged="1"
 
 # App Output & Base Settings
 header_info "$APP"
-base_settings
 
 # Core
 variables
