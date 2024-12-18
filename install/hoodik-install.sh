@@ -39,10 +39,9 @@ msg_info "Installing Hoodik (Patience)"
 cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/hudikhq/hoodik/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
 wget -q "https://github.com/hudikhq/hoodik/archive/refs/tags/${RELEASE}.zip"
-unzip -q v${RELEASE}.zip
+unzip -q ${RELEASE}.zip
 mv "hoodik-${RELEASE:1}" hoodik
-rm -R ${RELEASE}.zip
-cd /opt/hoodik
+cd hoodik
 cargo build -q --release
 msg_ok "Installed hoodik"
 
@@ -67,6 +66,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
+rm -rf /opt/${RELEASE}.zip
 $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"
