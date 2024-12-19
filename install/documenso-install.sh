@@ -20,6 +20,7 @@ $STD apt-get install -y \
   gpg \
   curl \
   sudo \
+  mc \
   jq \
   postgresql 
 msg_ok "Installed Dependencies"
