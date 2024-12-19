@@ -34,8 +34,7 @@ msg_ok "Set up Node.js Repository"
 msg_info "Installing Node.js"
 $STD apt-get update
 $STD apt-get install -y nodejs
-$STD npm install -g pnpm
-$STD npm install -g "turbo@^1.9.3"
+$STD npm install -g "turbo@latest"
 msg_ok "Installed Node.js"
 
 msg_info "Setting up PostgreSQL"
@@ -72,10 +71,8 @@ export TURBO_CACHE=1
 export NEXT_TELEMETRY_DISABLED=1
 
 $STD npm ci
-echo "install done"
-npm run build
-echo "run build done"
-npm run prisma:migrate-deploy
+$STD npm run build
+#npm run prisma:migrate-deploy
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Documenso"
 
