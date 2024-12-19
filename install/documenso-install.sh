@@ -20,7 +20,6 @@ $STD apt-get install -y \
   gpg \
   curl \
   sudo \
-  libc6-compat \
   jq \
   postgresql 
 msg_ok "Installed Dependencies"
