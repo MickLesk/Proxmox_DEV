@@ -20,7 +20,8 @@ $STD apt-get install -y \
   gpg \
   curl \
   sudo \
-  unzip \
+  libc6-compat \
+  jq \
   postgresql 
 msg_ok "Installed Dependencies"
 
@@ -34,6 +35,7 @@ msg_info "Installing Node.js"
 $STD apt-get update
 $STD apt-get install -y nodejs
 $STD npm install -g pnpm
+$STD npm install -g "turbo@^1.9.3"
 msg_ok "Installed Node.js"
 
 msg_info "Setting up PostgreSQL"
@@ -69,7 +71,7 @@ export NODE_OPTIONS="--max-old-space-size=3072"
 export TURBO_CACHE=1
 export NEXT_TELEMETRY_DISABLED=1
 
-$STD npm install
+$STD npm ci
 echo "install done"
 npm run build
 echo "run build done"
