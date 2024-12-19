@@ -20,6 +20,8 @@ $STD apt-get install -y \
   gpg \
   curl \
   sudo \
+  make \
+  cmake \
   mc \
   jq \
   postgresql 
@@ -70,7 +72,8 @@ export TURBO_CACHE=1
 export NEXT_TELEMETRY_DISABLED=1
 
 $STD npm ci
-$STD npm run turbo -- build
+npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
+turbo run build --filter=@documenso/web...
 
 #npm run prisma:migrate-deploy
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
@@ -84,7 +87,7 @@ After=network.target postgresql.service
 
 [Service]
 WorkingDirectory=/opt/documenso
-ExecStart=/usr/bin/npm run start
+ExecStart=node /opt/documenso/apps/web/server.js
 Restart=always
 EnvironmentFile=/opt/documenso/.env
 
