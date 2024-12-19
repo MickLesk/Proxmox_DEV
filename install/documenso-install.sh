@@ -90,7 +90,7 @@ After=network.target postgresql.service
 
 [Service]
 WorkingDirectory=/opt/documenso
-ExecStart=node /opt/documenso/apps/web/server.js
+ExecStart=/usr/bin/npm start
 Restart=always
 EnvironmentFile=/opt/documenso/.env
 
