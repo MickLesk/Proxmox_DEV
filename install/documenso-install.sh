@@ -64,14 +64,17 @@ unzip -q v${RELEASE}.zip
 mv documenso-${RELEASE} /opt/documenso
 cd /opt/documenso
 mv .env.example .env
-sed -i "s|NEXTAUTH_URL=.*|NEXTAUTH_URL='http://localhost:9000'|" /opt/documenso/.env
 sed -i "s|NEXTAUTH_SECRET=.*|NEXTAUTH_SECRET='$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | cut -c1-32)'|" /opt/documenso/.env
+sed -i "s|NEXT_PRIVATE_ENCRYPTION_KEY=.*|NEXT_PRIVATE_ENCRYPTION_KEY='$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | cut -c1-32)'|" /opt/documenso/.env
+sed -i "s|NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY=.*|NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY='$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | cut -c1-32)'|" /opt/documenso/.env
 sed -i "s|NEXT_PUBLIC_WEBAPP_URL=.*|NEXT_PUBLIC_WEBAPP_URL='http://localhost:9000'|" /opt/documenso/.env
 sed -i "s|NEXT_PRIVATE_DATABASE_URL=.*|NEXT_PRIVATE_DATABASE_URL=\"postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME\"|" /opt/documenso/.env
+sed -i "s|NEXT_PRIVATE_DIRECT_DATABASE_URL=.*|NEXT_PRIVATE_DIRECT_DATABASE_URL=\"postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME\"|" /opt/documenso/.env
 export TURBO_CACHE=1
 export NEXT_TELEMETRY_DISABLED=1
 
 $STD npm ci
+npm run build
 #npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
 #turbo run build --filter=@documenso/web...
 
