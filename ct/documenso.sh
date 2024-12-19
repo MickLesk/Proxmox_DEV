@@ -21,37 +21,21 @@ header_info
 echo -e "Loading..."
 APP="Documenso"
 var_disk="10"
-var_cpu="4"
-var_ram="4096"
+var_cpu="6"
+var_ram="8096"
 var_os="debian"
 var_version="12"
+var_unprivileged="1"
+
+# App Output & Base Settings
+header_info "$APP"
+
+# Core
 variables
 color
 catch_errors
 
-function default_settings() {
-  CT_TYPE="1"
-  PW=""
-  CT_ID=$NEXTID
-  HN=$NSAPP
-  DISK_SIZE="$var_disk"
-  CORE_COUNT="$var_cpu"
-  RAM_SIZE="$var_ram"
-  BRG="vmbr0"
-  NET="dhcp"
-  GATE=""
-  APT_CACHER=""
-  APT_CACHER_IP=""
-  DISABLEIP6="no"
-  MTU=""
-  SD=""
-  NS=""
-  MAC=""
-  VLAN=""
-  SSH="no"
-  VERB="no"
-  echo_default
-}
+
 function update_script() {
 header_info
 if [[ ! -d /opt/documenso ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
