@@ -73,7 +73,7 @@ export NEXT_TELEMETRY_DISABLED=1
 
 $STD npm ci
 #npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
-turbo run build --filter=@documenso/web...
+#turbo run build --filter=@documenso/web...
 
 #npm run prisma:migrate-deploy
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
