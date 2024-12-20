@@ -48,85 +48,89 @@ function msg_error() {
 
 function get_installed_version() {
     if command -v /usr/local/bin/filebrowser &>/dev/null; then
-        INSTALLED_VERSION=$(/usr/local/bin/filebrowser --version 2>/dev/null | awk '{print $2}')
-        echo "$INSTALLED_VERSION"
+        /usr/local/bin/filebrowser --version 2>/dev/null | awk '{print $2}'
     else
         echo ""
     fi
 }
 
 function get_latest_version() {
-    RELEASE=$(curl -fsSL https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
-    echo "$RELEASE"
+    curl -fsSL https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")'
 }
 
 INSTALLED_VERSION=$(get_installed_version)
 LATEST_VERSION=$(get_latest_version)
 
-# Deinstallationsdialog
-if [ -f /root/filebrowser.db ]; then
-    read -r -p "Would you like to uninstall ${APP} on $hostname? (y/N): " prompt
-    if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
-        msg_info "Removing ${APP}"
-        systemctl disable -q --now filebrowser.service
-        rm -rf /usr/local/bin/filebrowser /root/filebrowser.db /etc/systemd/system/filebrowser.service
-        msg_ok "$APP has been uninstalled."
-        exit 0
-    else
-        clear
-    fi
-fi
-
-# Installations- oder Update-Dialog
+# Schritt 1: Prüfen, ob FileBrowser bereits installiert ist
 if [ -n "$INSTALLED_VERSION" ]; then
     echo -e "Installed version: ${GN}$INSTALLED_VERSION${CL}"
     echo -e "Latest version: ${GN}$LATEST_VERSION${CL}"
-    
-    if [ "$INSTALLED_VERSION" == "$LATEST_VERSION" ]; then
-        msg_ok "FileBrowser is already up-to-date!"
+
+    # 1.1 Deinstallationsabfrage
+    read -r -p "Would you like to uninstall ${APP}? (y/N): " uninstall_prompt
+    if [[ "${uninstall_prompt,,}" =~ ^(y|yes)$ ]]; then
+        msg_info "Removing ${APP}"
+        systemctl disable -q --now filebrowser.service
+        rm -rf /usr/local/bin/filebrowser /root/filebrowser.db /etc/systemd/system/filebrowser.service
+        msg_ok "${APP} has been uninstalled."
+        exit 0
+    fi
+
+    # 1.1.2 Update-Abfrage
+    read -r -p "Would you like to update ${APP}? (y/N): " update_prompt
+    if [[ "${update_prompt,,}" =~ ^(y|yes)$ ]]; then
+        msg_info "Updating ${APP} to latest version"
+        curl -fsSL https://github.com/filebrowser/filebrowser/releases/download/$LATEST_VERSION/linux-amd64-filebrowser.tar.gz | tar -xzv -C /usr/local/bin &>/dev/null
+        msg_ok "${APP} updated to version ${LATEST_VERSION}"
+
+        # Authentifizierungsdialog nach Update
+        read -r -p "Would you like to use No Authentication? (y/N): " auth_prompt
+        if [[ "${auth_prompt,,}" =~ ^(y|yes)$ ]]; then
+            filebrowser config init -a '0.0.0.0' &>/dev/null
+            filebrowser config set -a '0.0.0.0' &>/dev/null
+            filebrowser config init --auth.method=noauth &>/dev/null
+            filebrowser config set --auth.method=noauth &>/dev/null
+            filebrowser users add ID 1 --perm.admin &>/dev/null  
+        else
+            filebrowser config init -a '0.0.0.0' &>/dev/null
+            filebrowser config set -a '0.0.0.0' &>/dev/null
+            filebrowser users add admin helper-scripts.com --perm.admin &>/dev/null
+        fi
+        msg_ok "Configuration updated after FileBrowser upgrade."
         exit 0
     else
-        echo -e "${RD}An update is available!${CL}"
-    fi
-else
-    echo -e "${RD}FileBrowser is not installed.${CL}"
-fi
-
-# Prompt user for installation or update
-read -p "Would you like to install or update FileBrowser? (y/n): " yn
-case $yn in
-    [Yy]*) 
-        msg_info "Installing/Updating ${APP}"
-        apt-get install -y curl &>/dev/null
-        curl -fsSL https://github.com/filebrowser/filebrowser/releases/download/$LATEST_VERSION/linux-amd64-filebrowser.tar.gz | tar -xzv -C /usr/local/bin &>/dev/null
-        ;;
-    [Nn]*) 
+        echo -e "${APP} update skipped. Exiting script."
         exit 0
-        ;;
-    *)
-        echo "Please answer yes or no."
-        exit 1
-        ;;
-esac
-
-read -r -p "Would you like to use No Authentication? <y/N> " prompt
-
-if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
-    filebrowser config init -a '0.0.0.0' &>/dev/null
-    filebrowser config set -a '0.0.0.0' &>/dev/null
-    filebrowser config init --auth.method=noauth &>/dev/null
-    filebrowser config set --auth.method=noauth &>/dev/null
-    filebrowser users add ID 1 --perm.admin &>/dev/null  
-else
-    filebrowser config init -a '0.0.0.0' &>/dev/null
-    filebrowser config set -a '0.0.0.0' &>/dev/null
-    filebrowser users add admin helper-scripts.com --perm.admin &>/dev/null
+    fi
 fi
 
-msg_ok "Installed/Updated ${APP} on $hostname"
+# Schritt 2: Neuinstallation, falls nicht installiert
+echo -e "${RD}FileBrowser is not installed.${CL}"
+read -p "Would you like to install ${APP}? (y/n): " install_prompt
+if [[ "${install_prompt,,}" =~ ^(y|yes)$ ]]; then
+    msg_info "Installing ${APP}"
+    apt-get install -y curl &>/dev/null
+    curl -fsSL https://github.com/filebrowser/filebrowser/releases/download/$LATEST_VERSION/linux-amd64-filebrowser.tar.gz | tar -xzv -C /usr/local/bin &>/dev/null
 
-msg_info "Creating Service"
-cat <<EOF >/etc/systemd/system/filebrowser.service
+    # Authentifizierungsdialog nach Neuinstallation
+    read -r -p "Would you like to use No Authentication? (y/N): " auth_prompt
+    if [[ "${auth_prompt,,}" =~ ^(y|yes)$ ]]; then
+        filebrowser config init -a '0.0.0.0' &>/dev/null
+        filebrowser config set -a '0.0.0.0' &>/dev/null
+        filebrowser config init --auth.method=noauth &>/dev/null
+        filebrowser config set --auth.method=noauth &>/dev/null
+        filebrowser users add ID 1 --perm.admin &>/dev/null  
+    else
+        filebrowser config init -a '0.0.0.0' &>/dev/null
+        filebrowser config set -a '0.0.0.0' &>/dev/null
+        filebrowser users add admin helper-scripts.com --perm.admin &>/dev/null
+    fi
+
+    msg_ok "${APP} installed and configured on $hostname."
+
+    # Service erstellen
+    msg_info "Creating Service"
+    cat <<EOF >/etc/systemd/system/filebrowser.service
 [Unit]
 Description=Filebrowser
 After=network-online.target
@@ -139,10 +143,11 @@ ExecStart=/usr/local/bin/filebrowser -r /
 [Install]
 WantedBy=default.target
 EOF
+    systemctl enable -q --now filebrowser.service
+    msg_ok "Service created successfully."
 
-systemctl enable -q --now filebrowser.service
-msg_ok "Created Service"
-
-msg_ok "Completed Successfully!\n"
-echo -e "${APP} should be reachable by going to the following URL:
-         ${BL}http://$IP:8080${CL} \n"
+    echo -e "${APP} is reachable at: ${BL}http://$IP:8080${CL}"
+else
+    echo -e "Installation aborted. Exiting script."
+    exit 0
+fi
