@@ -41,9 +41,14 @@ function msg_ok() {
     echo -e "${BFR} ${CM} ${GN}${msg}${CL}"
 }
 
+function msg_error() {
+    local msg="$1"
+    echo -e "${BFR} ${RD}✗ ${msg}${CL}"
+}
+
 function get_installed_version() {
-    if [ -f /usr/local/bin/filebrowser ]; then
-        INSTALLED_VERSION=$(/usr/local/bin/filebrowser --version 2>/dev/null)
+    if command -v /usr/local/bin/filebrowser &>/dev/null; then
+        INSTALLED_VERSION=$(/usr/local/bin/filebrowser --version 2>/dev/null | awk '{print $2}')
         echo "$INSTALLED_VERSION"
     else
         echo ""
@@ -51,7 +56,7 @@ function get_installed_version() {
 }
 
 function get_latest_version() {
-    RELEASE=$(curl -fsSL https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep -o '"tag_name": ".*"' | sed 's/"//g' | sed 's/tag_name: //g')
+    RELEASE=$(curl -fsSL https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
     echo "$RELEASE"
 }
 
@@ -60,30 +65,31 @@ LATEST_VERSION=$(get_latest_version)
 
 # Deinstallationsdialog
 if [ -f /root/filebrowser.db ]; then
-  read -r -p "Would you like to uninstall ${APP} on $hostname? (y/N): " prompt
-  if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
-    systemctl disable -q --now filebrowser.service
-    rm -rf /usr/local/bin/filebrowser /root/filebrowser.db /etc/systemd/system/filebrowser.service
-    msg_ok "$APP has been uninstalled."
-    exit 0
-  else
-    clear
-  fi
+    read -r -p "Would you like to uninstall ${APP} on $hostname? (y/N): " prompt
+    if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
+        msg_info "Removing ${APP}"
+        systemctl disable -q --now filebrowser.service
+        rm -rf /usr/local/bin/filebrowser /root/filebrowser.db /etc/systemd/system/filebrowser.service
+        msg_ok "$APP has been uninstalled."
+        exit 0
+    else
+        clear
+    fi
 fi
 
 # Installations- oder Update-Dialog
 if [ -n "$INSTALLED_VERSION" ]; then
-    echo "Installed version: $INSTALLED_VERSION"
-    echo "Latest version: $LATEST_VERSION"
+    echo -e "Installed version: ${GN}$INSTALLED_VERSION${CL}"
+    echo -e "Latest version: ${GN}$LATEST_VERSION${CL}"
     
     if [ "$INSTALLED_VERSION" == "$LATEST_VERSION" ]; then
-        echo -e "${GN}FileBrowser is already up-to-date!${CL}"
+        msg_ok "FileBrowser is already up-to-date!"
         exit 0
     else
         echo -e "${RD}An update is available!${CL}"
     fi
 else
-    echo -e "${RD}FileBrowser is not installed. Installing now...${CL}"
+    echo -e "${RD}FileBrowser is not installed.${CL}"
 fi
 
 # Prompt user for installation or update
@@ -117,7 +123,7 @@ else
     filebrowser users add admin helper-scripts.com --perm.admin &>/dev/null
 fi
 
-msg_ok "Installed ${APP} on $hostname"
+msg_ok "Installed/Updated ${APP} on $hostname"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/filebrowser.service
@@ -138,5 +144,5 @@ systemctl enable -q --now filebrowser.service
 msg_ok "Created Service"
 
 msg_ok "Completed Successfully!\n"
-echo -e "${APP} should be reachable by going to the following URL.
+echo -e "${APP} should be reachable by going to the following URL:
          ${BL}http://$IP:8080${CL} \n"
