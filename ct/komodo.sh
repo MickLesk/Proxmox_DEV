@@ -33,45 +33,41 @@ function update_script() {
         exit
     fi
     msg_info "Updating ${APP}"
-    BACKUP_DIR="/opt/komodo/backup_$(date +%Y%m%d_%H%M%S)"
-    mkdir -p "$BACKUP_DIR"
-
-    for file in /opt/komodo/*; do
-        filename=$(basename "$file")
-        if [[ "$filename" != "compose.env" ]]; then
-            if [[ -f "$file" ]]; then
-                cp "$file" "$BACKUP_DIR/"
-            elif [[ -d "$file" ]]; then
-                cp -r "$file" "$BACKUP_DIR/"
-            else
-                msg_error "Skipping $filename: Not a regular file or directory."
-                continue
-            fi
-            wget -q -O "$file" "https://raw.githubusercontent.com/mbecker20/komodo/main/compose/$filename"
-            if [[ $? -eq 0 ]]; then
-                msg_ok "Updated $filename"
-            else
-                msg_error "Failed to update $filename. Restoring backup."
-                cp "$BACKUP_DIR/$filename" "$file"
-            fi
+COMPOSE_FILE=""
+    for file in *.compose.yaml; do
+        if [[ "$file" != "compose.env" ]]; then
+            COMPOSE_FILE="$file"
+            break
         fi
     done
-    DB_COMPOSE_FILE=""
-    if [[ -f /opt/komodo/mongo.compose.yaml ]]; then
-        DB_COMPOSE_FILE="mongo.compose.yaml"
-    elif [[ -f /opt/komodo/sqlite.compose.yaml ]]; then
-        DB_COMPOSE_FILE="sqlite.compose.yaml"
-    elif [[ -f /opt/komodo/postgres.compose.yaml ]]; then
-        DB_COMPOSE_FILE="postgres.compose.yaml"
-    else
+
+    if [[ -z "$COMPOSE_FILE" ]]; then
         msg_error "No valid compose file found in /opt/komodo!"
         exit 1
     fi
 
-    # Restart Docker containers using the correct compose file
-    docker compose -p komodo -f "/opt/komodo/$DB_COMPOSE_FILE" --env-file /opt/komodo/compose.env up -d
-    msg_ok "Updated ${APP}"
-    exit
+    BACKUP_FILE="${COMPOSE_FILE}.bak_$(date +%Y%m%d_%H%M%S)"
+    mv "$COMPOSE_FILE" "$BACKUP_FILE" || {
+        msg_error "Failed to create backup of $COMPOSE_FILE!"
+        exit 1
+    }
+    msg_ok "Backup created: $BACKUP_FILE"
+
+    GITHUB_URL="https://raw.githubusercontent.com/mbecker20/komodo/main/compose/$COMPOSE_FILE"
+    wget -q -O "$COMPOSE_FILE" "$GITHUB_URL" || {
+        msg_error "Failed to download $COMPOSE_FILE from GitHub!"
+        mv "$BACKUP_FILE" "$COMPOSE_FILE" 
+        exit 1
+    }
+    msg_ok "Updated $COMPOSE_FILE from GitHub"
+
+    docker compose -p komodo -f "/opt/komodo/$COMPOSE_FILE" --env-file /opt/komodo/compose.env up -d || {
+        msg_error "Failed to restart Docker containers!"
+        exit 1
+    }
+    msg_ok "Docker containers restarted successfully"
+
+    msg_ok "${APP} update process completed successfully"
 }
 
 start
