@@ -41,11 +41,10 @@ $STD apt-get install -y \
   docker-compose-plugin
 msg_ok "Installed Docker"
 
-msg_info "Setup Komodo"
-echo "\n Choose the database for Komodo installation:"
+echo "Choose the database for Komodo installation:"
 echo "1) MongoDB (recommended)"
 echo "2) SQLite"
-echo "3) PostgreSQL\n"
+echo "3) PostgreSQL"
 read -rp "Enter your choice (default: 1): " DB_CHOICE
 DB_CHOICE=${DB_CHOICE:-1}
 
@@ -64,11 +63,10 @@ case $DB_CHOICE in
     DB_COMPOSE_FILE="mongo.compose.yaml"
     ;;
 esac
-
 mkdir -p /opt/komodo
 cd /opt/komodo
 wget -q "https://raw.githubusercontent.com/mbecker20/komodo/main/compose/$DB_COMPOSE_FILE"
-msg_ok "Setup Komodo"
+
 
 msg_info "Setup Komodo Environment"
 wget -q -O /opt/komodo/compose.env https://raw.githubusercontent.com/mbecker20/komodo/main/compose/compose.env
