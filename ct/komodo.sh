@@ -3,7 +3,7 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # Copyright (c) 2021-2025 community-scripts ORG
 # Author: MickLesk
 # License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
-# Source: https://dockge.kuma.pet/
+# Source: https://komo.do
 
 # App Default Values
 APP="Komodo"
