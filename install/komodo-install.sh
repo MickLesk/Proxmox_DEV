@@ -42,7 +42,7 @@ $STD apt-get install -y \
 msg_ok "Installed Docker"
 
 msg_info "Setup Komodo"
-echo "Choose the database for Komodo installation:"
+echo "${CL}Choose the database for Komodo installation:"
 echo "1) MongoDB (recommended)"
 echo "2) SQLite"
 echo "3) PostgreSQL"
@@ -85,7 +85,7 @@ sed -i "s/^KOMODO_JWT_SECRET=.*/KOMODO_JWT_SECRET=${JWT_SECRET}/" /opt/komodo/co
 msg_ok "Setup Komodo Environment"
 
 msg_info "Initialize Komodo"
-docker compose -p komodo -f /opt/komodo/$DB_COMPOSE_FILE --env-file /opt/komodo/compose.env up -d
+$STD docker compose -p komodo -f /opt/komodo/$DB_COMPOSE_FILE --env-file /opt/komodo/compose.env up -d
 msg_ok "Initialized Komodo"
 
 motd_ssh
