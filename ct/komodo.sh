@@ -44,14 +44,14 @@ function update_script() {
             elif [[ -d "$file" ]]; then
                 cp -r "$file" "$BACKUP_DIR/"
             else
-                msg_warn "Skipping $filename: Not a regular file or directory."
+                msg_error "Skipping $filename: Not a regular file or directory."
                 continue
             fi
             wget -q -O "$file" "https://raw.githubusercontent.com/mbecker20/komodo/main/compose/$filename"
             if [[ $? -eq 0 ]]; then
                 msg_ok "Updated $filename"
             else
-                msg_warn "Failed to update $filename. Restoring backup."
+                msg_error "Failed to update $filename. Restoring backup."
                 cp "$BACKUP_DIR/$filename" "$file"
             fi
         fi
