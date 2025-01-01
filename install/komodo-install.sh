@@ -72,11 +72,16 @@ msg_ok "Setup Komodo"
 
 msg_info "Setup Komodo Environment"
 wget -q -O /opt/komodo/compose.env https://raw.githubusercontent.com/mbecker20/komodo/main/compose/compose.env
+DB_PASSWORD=$(openssl rand -base64 16 | tr -d '/+=')
+PASSKEY=$(openssl rand -base64 24 | tr -d '/+=')
+WEBHOOK_SECRET=$(openssl rand -base64 24 | tr -d '/+=')
+JWT_SECRET=$(openssl rand -base64 24 | tr -d '/+=')
+
 sed -i "s/^DB_USERNAME=.*/DB_USERNAME=komodo_admin/" /opt/komodo/compose.env
-sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$(openssl rand -base64 16)/" /opt/komodo/compose.env
-sed -i "s/^PASSKEY=.*/PASSKEY=$(openssl rand -base64 24)/" /opt/komodo/compose.env
-sed -i "s/^KOMODO_WEBHOOK_SECRET=.*/KOMODO_WEBHOOK_SECRET=$(openssl rand -base64 24)/" /opt/komodo/compose.env
-sed -i "s/^KOMODO_JWT_SECRET=.*/KOMODO_JWT_SECRET=$(openssl rand -base64 24)/" /opt/komodo/compose.env
+sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=${DB_PASSWORD}/" /opt/komodo/compose.env
+sed -i "s/^PASSKEY=.*/PASSKEY=${PASSKEY}/" /opt/komodo/compose.env
+sed -i "s/^KOMODO_WEBHOOK_SECRET=.*/KOMODO_WEBHOOK_SECRET=${WEBHOOK_SECRET}/" /opt/komodo/compose.env
+sed -i "s/^KOMODO_JWT_SECRET=.*/KOMODO_JWT_SECRET=${JWT_SECRET}/" /opt/komodo/compose.env
 msg_ok "Setup Komodo Environment"
 
 msg_info "Initialize Komodo"
