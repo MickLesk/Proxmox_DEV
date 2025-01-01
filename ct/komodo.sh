@@ -39,7 +39,14 @@ function update_script() {
     for file in /opt/komodo/*; do
         filename=$(basename "$file")
         if [[ "$filename" != "compose.env" ]]; then
-            cp "$file" "$BACKUP_DIR/"
+            if [[ -f "$file" ]]; then
+                cp "$file" "$BACKUP_DIR/"
+            elif [[ -d "$file" ]]; then
+                cp -r "$file" "$BACKUP_DIR/"
+            else
+                msg_warn "Skipping $filename: Not a regular file or directory."
+                continue
+            fi
             wget -q -O "$file" "https://raw.githubusercontent.com/mbecker20/komodo/main/compose/$filename"
             if [[ $? -eq 0 ]]; then
                 msg_ok "Updated $filename"
