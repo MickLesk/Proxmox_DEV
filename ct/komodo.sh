@@ -33,7 +33,7 @@ function update_script() {
         exit
     fi
     msg_info "Updating ${APP}"
-COMPOSE_FILE=""
+    COMPOSE_FILE=""
     for file in *.compose.yaml; do
         if [[ "$file" != "compose.env" ]]; then
             COMPOSE_FILE="$file"
@@ -51,7 +51,6 @@ COMPOSE_FILE=""
         msg_error "Failed to create backup of $COMPOSE_FILE!"
         exit 1
     }
-    msg_ok "Backup created: $BACKUP_FILE"
 
     GITHUB_URL="https://raw.githubusercontent.com/mbecker20/komodo/main/compose/$COMPOSE_FILE"
     wget -q -O "$COMPOSE_FILE" "$GITHUB_URL" || {
@@ -59,15 +58,12 @@ COMPOSE_FILE=""
         mv "$BACKUP_FILE" "$COMPOSE_FILE" 
         exit 1
     }
-    msg_ok "Updated $COMPOSE_FILE from GitHub"
 
     docker compose -p komodo -f "/opt/komodo/$COMPOSE_FILE" --env-file /opt/komodo/compose.env up -d || {
         msg_error "Failed to restart Docker containers!"
         exit 1
     }
-    msg_ok "Docker containers restarted successfully"
-
-    msg_ok "${APP} update process completed successfully"
+    msg_ok "Updated ${APP}"
 }
 
 start
