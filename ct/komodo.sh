@@ -33,9 +33,36 @@ function update_script() {
         exit
     fi
     msg_info "Updating ${APP}"
-    cd /opt/kommodo
-    docker compose pull
-    docker compose up -d
+    BACKUP_DIR="/opt/komodo/backup_$(date +%Y%m%d_%H%M%S)"
+    mkdir -p "$BACKUP_DIR"
+
+    for file in /opt/komodo/*; do
+        filename=$(basename "$file")
+        if [[ "$filename" != "compose.env" ]]; then
+            cp "$file" "$BACKUP_DIR/"
+            wget -q -O "$file" "https://raw.githubusercontent.com/mbecker20/komodo/main/compose/$filename"
+            if [[ $? -eq 0 ]]; then
+                msg_ok "Updated $filename"
+            else
+                msg_warn "Failed to update $filename. Restoring backup."
+                cp "$BACKUP_DIR/$filename" "$file"
+            fi
+        fi
+    done
+    DB_COMPOSE_FILE=""
+    if [[ -f /opt/komodo/mongo.compose.yaml ]]; then
+        DB_COMPOSE_FILE="mongo.compose.yaml"
+    elif [[ -f /opt/komodo/sqlite.compose.yaml ]]; then
+        DB_COMPOSE_FILE="sqlite.compose.yaml"
+    elif [[ -f /opt/komodo/postgres.compose.yaml ]]; then
+        DB_COMPOSE_FILE="postgres.compose.yaml"
+    else
+        msg_error "No valid compose file found in /opt/komodo!"
+        exit 1
+    fi
+
+    # Restart Docker containers using the correct compose file
+    docker compose -p komodo -f "/opt/komodo/$DB_COMPOSE_FILE" --env-file /opt/komodo/compose.env up -d
     msg_ok "Updated ${APP}"
     exit
 }
