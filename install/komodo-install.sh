@@ -42,10 +42,10 @@ $STD apt-get install -y \
 msg_ok "Installed Docker"
 
 msg_info "Setup Komodo"
-echo "${CL}Choose the database for Komodo installation:"
+echo "\n Choose the database for Komodo installation:"
 echo "1) MongoDB (recommended)"
 echo "2) SQLite"
-echo "3) PostgreSQL"
+echo "3) PostgreSQL\n"
 read -rp "Enter your choice (default: 1): " DB_CHOICE
 DB_CHOICE=${DB_CHOICE:-1}
 
