@@ -145,6 +145,9 @@ EOF
 systemctl enable -q --now tomcat
 msg_ok "Tomcat $LATEST_VERSION installed and started"
 
+motd_ssh
+customize
+
 msg_info "Cleaning up"
 rm -f /tmp/tomcat.tar.gz
 $STD apt-get -y autoremove
