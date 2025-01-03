@@ -14,7 +14,7 @@ network_check
 update_os
 
 msg_info "Installing Dependencies (Patience)"
-apt-get install -y --no-install-recommends \
+apt-get install -y \
   mariadb-server \
   apache2 \
   cron \
@@ -22,7 +22,7 @@ apt-get install -y --no-install-recommends \
   vorbis-tools \
   lame \
   ffmpeg \
-  lsb_release \
+  lsb-release \
   gosu \
   wget \
   curl \
