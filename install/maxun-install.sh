@@ -38,11 +38,6 @@ $STD apt-get update
 $STD apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
-msg_info "Installing Playwright"
-$STD npx playwright install
-$STD npx playwright install-deps
-msg_ok "Installed Playwright"
-
 msg_info "Setup Variables"
 DB_NAME="maxun_db"
 DB_USER="maxun_user"
