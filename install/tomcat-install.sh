@@ -43,7 +43,7 @@ case $version in
         ;;
       11)
         msg_info "Installing Temurin JDK 11 (LTS) for Tomcat $TOMCAT_VERSION"
-        $STD apt-get install -y temurin-11-jdk
+        DEBIAN_FRONTEND=noninteractive apt-get install -y temurin-11-jdk
         msg_ok "Setup Temurin JDK 11 (LTS)"
         ;;
       17)
@@ -144,6 +144,9 @@ EOF
 
 systemctl enable -q --now tomcat
 msg_ok "Tomcat $LATEST_VERSION installed and started"
+
+motd_ssh
+customize
 
 msg_info "Cleaning up"
 rm -f /tmp/tomcat.tar.gz
