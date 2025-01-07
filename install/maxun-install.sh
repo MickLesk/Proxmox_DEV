@@ -31,6 +31,8 @@ msg_ok "Set up Node.js Repository"
 msg_info "Setting up PostgreSQL Repository"
 curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
 echo "deb https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" >/etc/apt/sources.list.d/pgdg.list
+$STD apt-get update
+$STD apt-get install -y postgresql-17
 msg_ok "Set up PostgreSQL Repository"
 
 msg_info "Installing Node.js"
