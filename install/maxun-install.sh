@@ -109,12 +109,12 @@ unzip -q v${RELEASE}.zip
 mv maxun-${RELEASE} /opt/maxun
 cat <<EOF > /opt/maxun/.env
 # App Setup
-NODE_ENV=production
+NODE_ENV=development
 JWT_SECRET=${JWT_SECRET}
 DB_NAME=${DB_NAME}
 DB_USER=${DB_USER}
 DB_PASSWORD=${DB_PASS}
-DB_HOST=postgres
+DB_HOST=localhost
 DB_PORT=5432
 ENCRYPTION_KEY=${ENCRYPTION_KEY}
 MINIO_ENDPOINT=minio
@@ -122,16 +122,16 @@ MINIO_PORT=9000
 MINIO_CONSOLE_PORT=9001
 MINIO_ACCESS_KEY=${MINIO_USER}
 MINIO_SECRET_KEY=${MINIO_PASS}
-REDIS_HOST=redis
+REDIS_HOST=localhost
 REDIS_PORT=6379
 
 # Backend and Frontend URLs and Ports
 BACKEND_PORT=8080
 FRONTEND_PORT=5173
-BACKEND_URL=http://localhost:8080
-PUBLIC_URL=http://localhost:5173
-VITE_BACKEND_URL=http://localhost:8080
-VITE_PUBLIC_URL=http://localhost:5173
+BACKEND_URL=localhost:8080
+PUBLIC_URL=localhost:5173
+VITE_BACKEND_URL=localhost:8080
+VITE_PUBLIC_URL=localhost:5173
 
 # Telemetry Settings
 MAXUN_TELEMETRY=false
