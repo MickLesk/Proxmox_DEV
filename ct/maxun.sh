@@ -35,22 +35,26 @@ function update_script() {
   RELEASE=$(curl -s https://api.github.com/repos/getmaxun/maxun/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
   if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
     msg_info "Stopping Services"
-    # Placeholder
+    systemctl stop maxun minio redis
     msg_ok "Services Stopped"
 
     msg_info "Updating ${APP} to ${RELEASE}"
-    # Placeholder
-    echo "${RELEASE}" >/opt/${APP}_version.txt
-    msg_ok "Updated ${APP}"
+      
+    #echo "${RELEASE}" >/opt/${APP}_version.txt
+    msg_ok "Currently we don't support an Update for ${APP} and it should be updated via the user interface."
+
+    msg_info "Update Dependencies" 
+    
+    msg_ok "Updated Dependencies"
 
     msg_info "Starting Services"
-    # Placeholder
+      systemctl start minio redis maxun
     msg_ok "Started Services"
 
-    msg_info "Cleaning Up"
-    rm -rf v${RELEASE}.zip
-    msg_ok "Cleaned"
-    msg_ok "Updated Successfully"
+    #msg_info "Cleaning Up"
+    #rm -rf v${RELEASE}.zip
+    #msg_ok "Cleaned"
+    #msg_ok "Updated Successfully"
   else
     msg_ok "No update required. ${APP} is already at ${RELEASE}"
   fi
