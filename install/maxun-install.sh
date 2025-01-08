@@ -48,9 +48,9 @@ MINIO_USER=minio_usr
 MINIO_PASS=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-13)
 JWT_SECRET=$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | cut -c1-32)
 ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | cut -c1-32)
-msg_ok "Setup Variables"
+msg_ok "Set up Variables"
 
-msg_info "Install/Set up PostgreSQL Database"
+msg_info "Setup Database"
 $STD sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS';"
 $STD sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER ENCODING 'UTF8' TEMPLATE template0;"
 $STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET client_encoding TO 'utf8';"
@@ -64,7 +64,7 @@ $STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET timezone TO 'UTC'"
     echo "Maxun JWT Secret: $JWT_SECRET"
     echo "Maxun Encryption Key: $ENCRYPTION_KEY"
 } >> ~/maxun.creds
-msg_ok "Set up PostgreSQL"
+msg_ok "Set up Database"
 
 msg_info "Setup MinIO"
 cd /tmp
