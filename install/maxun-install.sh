@@ -138,11 +138,11 @@ MAXUN_TELEMETRY=false
 EOF
 
 cd /opt/maxun
-$STD npm install
+$STD npm install --legacy-peer-deps
 cd /opt/maxun/maxun-core
-$STD npm install
+$STD npm install --legacy-peer-deps
 cd /opt/maxun
-$STD npx playwright install
+$STD npx playwright install --with-deps chromium
 $STD npx playwright install-deps
 echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed Maxun"
