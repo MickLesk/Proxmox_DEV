@@ -19,7 +19,7 @@ $STD apt-get install -y \
   curl \
   sudo \
   mc \
-  redis-server
+  redis
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Node.js Repository"
