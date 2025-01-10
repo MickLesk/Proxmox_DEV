@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-output_file="./misc/combined.txt"
+output_file="./misc/.app-headers"
 > "$output_file"  # Clear or create the file
 
 current_date=$(date +"%m-%d-%Y")
