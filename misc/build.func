@@ -172,7 +172,7 @@ header_info() {
     
     # Überprüfen, ob der Download erfolgreich war
     if [ ! -f "$OUTPUT_FILE" ]; then
-      echo -e "${ERR}${BOLD}${RED}Fehler: Konnte die Datei nicht herunterladen.${CL}"
+      echo -e "${CROSS}${BOLD}${RD}Fehler: Konnte die Datei nicht herunterladen.${CL}"
       return 1
     fi
     echo "Datei erfolgreich heruntergeladen und gespeichert in $OUTPUT_FILE"
@@ -187,7 +187,7 @@ header_info() {
   ' "$OUTPUT_FILE")
 
   if [[ -z "$app_ascii" ]]; then
-    echo -e "${ERR}${BOLD}${RED}ASCII Art für $APP_NAME nicht gefunden.${CL}"
+    echo -e "${CROSS}${BOLD}${RD}ASCII Art für $APP_NAME nicht gefunden.${CL}"
     return 1
   fi
 
