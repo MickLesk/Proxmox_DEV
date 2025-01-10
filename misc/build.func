@@ -158,24 +158,19 @@ arch_check() {
 
 # This function sets the APP-Name into an ASCII Header in Slant, figlet needed on proxmox main node.
 header_info() {
-  if [ -f /etc/debian_version ]; then
-    # Debian/Ubuntu
-    apt-get install -y figlet &> /dev/null
-  elif [ -f /etc/alpine-release ]; then
-    # Alpine Linux
-    apk add --no-cache figlet &> /dev/null
-  else
-    echo "Unsupported OS"
+  app_ascii=$(grep -A 20 "### $APP" ./misc/combined.txt | grep -v "###" | sed '/^$/d')
+
+  if [[ -z "$app_ascii" ]]; then
+    echo -e "${ERR}${BOLD}${RED}ASCII Art für $APP nicht gefunden.${CL}"
     return 1
   fi
 
-  term_width=$(tput cols)
-  ascii_art=$(figlet -f slant -w "$term_width" "$APP")
+  export TERM=xterm
+  term_width=$(tput cols 2>/dev/null || echo 120)
   clear
-  cat <<EOF
-$ascii_art
-EOF
+  echo "$app_ascii"
 }
+
 
 # This function checks if the script is running through SSH and prompts the user to confirm if they want to proceed or exit.
 ssh_check() {
