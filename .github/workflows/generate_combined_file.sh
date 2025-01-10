@@ -6,12 +6,12 @@ output_file="./misc/combined.txt"
 # Get the last Git commit hash
 commit_hash=$(git log -1 --format=%h)
 
-# Add header with commit hash as version
+# Add header with commit hash as version to the file
 {
   echo "### Version $commit_hash"
   echo "##################################################"
   echo
-}
+} >> "$output_file"  # Header wird in die Datei geschrieben
 
 # Find only regular .sh files in ./ct, sort them alphabetically
 find ./ct -type f -name "*.sh" | sort | while read -r script; do
@@ -26,7 +26,7 @@ find ./ct -type f -name "*.sh" | sort | while read -r script; do
       echo "APP=$app_name"
       echo "$figlet_output"
       echo
-    } >> "$output_file"
+    } >> "$output_file"  # Figlet output wird in die Datei geschrieben
   else
     echo "No APP name found in $script, skipping."
   fi
