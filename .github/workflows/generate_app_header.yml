@@ -1,3 +1,5 @@
+name: Generate Combined App List
+
 on:
   schedule:
     - cron: '0 0 * * *' # Einmal täglich um Mitternacht
