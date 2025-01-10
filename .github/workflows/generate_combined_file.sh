@@ -5,14 +5,6 @@ output_file="./misc/combined.txt"
 
 # Durchsuche nur reguläre Dateien mit der Endung .sh in ./ct
 find ./ct -type f -name "*.sh" | while read -r script; do
-  # Überprüfe, ob die source-Zeile mit der richtigen URL vorhanden ist
-  source_check=$(head -n 2 "$script" | grep -Fx "source <(curl -s https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/build.func)")
-
-  if [[ -z "$source_check" ]]; then
-    echo "Missing or incorrect source line in $script, skipping."
-    continue
-  fi
-
   # Extrahiere den APP-Namen aus der APP-Zeile
   app_name=$(grep -oP '^APP="\K[^"]+' "$script" 2>/dev/null)
 
