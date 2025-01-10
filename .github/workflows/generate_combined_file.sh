@@ -1,24 +1,25 @@
 #!/usr/bin/env bash
 
 output_file="./misc/combined.txt"
-> "$output_file"  # Datei leeren oder neu erstellen
+> "$output_file"  # Clear or create the file
 
-# Holen des aktuellen Datums im amerikanischen Format
-current_date=$(date +"%m-%d-%Y")
+# Get the last Git commit hash
+commit_hash=$(git log -1 --format=%h)
 
-# Header mit Datum
+# Add header with commit hash as version
 {
-  echo "### Generated on $current_date"
+  echo "### Version $commit_hash"
+  echo "##################################################"
   echo
 }
 
-# Durchsuche nur reguläre Dateien mit der Endung .sh in ./ct, sortiere sie alphabetisch
+# Find only regular .sh files in ./ct, sort them alphabetically
 find ./ct -type f -name "*.sh" | sort | while read -r script; do
-  # Extrahiere den APP-Namen aus der APP-Zeile
+  # Extract the APP name from the APP line
   app_name=$(grep -oP '^APP="\K[^"]+' "$script" 2>/dev/null)
 
   if [[ -n "$app_name" ]]; then
-    # Erzeuge Figlet-Ausgabe
+    # Generate figlet output
     figlet_output=$(figlet -f slant "$app_name")
     {
       echo "### $(basename "$script")"
