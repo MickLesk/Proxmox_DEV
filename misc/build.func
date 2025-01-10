@@ -159,43 +159,27 @@ arch_check() {
 # This function sets the APP-Name into an ASCII Header in Slant, figlet needed on proxmox main node.
 header_info() {
   APP_NAME="$APP"
-  OUTPUT_FILE="/opt/.${APP_NAME}-header.txt"
+  OUTPUT_FILE="/opt/.app-headers"
   CURRENT_DATE=$(date +'%m-%d-%Y')
 
   # Check if the local file exists
   if [ ! -f "$OUTPUT_FILE" ]; then
-    # File does not exist, download it
-    echo "Local file for $APP_NAME not found. Downloading the complete file..."
-    
-    # Download and save the file
-    curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt"
-    
-    # Check if the download was successful
+    curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/.app-headers"
     if [ ! -f "$OUTPUT_FILE" ]; then
       echo "Error: Failed to download the file."
       return 1
     fi
-    echo "File successfully downloaded and saved to $OUTPUT_FILE"
   else
-    # File exists, check the header
     header=$(head -n 3 "$OUTPUT_FILE" | head -n 1)
-
+    # Header is outdated or different, download the updated file
     if [[ "$header" != "### Generated on $CURRENT_DATE" ]]; then
-      # Header is outdated or different, download the updated file
-      echo "Updating the local file for $APP_NAME, the date in the header is outdated..."
-
-      # Download and update the file
       curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt"
-
-      # Check if the download was successful
       if [ ! -f "$OUTPUT_FILE" ]; then
         echo "Error: Failed to download the file."
         return 1
       fi
-      echo "File successfully updated at $OUTPUT_FILE"
     else
-      # File is up-to-date, do nothing
-      echo "Local file for $APP_NAME is up to date, no action needed."
+      echo "Local file for $APP_NAME is up to date, no action needed." >/dev/null
     fi
   fi
 
