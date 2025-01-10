@@ -160,22 +160,29 @@ arch_check() {
 header_info() {
   APP_NAME="$APP"
   OUTPUT_FILE="/opt/.${APP_NAME}-header.txt"
+  COMBINED_URL="https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt"
 
   # Überprüfen, ob die lokale Datei existiert
   if [ -f "$OUTPUT_FILE" ]; then
-    echo "Lokale Datei für $APP_NAME gefunden, verwende sie..."
-  else
-    echo "Lokale Datei für $APP_NAME nicht gefunden. Lade die komplette Datei herunter..."
-
-    # Datei herunterladen und speichern
-    curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt"
+    # Hole den neuesten Commit-Hash
+    latest_commit=$(git log -1 --format=%h)
     
-    # Überprüfen, ob der Download erfolgreich war
-    if [ ! -f "$OUTPUT_FILE" ]; then
-      echo -e "${CROSS}${BOLD}${RD}Fehler: Konnte die Datei nicht herunterladen.${CL}"
-      return 1
+    # Vergleiche die Version (Commit-Hash) in der Datei
+    file_commit=$(head -n 1 "$OUTPUT_FILE" | sed -E 's/### Version ([a-f0-9]{7})/\1/')
+
+    if [[ "$latest_commit" != "$file_commit" ]]; then
+      # Commit-Version stimmt nicht überein, lade Datei neu herunter
+      curl -s -o "$OUTPUT_FILE" "$COMBINED_URL"
     fi
-    echo "Datei erfolgreich heruntergeladen und gespeichert in $OUTPUT_FILE"
+  else
+    # Datei existiert nicht, lade sie herunter
+    curl -s -o "$OUTPUT_FILE" "$COMBINED_URL"
+  fi
+
+  # Überprüfen, ob der Download erfolgreich war
+  if [ ! -f "$OUTPUT_FILE" ]; then
+    echo "Fehler: Konnte die Datei nicht herunterladen."
+    return 1
   fi
 
   # Extrahiere das ASCII-Art für die spezifische App
@@ -186,8 +193,9 @@ header_info() {
     $0 ~ "APP="app {found=1}
   ' "$OUTPUT_FILE")
 
+  # Prüfen, ob ASCII Art gefunden wurde
   if [[ -z "$app_ascii" ]]; then
-    echo -e "${CROSS}${BOLD}${RD}ASCII Art für $APP_NAME nicht gefunden.${CL}"
+    echo "Fehler: ASCII Art für $APP_NAME nicht gefunden."
     return 1
   fi
 
