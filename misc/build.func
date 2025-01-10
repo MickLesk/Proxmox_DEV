@@ -173,7 +173,7 @@ header_info() {
     header=$(head -n 3 "$OUTPUT_FILE" | head -n 1)
     # Header is outdated or different, download the updated file
     if [[ "$header" != "### Generated on $CURRENT_DATE" ]]; then
-      curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt"
+      curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/.app-headers"
       if [ ! -f "$OUTPUT_FILE" ]; then
         echo "Error: Failed to download the file."
         return 1
