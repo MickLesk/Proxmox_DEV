@@ -3,12 +3,10 @@
 output_file="./misc/combined.txt"
 > "$output_file"  # Clear or create the file
 
-# Get the last Git commit hash
-commit_hash=$(git log -1 --format=%h)
-
-# Add header with commit hash as version to the file
+current_date=$(date +"%m-%d-%Y")
+# Header with date
 {
-  echo "### Version $commit_hash"
+  echo "### Generated on $current_date"
   echo "##################################################"
   echo
 } >> "$output_file"  # Header wird in die Datei geschrieben
