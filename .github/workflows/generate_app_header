@@ -1,0 +1,51 @@
+name: Generate App-Header
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Einmal täglich um Mitternacht
+  push:
+    branches:
+      - main  # Bei jedem Merge auf main
+  workflow_dispatch:  # Manuell ausführbar
+
+jobs:
+  generate-figlet-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Figlet
+        run: sudo apt-get update && sudo apt-get install -y figlet
+
+      - name: Generate Combined Misc File
+        run: |
+          # Define directories
+          CT_DIR="./ct"
+          MISC_FILE="./misc/combined.txt"
+
+          # Create or clear the combined file
+          echo "" > "$MISC_FILE"
+
+          # Process each file in the ct directory
+          for file in "$CT_DIR"/*; do
+            # Extract APP name
+            APP_NAME=$(grep -E "^APP=" "$file" | cut -d '=' -f2)
+
+            # Skip if APP name is empty
+            if [ -z "$APP_NAME" ]; then
+              echo "No APP name found in $file, skipping."
+              continue
+            fi
+
+            # Generate Figlet Slant output
+            FIGLET_OUTPUT=$(figlet -f slant "$APP_NAME")
+
+            # Append APP and Figlet to the combined file
+            echo "### ${file##*/}" >> "$MISC_FILE"  # Add script name as header
+            echo "APP=${APP_NAME}" >> "$MISC_FILE"
+            echo "$FIGLET_OUTPUT" >> "$MISC_FILE"
+            echo -e "\n" >> "$MISC_FILE"  # Add spacing
+          done
+
+          echo "Generated combined file at $MISC_FILE"
