@@ -159,13 +159,13 @@ arch_check() {
 # This function sets the APP-Name into an ASCII Header in Slant, figlet needed on proxmox main node.
 header_info() {
   APP_NAME="$APP"
-  OUTPUT_FILE="/opt/.app-header"
+  OUTPUT_FILE="/opt/.${APP_NAME}-header.txt"
 
   # Überprüfen, ob die lokale Datei existiert
   if [ -f "$OUTPUT_FILE" ]; then
     echo "Lokale Datei für $APP_NAME gefunden, verwende sie..."
   else
-    echo "Lokale Datei für $APP_NAME nicht gefunden. Lade den Header herunter..."
+    echo "Lokale Datei für $APP_NAME nicht gefunden. Lade die komplette Datei herunter..."
 
     # Datei herunterladen und speichern
     curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt"
@@ -177,8 +177,14 @@ header_info() {
     fi
     echo "Datei erfolgreich heruntergeladen und gespeichert in $OUTPUT_FILE"
   fi
-  # Extrahiere das ASCII-Art aus der Datei
-  app_ascii=$(grep -A 20 "### $APP_NAME" "$OUTPUT_FILE" | grep -v "###" | sed '/^$/d')
+
+  # Extrahiere das ASCII-Art für die spezifische App
+  app_ascii=$(awk -v app="$APP_NAME" '
+    BEGIN {found=0}
+    /###/ {if(found==1) exit}
+    found==1 {print}
+    $0 ~ "APP="app {found=1}
+  ' "$OUTPUT_FILE")
 
   if [[ -z "$app_ascii" ]]; then
     echo -e "${ERR}${BOLD}${RED}ASCII Art für $APP_NAME nicht gefunden.${CL}"
@@ -189,7 +195,7 @@ header_info() {
   export TERM=xterm
   term_width=$(tput cols 2>/dev/null || echo 120)
   clear
-  cat "$OUTPUT_FILE"
+  echo "$app_ascii"
 }
 
 # This function checks if the script is running through SSH and prompts the user to confirm if they want to proceed or exit.
