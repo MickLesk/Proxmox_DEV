@@ -159,7 +159,7 @@ arch_check() {
 # This function sets the APP-Name into an ASCII Header in Slant, figlet needed on proxmox main node.
 header_info() {
   APP_NAME="$APP"
-  OUTPUT_FILE="/opt/.$APP_NAME-header.txt"
+  OUTPUT_FILE="/opt/.app-header"
 
   # Überprüfen, ob die lokale Datei existiert
   if [ -f "$OUTPUT_FILE" ]; then
@@ -167,16 +167,22 @@ header_info() {
   else
     echo "Lokale Datei für $APP_NAME nicht gefunden. Lade den Header herunter..."
 
-    # Extrahiere den spezifischen Abschnitt für die App aus der Online-Datei und speichere ihn
-    curl -s "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt" | \
-    grep -A 20 "### $APP_NAME" | grep -v "###" | sed '/^$/d' > "$OUTPUT_FILE"
-
-    # Überprüfen, ob der Download und die Extraktion erfolgreich war
-    if [ ! -f "$OUTPUT_FILE" ] || [ ! -s "$OUTPUT_FILE" ]; then
-      echo -e "${ERR}${BOLD}${RED}Fehler: Konnte den Header für $APP_NAME nicht extrahieren.${CL}"
+    # Datei herunterladen und speichern
+    curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt"
+    
+    # Überprüfen, ob der Download erfolgreich war
+    if [ ! -f "$OUTPUT_FILE" ]; then
+      echo -e "${ERR}${BOLD}${RED}Fehler: Konnte die Datei nicht herunterladen.${CL}"
       return 1
     fi
-    echo "Header für $APP_NAME erfolgreich heruntergeladen und gespeichert in $OUTPUT_FILE"
+    echo "Datei erfolgreich heruntergeladen und gespeichert in $OUTPUT_FILE"
+  fi
+  # Extrahiere das ASCII-Art aus der Datei
+  app_ascii=$(grep -A 20 "### $APP_NAME" "$OUTPUT_FILE" | grep -v "###" | sed '/^$/d')
+
+  if [[ -z "$app_ascii" ]]; then
+    echo -e "${ERR}${BOLD}${RED}ASCII Art für $APP_NAME nicht gefunden.${CL}"
+    return 1
   fi
 
   # Display ASCII header
