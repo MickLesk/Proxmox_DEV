@@ -3,8 +3,8 @@
 output_file="./misc/combined.txt"
 > "$output_file"  # Datei leeren oder neu erstellen
 
-# Durchsuche nur reguläre Dateien mit der Endung .sh in ./ct
-find ./ct -type f -name "*.sh" | while read -r script; do
+# Durchsuche nur reguläre Dateien mit der Endung .sh in ./ct, sortiere sie alphabetisch
+find ./ct -type f -name "*.sh" | sort | while read -r script; do
   # Extrahiere den APP-Namen aus der APP-Zeile
   app_name=$(grep -oP '^APP="\K[^"]+' "$script" 2>/dev/null)
 
