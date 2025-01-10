@@ -160,32 +160,46 @@ arch_check() {
 header_info() {
   APP_NAME="$APP"
   OUTPUT_FILE="/opt/.${APP_NAME}-header.txt"
-  COMBINED_URL="https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt"
+  CURRENT_DATE=$(date +'%m-%d-%Y')
 
-  # Überprüfen, ob die lokale Datei existiert
-  if [ -f "$OUTPUT_FILE" ]; then
-    # Hole den neuesten Commit-Hash
-    latest_commit=$(git log -1 --format=%h)
-    
-    # Vergleiche die Version (Commit-Hash) in der Datei
-    file_commit=$(head -n 1 "$OUTPUT_FILE" | sed -E 's/### Version ([a-f0-9]{7})/\1/')
-
-    if [[ "$latest_commit" != "$file_commit" ]]; then
-      # Commit-Version stimmt nicht überein, lade Datei neu herunter
-      curl -s -o "$OUTPUT_FILE" "$COMBINED_URL"
-    fi
-  else
-    # Datei existiert nicht, lade sie herunter
-    curl -s -o "$OUTPUT_FILE" "$COMBINED_URL"
-  fi
-
-  # Überprüfen, ob der Download erfolgreich war
+  # Check if the local file exists
   if [ ! -f "$OUTPUT_FILE" ]; then
-    echo "Fehler: Konnte die Datei nicht herunterladen."
-    return 1
+    # File does not exist, download it
+    echo "Local file for $APP_NAME not found. Downloading the complete file..."
+    
+    # Download and save the file
+    curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt"
+    
+    # Check if the download was successful
+    if [ ! -f "$OUTPUT_FILE" ]; then
+      echo "Error: Failed to download the file."
+      return 1
+    fi
+    echo "File successfully downloaded and saved to $OUTPUT_FILE"
+  else
+    # File exists, check the header
+    header=$(head -n 3 "$OUTPUT_FILE" | head -n 1)
+
+    if [[ "$header" != "### Generated on $CURRENT_DATE" ]]; then
+      # Header is outdated or different, download the updated file
+      echo "Updating the local file for $APP_NAME, the date in the header is outdated..."
+
+      # Download and update the file
+      curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/combined.txt"
+
+      # Check if the download was successful
+      if [ ! -f "$OUTPUT_FILE" ]; then
+        echo "Error: Failed to download the file."
+        return 1
+      fi
+      echo "File successfully updated at $OUTPUT_FILE"
+    else
+      # File is up-to-date, do nothing
+      echo "Local file for $APP_NAME is up to date, no action needed."
+    fi
   fi
 
-  # Extrahiere das ASCII-Art für die spezifische App
+  # Search for the ASCII art in the file
   app_ascii=$(awk -v app="$APP_NAME" '
     BEGIN {found=0}
     /###/ {if(found==1) exit}
@@ -193,9 +207,9 @@ header_info() {
     $0 ~ "APP="app {found=1}
   ' "$OUTPUT_FILE")
 
-  # Prüfen, ob ASCII Art gefunden wurde
+  # Check if ASCII art is found
   if [[ -z "$app_ascii" ]]; then
-    echo "Fehler: ASCII Art für $APP_NAME nicht gefunden."
+    echo "Error: ASCII Art for $APP_NAME not found."
     return 1
   fi
 
@@ -205,6 +219,7 @@ header_info() {
   clear
   echo "$app_ascii"
 }
+
 
 # This function checks if the script is running through SSH and prompts the user to confirm if they want to proceed or exit.
 ssh_check() {
