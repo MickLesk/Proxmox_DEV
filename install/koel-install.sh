@@ -38,7 +38,7 @@ $STD apt-get install -y \
  msg_ok "Installed Dependencies"
 
 msg_info "Setting up PSql Database"
-DB_NAME=koel
+DB_NAME=koel_db
 DB_USER=koel
 DB_PASS="$(openssl rand -base64 18 | cut -c1-13)"
 $STD sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS';"
@@ -84,10 +84,7 @@ chmod -R g+rw /opt/*
 sudo chown -R www-data:www-data /opt/*
 sudo chmod -R 755 /opt/*
 cd /opt/koel
-echo "export COMPOSER_ALLOW_SUPERUSER=1" >> ~/.bashrc
-source ~/.bashrc
-$STD composer update --no-interaction
-$STD composer install --no-interaction
+mv /opt/koel/.env.example /opt/koel/.env
 sudo sed -i -e "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" \
            -e "s/DB_HOST=.*/DB_HOST=localhost/" \
            -e "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" \
@@ -96,8 +93,11 @@ sudo sed -i -e "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" \
            -e "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" \
            -e "s|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|" \
            -e "s|FFMPEG_PATH=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|" /opt/koel/.env
-
-$STD php artisan koel:init --no-interaction
+$STD php artisan koel:init --no-interaction           
+echo "export COMPOSER_ALLOW_SUPERUSER=1" >> ~/.bashrc
+source ~/.bashrc
+$STD composer update --no-interaction
+$STD composer install --no-interaction
 sed -i -e "s/^upload_max_filesize = .*/upload_max_filesize = 200M/" \
        -e "s/^post_max_size = .*/post_max_size = 200M/" \
        -e "s/^memory_limit = .*/memory_limit = 200M/" /etc/php/8.3/fpm/php.ini
