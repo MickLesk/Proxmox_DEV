@@ -139,7 +139,7 @@ server {
 EOF
 ln -s /etc/nginx/sites-available/koel /etc/nginx/sites-enabled/koel
 systemctl restart php8.3-fpm
-systemctl restart nginx
+systemctl reload nginx
 msg_ok "Created Services"
 
 msg_info "Adding Cronjob (Daily Midnight)"
@@ -154,9 +154,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-rm -R "/opt/koel-${RELEASE}.zip" 
-cd /opt/koel
-$STD php artisan cache:clear
+rm -rf /opt/koel-${RELEASE}.zip
 $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"
