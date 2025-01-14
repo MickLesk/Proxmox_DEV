@@ -75,7 +75,7 @@ msg_info "Set up web services"
 </VirtualHost>
 EOF
 
-$STD a2ensite wavelog.conf
+$STD a2ensite wordpress.conf
 $STD a2dissite 000-default.conf  
 $STD systemctl reload apache2
 msg_ok "Created Services"
