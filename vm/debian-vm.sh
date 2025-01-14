@@ -215,12 +215,6 @@ function advanced_settings() {
   else
     exit-script
   fi
-  AVAILABLE_DISKS=$(lsblk -dpno NAME,SIZE | grep -E '/dev/sd|/dev/nvme|/dev/vd' | awk '{print $1 " (" $2 ")"}')
-  if TARGET_DISK=$(whiptail --backtitle "Proxmox VE Helper Scripts" --menu "Select Target Disk" 15 60 6 ${AVAILABLE_DISKS} --title "DISK SELECTION" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
-    echo -e "${DISKSELECT}${BOLD}${DGN}Target Disk: ${BGN}$TARGET_DISK${CL}"
-  else
-    exit-script
-  fi
   
   if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB" 8 58 7 --title "DISK SIZE" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z "$DISK_SIZE" ] || ! [[ "$DISK_SIZE" =~ ^[0-9]+$ ]] || [ "$DISK_SIZE" -lt 7 ]; then
@@ -450,7 +444,7 @@ qm set $VMID \
   -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=${DISK_SIZE:-$DEFAULT_DISK_SIZE} \
   -boot order=scsi0 \
   -serial0 socket >/dev/null
-qm resize $VMID scsi0 4G >/dev/null
+qm resize $VMID scsi0 ${DISK_SIZE}G >/dev/null
 DESCRIPTION=$(
   cat <<EOF
 <div align='center'>
