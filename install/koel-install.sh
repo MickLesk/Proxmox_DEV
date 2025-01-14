@@ -14,7 +14,7 @@ network_check
 update_os
 
 msg_info "Installing Dependencies (Patience)"
-$STD apt-get install -y --no-install-recommends \
+$STD apt-get install -y \
   postgresql \
   nginx \
   apt-transport-https \
@@ -24,7 +24,17 @@ $STD apt-get install -y --no-install-recommends \
   curl \
   unzip \
   sudo \
-  mc 
+  mc \
+  cron \
+  libapache2-mod-xsendfile \
+  libzip-dev \
+  locales \
+  libpng-dev \
+  libjpeg62-turbo-dev \
+  libpq-dev \
+  libwebp-dev \
+  libapache2-mod-php \ 
+  composer
  msg_ok "Installed Dependencies"
 
 msg_info "Setting up PSql Database"
@@ -55,23 +65,27 @@ $STD npm install -g yarn
 msg_ok "Installed Node.js/Yarn"
 
 msg_info "Setting up PHP"
-sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
-$STD sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
-$STD sudo apt update
-$STD sudo apt install -y php8.3 php8.3-{bcmath,bz2,cli,common,curl,fpm,gd,intl,mbstring,mysql,sqlite3,xml,zip,pgsql}
+curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+$STD sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+$STD apt update
+$STD apt install -y php8.3 php8.3-{bcmath,exif,bz2,cli,common,curl,fpm,gd,intl,mbstring,xml,zip,pgsql}
 msg_ok "PHP successfully setup" 
 
 msg_info "Installing Koel(Patience)"
-$STD wget -O composer-setup.php https://getcomposer.org/installer
-$STD php composer-setup.php --install-dir=/usr/local/bin --filename=composer --quiet
-cd /opt
 RELEASE=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
-$STD wget https://github.com/koel/koel/releases/download/${RELEASE}/koel-${RELEASE}.zip
-unzip -q koel-${RELEASE}.zip
+cd /opt
 mkdir -p /opt/koel_media
 mkdir -p /opt/koel_sync
+wget -q https://github.com/koel/koel/releases/download/${RELEASE}/koel-${RELEASE}.zip
+unzip -q koel-${RELEASE}.zip
+chown -R :www-data /opt/*
+chmod -R g+r /opt/*
+chmod -R g+rw /opt/*
 sudo chown -R www-data:www-data /opt/*
-cd koel
+sudo chmod -R 755 /opt/*
+cd /opt/koel
+echo "export COMPOSER_ALLOW_SUPERUSER=1" >> ~/.bashrc
+source ~/.bashrc
 $STD composer update --no-interaction
 $STD composer install --no-interaction
 sudo sed -i -e "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" \
@@ -82,6 +96,7 @@ sudo sed -i -e "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" \
            -e "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" \
            -e "s|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|" \
            -e "s|FFMPEG_PATH=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|" /opt/koel/.env
+
 $STD php artisan koel:init --no-interaction
 sed -i -e "s/^upload_max_filesize = .*/upload_max_filesize = 200M/" \
        -e "s/^post_max_size = .*/post_max_size = 200M/" \
@@ -123,9 +138,9 @@ server {
     }
 }
 EOF
-sudo ln -s /etc/nginx/sites-available/koel /etc/nginx/sites-enabled/koel
-sudo systemctl restart php8.3-fpm
-sudo systemctl restart nginx
+ln -s /etc/nginx/sites-available/koel /etc/nginx/sites-enabled/koel
+systemctl restart php8.3-fpm
+systemctl restart nginx
 msg_ok "Created Services"
 
 msg_info "Adding Cronjob (Daily Midnight)"
