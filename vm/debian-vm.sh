@@ -486,8 +486,10 @@ fi
 msg_ok "Created a Debian 12 VM ${CL}${BL}(${HN})"
 if [ "$START_VM" == "yes" ]; then
   msg_info "Starting Debian 12 VM"
-  qm start $VMID
+    qm start $VMID
+    sleep 10
   msg_ok "Started Debian 12 VM"
+  
 fi
 
 msg_info "Resizing partitions and filesystem inside the VM"
