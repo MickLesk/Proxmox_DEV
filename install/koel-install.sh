@@ -68,7 +68,7 @@ msg_info "Setting up PHP"
 curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
 $STD sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
 $STD apt update
-$STD apt install -y php8.3 php8.3-{bcmath,exif,bz2,cli,common,curl,fpm,gd,intl,mbstring,xml,zip,pgsql}
+$STD apt install -y php8.3 php8.3-{bcmath,exif,bz2,cli,common,curl,fpm,gd,intl,sqlite3,mbstring,xml,zip,pgsql}
 msg_ok "PHP successfully setup" 
 
 msg_info "Installing Koel(Patience)"
