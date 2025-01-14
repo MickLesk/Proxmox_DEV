@@ -83,11 +83,11 @@ chmod -R g+rw /opt/*
 chown -R www-data:www-data /opt/*
 chmod -R 755 /opt/*
 cd /opt/koel
-$STD php artisan koel:init --no-interaction
 echo "export COMPOSER_ALLOW_SUPERUSER=1" >> ~/.bashrc
 source ~/.bashrc
 $STD composer update --no-interaction
 $STD composer install --no-interaction
+$STD php artisan koel:init --no-interaction
 sudo sed -i -e "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" \
            -e "s/DB_HOST=.*/DB_HOST=localhost/" \
            -e "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" \
