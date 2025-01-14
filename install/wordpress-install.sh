@@ -77,7 +77,6 @@ EOF
 
 $STD a2ensite wordpress.conf
 $STD a2dissite 000-default.conf  
-#systemctl reload apache2
 msg_ok "Created Services"
 
 motd_ssh
