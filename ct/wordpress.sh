@@ -7,7 +7,7 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 
 ## App Default Values
 APP="Wordpress"
-var_tags="wordpress"
+var_tags="blog"
 var_disk="5"
 var_cpu="2"
 var_ram="2048"
