@@ -74,7 +74,7 @@ msg_ok "PHP successfully setup"
 msg_info "Installing Koel(Patience)"
 RELEASE=$(wget -q https://github.com/koel/koel/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
 cd /opt
-mkdir -p /opt/koel_{media, sync}
+mkdir -p /opt/koel_{media,sync}
 wget -q https://github.com/koel/koel/releases/download/${RELEASE}/koel-${RELEASE}.zip
 unzip -q koel-${RELEASE}.zip
 chown -R :www-data /opt/*
