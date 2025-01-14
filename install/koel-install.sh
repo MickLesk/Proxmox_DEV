@@ -80,8 +80,8 @@ unzip -q koel-${RELEASE}.zip
 chown -R :www-data /opt/*
 chmod -R g+r /opt/*
 chmod -R g+rw /opt/*
-sudo chown -R www-data:www-data /opt/*
-sudo chmod -R 755 /opt/*
+chown -R www-data:www-data /opt/*
+chmod -R 755 /opt/*
 cd /opt/koel
 echo "export COMPOSER_ALLOW_SUPERUSER=1" >> ~/.bashrc
 source ~/.bashrc
@@ -155,6 +155,8 @@ customize
 
 msg_info "Cleaning up"
 rm -R "/opt/koel-${RELEASE}.zip" 
+cd /opt/koel
+$STD php artisan cache:clear
 $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"
