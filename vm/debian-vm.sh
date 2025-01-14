@@ -213,7 +213,24 @@ function advanced_settings() {
   else
     exit-script
   fi
-
+  AVAILABLE_DISKS=$(lsblk -dpno NAME,SIZE | grep -E '/dev/sd|/dev/nvme|/dev/vd' | awk '{print $1 " (" $2 ")"}')
+  if TARGET_DISK=$(whiptail --backtitle "Proxmox VE Helper Scripts" --menu "Select Target Disk" 15 60 6 ${AVAILABLE_DISKS} --title "DISK SELECTION" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
+    echo -e "${DISKSELECT}${BOLD}${DGN}Target Disk: ${BGN}$TARGET_DISK${CL}"
+  else
+    exit-script
+  fi
+  
+  if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB" 8 58 7 --title "DISK SIZE" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
+    if [ -z "$DISK_SIZE" ] || ! [[ "$DISK_SIZE" =~ ^[0-9]+$ ]] || [ "$DISK_SIZE" -lt 7 ]; then
+      DISK_SIZE="7"
+      echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}$DISK_SIZE GB (Default)${CL}"
+    else
+      echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}$DISK_SIZE GB${CL}"
+    fi
+  else
+    exit-script
+  fi
+  
   if DISK_CACHE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISK CACHE" --radiolist "Choose" --cancel-button Exit-Script 10 58 2 \
     "0" "None (Default)" ON \
     "1" "Write Through" OFF \
