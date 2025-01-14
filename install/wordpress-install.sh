@@ -53,14 +53,10 @@ sed -i -e "s|^define( 'DB_NAME', '.*' );|define( 'DB_NAME', '$DB_NAME' );|" \
        -e "s|^define( 'DB_USER', '.*' );|define( 'DB_USER', '$DB_USER' );|" \
        -e "s|^define( 'DB_PASSWORD', '.*' );|define( 'DB_PASSWORD', '$DB_PASS' );|" \
        /var/www/html/wordpress/wp-config.php
+msg_ok "Installed Wordpress"
+
+msg_info "Setup Services"
 cat <<EOF > /etc/apache2/sites-available/wordpress.conf
-
-
-
-
-msg_ok "Installed Koel"
-
-msg_info "Set up web services"
 <VirtualHost *:80>
     ServerName yourdomain.com
     DocumentRoot /var/www/html/wordpress
@@ -74,9 +70,9 @@ msg_info "Set up web services"
 
 </VirtualHost>
 EOF
-
 $STD a2ensite wordpress.conf
-$STD a2dissite 000-default.conf  
+$STD a2dissite 000-default.conf
+systemctl reload apache2
 msg_ok "Created Services"
 
 motd_ssh
