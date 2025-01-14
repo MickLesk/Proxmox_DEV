@@ -87,7 +87,6 @@ echo "export COMPOSER_ALLOW_SUPERUSER=1" >> ~/.bashrc
 source ~/.bashrc
 $STD composer update --no-interaction
 $STD composer install --no-interaction
-$STD php artisan koel:init --no-interaction
 sudo sed -i -e "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" \
            -e "s/DB_HOST=.*/DB_HOST=localhost/" \
            -e "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" \
@@ -96,7 +95,6 @@ sudo sed -i -e "s/DB_CONNECTION=.*/DB_CONNECTION=pgsql/" \
            -e "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" \
            -e "s|MEDIA_PATH=.*|MEDIA_PATH=/opt/koel_media|" \
            -e "s|FFMPEG_PATH=/usr/local/bin/ffmpeg|FFMPEG_PATH=/usr/bin/ffmpeg|" /opt/koel/.env
-$STD php artisan cache:clear
 sed -i -e "s/^upload_max_filesize = .*/upload_max_filesize = 200M/" \
        -e "s/^post_max_size = .*/post_max_size = 200M/" \
        -e "s/^memory_limit = .*/memory_limit = 200M/" /etc/php/8.3/fpm/php.ini
