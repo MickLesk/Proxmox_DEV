@@ -33,7 +33,7 @@ $STD apt-get install -y \
   libjpeg62-turbo-dev \
   libpq-dev \
   libwebp-dev \
-  libapache2-mod-php \ 
+  libapache2-mod-php \
   composer
  msg_ok "Installed Dependencies"
 
