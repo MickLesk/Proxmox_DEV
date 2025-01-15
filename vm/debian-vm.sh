@@ -495,23 +495,21 @@ if [ "$START_VM" == "yes" ]; then
   
 fi
 
-msg_info "Check status of QEMU guest agent"
-if ! dpkg -l | grep -q qemu-guest-agent; then
-    msg_info "QEMU guest agent not found, installing..."
-    apt-get update -y >/dev/null
-    apt-get install qemu-guest-agent -y >/dev/null
-    systemctl enable -q --now qemu-guest-agent 
+msg_info "Checking if QEMU guest agent is installed and running inside the VM"
+if ! qm guest exec $VMID -- bash -c "systemctl is-active --quiet qemu-guest-agent"; then
+    qm guest exec $VMID -- bash -c "apt update && apt install -y qemu-guest-agent" >/dev/null
+    qm guest exec $VMID -- bash -c "systemctl start qemu-guest-agent" >/dev/null
+    qm guest exec $VMID -- bash -c "systemctl enable qemu-guest-agent" >/dev/null
+else
+    msg_info "QEMU guest agent is already running"
 fi
-if ! systemctl is-active --quiet qemu-guest-agent; then
-    msg_info "Starting QEMU guest agent"
-    systemctl start qemu-guest-agent >/dev/null
-    systemctl enable -q --now qemu-guest-agent 
-fi
-msg_ok "QEMU guest agent ready" 
+
+sleep 5
 
 msg_info "Resizing partitions and filesystem inside the VM"
 qm guest exec $VMID -- bash -c "resize2fs /dev/vda1" >/dev/null
 msg_info "Disk resizing process completed"
+
 
  
 
