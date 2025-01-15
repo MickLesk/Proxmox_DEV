@@ -495,23 +495,34 @@ if [ "$START_VM" == "yes" ]; then
   
 fi
 
+msg_ok "Created a Debian 12 VM ${CL}${BL}(${HN})"
+
+if [ "$START_VM" == "yes" ]; then
+  msg_info "Starting Debian 12 VM"
+  qm start $VMID
+  # Warten, bis die VM tatsächlich bereit ist, indem wir 'uptime' ausführen
+  while ! qm guest exec $VMID -- bash -c "uptime" >/dev/null 2>&1; do
+    echo "VM is not ready yet. Waiting..."
+    sleep 5
+  done
+  msg_ok "Started and ready Debian 12 VM"
+fi
+
 msg_info "Checking if QEMU guest agent is installed and running inside the VM"
 if ! qm guest exec $VMID -- bash -c "systemctl is-active --quiet qemu-guest-agent"; then
+    echo "QEMU guest agent not running, installing and starting it..."
     qm guest exec $VMID -- bash -c "apt update && apt install -y qemu-guest-agent" >/dev/null
     qm guest exec $VMID -- bash -c "systemctl start qemu-guest-agent" >/dev/null
     qm guest exec $VMID -- bash -c "systemctl enable qemu-guest-agent" >/dev/null
 else
-    msg_info "QEMU guest agent is already running"
+    msg_ok "QEMU guest agent is already running"
 fi
 
 sleep 5
 
 msg_info "Resizing partitions and filesystem inside the VM"
 qm guest exec $VMID -- bash -c "resize2fs /dev/vda1" >/dev/null
-msg_info "Disk resizing process completed"
-
-
- 
+msg_ok "Disk resizing process completed"
 
 msg_ok "Completed Successfully!\n"
 echo "More Info at https://github.com/community-scripts/ProxmoxVE/discussions/836"
