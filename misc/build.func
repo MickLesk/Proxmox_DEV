@@ -337,6 +337,7 @@ advanced_settings() {
         if var_os=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISTRIBUTION" --menu "Choose Distribution:" 10 58 2 \
           "debian" "" \
           "ubuntu" "" \
+	  --extra-button --extra-label "Back" \
           3>&1 1>&2 2>&3); then
           if [ -n "$var_os" ]; then
             echo -e "${OS}${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
@@ -354,6 +355,7 @@ advanced_settings() {
         if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DEBIAN VERSION" --menu "Choose Version" 10 58 2 \
           "11" "Bullseye" \
           "12" "Bookworm" \
+	  --extra-button --extra-label "Back" \
           3>&1 1>&2 2>&3); then
           if [ -n "$var_version" ]; then
             echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
@@ -369,6 +371,7 @@ advanced_settings() {
           "22.04" "Jammy" \
           "24.04" "Noble" \
           "24.10" "Oracular" \
+	  --extra-button --extra-label "Back" \
           3>&1 1>&2 2>&3); then
           if [ -n "$var_version" ]; then
             echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
@@ -387,6 +390,7 @@ advanced_settings() {
       if CT_TYPE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "CONTAINER TYPE" --menu "Choose Type" 10 58 2 \
         "1" "Unprivileged" \
         "0" "Privileged" \
+	--extra-button --extra-label "Back" \
         3>&1 1>&2 2>&3); then
         if [ -n "$CT_TYPE" ]; then
           CT_TYPE_DESC="Unprivileged"
