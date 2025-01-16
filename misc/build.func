@@ -8,6 +8,7 @@ variables() {
   NSAPP=$(echo ${APP,,} | tr -d ' ') # This function sets the NSAPP variable by converting the value of the APP variable to lowercase and removing any spaces.
   var_install="${NSAPP}-install"     # sets the var_install variable by appending "-install" to the value of NSAPP.
   INTEGER='^[0-9]+([.][0-9]+)?$'     # it defines the INTEGER regular expression pattern.
+  PVEHOST_NAME=$(hostname) # gets the Proxmox Hostname and sets it to Uppercase
 }
 
 # This function sets various color variables using ANSI escape codes for formatting text in the terminal.
@@ -35,7 +36,7 @@ color() {
   INFO="${TAB}💡${TAB}${CL}"
   OS="${TAB}🖥️${TAB}${CL}"
   OSVERSION="${TAB}🌟${TAB}${CL}"
-  CONTAINERTYPE="${TAB}📦${TAB}${CL}" 
+  CONTAINERTYPE="${TAB}📦${TAB}${CL}"
   DISKSIZE="${TAB}💾${TAB}${CL}"
   CPUCORE="${TAB}🧠${TAB}${CL}"
   RAMSIZE="${TAB}🛠️${TAB}${CL}"
@@ -156,6 +157,36 @@ arch_check() {
   fi
 }
 
+# Function to get the current IP address based on the distribution
+get_current_ip() {
+  if [ -f /etc/os-release ]; then
+    # Check for Debian/Ubuntu (uses hostname -I)
+    if grep -qE 'ID=debian|ID=ubuntu' /etc/os-release; then
+      CURRENT_IP=$(hostname -I | awk '{print $1}')
+    # Check for Alpine (uses ip command)
+    elif grep -q 'ID=alpine' /etc/os-release; then
+      CURRENT_IP=$(ip -4 addr show eth0 | awk '/inet / {print $2}' | cut -d/ -f1 | head -n 1)
+    else
+      CURRENT_IP="Unknown"
+    fi
+  fi
+  echo "$CURRENT_IP"
+}
+
+# Function to update the IP address in the MOTD file
+update_motd_ip() {
+  MOTD_FILE="/etc/motd"
+  
+  if [ -f "$MOTD_FILE" ]; then
+    # Remove existing IP Address lines to prevent duplication
+    sed -i '/IP Address:/d' "$MOTD_FILE"
+    
+    IP=$(get_current_ip)
+    # Add the new IP address
+    echo -e "${TAB}${NETWORK}${YW} IP Address: ${GN}${IP}${CL}" >> "$MOTD_FILE"
+  fi
+}							  
+
 # This function sets the APP-Name into an ASCII Header in Slant, figlet needed on proxmox main node.
 header_info() {
   APP_NAME="$APP"
@@ -166,7 +197,7 @@ header_info() {
   if [ ! -f "$OUTPUT_FILE" ]; then
     curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/.app-headers"
     if [ ! -f "$OUTPUT_FILE" ]; then
-      echo "Error: Failed to download the file."
+      echo "Error: Failed to download the file."											 
       return 1
     fi
   else
@@ -179,7 +210,7 @@ header_info() {
         return 1
       fi
     else
-      echo "Local file for $APP_NAME is up to date, no action needed." >/dev/null
+      echo "Local file for $APP_NAME is up to date, no action needed." >/dev/null	  
     fi
   fi
 
@@ -196,14 +227,13 @@ header_info() {
     echo "Error: ASCII Art for $APP_NAME not found."
     return 1
   fi
-
   # Display ASCII header
   export TERM=xterm
   term_width=$(tput cols 2>/dev/null || echo 120)
+													  
   clear
   echo "$app_ascii"
 }
-
 
 # This function checks if the script is running through SSH and prompts the user to confirm if they want to proceed or exit.
 ssh_check() {
@@ -240,6 +270,7 @@ base_settings() {
   MAC=""
   VLAN=""
   SSH="no"
+  SSH_AUTHORIZED_KEY=""
   TAGS="community-script;"
   
   # Override default settings with variables from ct script
@@ -586,6 +617,22 @@ advanced_settings() {
     exit_script
   fi
 
+  if ADV_TAGS=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Custom Tags?[If you remove all, there will be no tags!]" 8 58 ${TAGS} --title "Advanced Tags" 3>&1 1>&2 2>&3); then
+    if [ -n "${ADV_TAGS}" ]; then
+      ADV_TAGS=$(echo "$ADV_TAGS" | tr -d '[:space:]') # Remove whitespace from ADV_TAGS
+      if [[ "$ADV_TAGS" != *"community-script"* ]]; then
+        TAGS="community-script;${ADV_TAGS}"
+      else
+        TAGS="${ADV_TAGS}" # ADV_TAGS already contains "community-script"
+      fi
+    else
+      TAGS="community-script;"
+    fi
+      echo -e "${NETWORK}${BOLD}${DGN}Tags: ${BGN}$TAGS${CL}"
+    else
+      exit_script
+  fi																																																	
+
   if [[ "$PW" == -password* ]]; then
     if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH ACCESS" --yesno "Enable Root SSH Access?" 10 58); then
       SSH="yes"
@@ -597,7 +644,17 @@ advanced_settings() {
     SSH="no"
     echo -e "${ROOTSSH}${BOLD}${DGN}Root SSH Access: ${BGN}$SSH${CL}"
   fi
+  
+  if [[ "${SSH}" == "yes" ]]; then
+    SSH_AUTHORIZED_KEY="$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "SSH Authorized key for root (leave empty for none)" 8 58 --title "SSH Key" 3>&1 1>&2 2>&3)"
 
+    if [[ -z "${SSH_AUTHORIZED_KEY}" ]]; then
+      echo "Warning: No SSH key provided."
+    fi
+  else
+    SSH_AUTHORIZED_KEY=""
+  fi	  
+  
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?" 10 58); then
     VERB="yes"
   else
@@ -610,7 +667,7 @@ advanced_settings() {
   else
     clear
     header_info
-    echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings${CL}"
+    echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings on node $PVEHOST_NAME${CL}"
     advanced_settings
   fi
 }
@@ -644,17 +701,17 @@ install_script() {
     case $CHOICE in
       1)
         header_info
-        echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings${CL}"
+        echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings on node $PVEHOST_NAME${CL}"
         VERB="no"
-        base_settings "$VERB"  
+        base_settings "$VERB"
         echo_default
         break
         ;;
       2)
         header_info
-        echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings (${SEARCH}${BOLD}${BL} Verbose)${CL}"
+        echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings on node $PVEHOST_NAME (${SEARCH}Verbose)${CL}"
         VERB="yes"
-        base_settings "$VERB"  
+        base_settings "$VERB"
         echo_default
         break
         ;;
@@ -678,7 +735,7 @@ install_script() {
 check_container_resources() {
   # Check actual RAM & Cores
   current_ram=$(free -m | awk 'NR==2{print $2}')
-  current_cpu=$(nproc) 
+  current_cpu=$(nproc)
 
   # Check whether the current RAM is less than the required RAM or the CPU cores are less than required
   if [[ "$current_ram" -lt "$var_ram" ]] || [[ "$current_cpu" -lt "$var_cpu" ]]; then
@@ -761,6 +818,7 @@ build_container() {
   export PASSWORD="$PW"
   export VERBOSE="$VERB"
   export SSH_ROOT="${SSH}"
+						   
   export CTID="$CT_ID"
   export CTTYPE="$CT_TYPE"
   export PCT_OSTYPE="$var_os"
