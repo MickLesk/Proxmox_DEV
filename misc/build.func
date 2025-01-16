@@ -326,12 +326,13 @@ exit_script() {
 advanced_settings() {
   whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Here is an instructional tip:" "To make a selection, use the Spacebar." 8 58
   whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Default distribution for $APP" "${var_os} ${var_version} \n \nIf the default Linux distribution is not adhered to, script support will be discontinued. \n" 10 58
+
   if [ -z "$var_os" ]; then
     while [ -z "$var_os" ]; do
       var_os=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISTRIBUTION" --radiolist "Choose Distribution:" 10 58 3 \
-        "debian" "" $( [ "$var_os" == "debian" ] && echo "ON" || echo "OFF" ) \
-        "ubuntu" "" $( [ "$var_os" == "ubuntu" ] && echo "ON" || echo "OFF" ) \
-        "Back" "Exit script" ON \
+        "Debian" "" $( [ "$var_os" == "debian" ] && echo "ON" || echo "OFF" ) \
+        "Ubuntu" "" $( [ "$var_os" == "ubuntu" ] && echo "ON" || echo "OFF" ) \
+        "Back" "Exit script" OFF \
         3>&1 1>&2 2>&3)
       if [ "$var_os" == "Back" ]; then
         exit_script
@@ -346,7 +347,7 @@ advanced_settings() {
     var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DEBIAN VERSION" --radiolist "Choose Version:" 10 58 3 \
       "11" "Bullseye" $( [ "$var_version" == "11" ] && echo "ON" || echo "OFF" ) \
       "12" "Bookworm" $( [ "$var_version" == "12" ] && echo "ON" || echo "OFF" ) \
-      "Back" "Return to Distribution selection" ON \
+      "Back" "Return to Distribution selection" OFF \
       3>&1 1>&2 2>&3)
     if [ "$var_version" == "Back" ]; then
       var_os=""
@@ -359,17 +360,18 @@ advanced_settings() {
   if [ "$var_os" == "ubuntu" ]; then
     var_version=""
     while [ -z "$var_version" ]; do
-      if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "UBUNTU VERSION" --radiolist "Choose Version" 10 58 4 \
-        "20.04" "Focal" OFF \
-        "22.04" "Jammy" OFF \
-        "24.04" "Noble" OFF \
-        "24.10" "Oracular" OFF \
-      3>&1 1>&2 2>&3); then
-        if [ -n "$var_version" ]; then
-          echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
-        fi
-      else
-        exit_script
+      var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "UBUNTU VERSION" --radiolist "Choose Version" 10 58 4 \
+        "20.04" "Focal" $( [ "$var_version" == "20.04" ] && echo "ON" || echo "OFF" ) \
+        "22.04" "Jammy" $( [ "$var_version" == "22.04" ] && echo "ON" || echo "OFF" ) \
+        "24.04" "Noble" $( [ "$var_version" == "24.04" ] && echo "ON" || echo "OFF" ) \
+        "24.10" "Oracular" $( [ "$var_version" == "24.10" ] && echo "ON" || echo "OFF" ) \
+        "Back" "Return to Distribution selection" OFF \
+        3>&1 1>&2 2>&3)
+      if [ "$var_version" == "Back" ]; then
+        var_os=""
+      fi
+      if [ -n "$var_version" ]; then
+        echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
       fi
     done
   fi
