@@ -325,85 +325,58 @@ exit_script() {
 # This function allows the user to configure advanced settings for the script.
 advanced_settings() {
   whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Here is an instructional tip:" "To make a selection, use the Spacebar." 8 58
-  # Whiptail für die erste OS-Auswahl
-# Whiptail für die erste OS-Auswahl
-whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Default distribution for $APP" "${var_os} ${var_version} \n \nIf the default Linux distribution is not adhered to, script support will be discontinued. \n" 10 58
-
-# Distribution auswählen (OS-Auswahl, auch wenn bereits gesetzt)
-if [ -z "$var_os" ]; then
-  while [ -z "$var_os" ]; do
-    var_os=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISTRIBUTION" --radiolist "Choose Distribution:" 10 58 3 \
-      "debian" "" $( [ "$var_os" == "debian" ] && echo "ON" || echo "OFF" ) \
-      "ubuntu" "" $( [ "$var_os" == "ubuntu" ] && echo "ON" || echo "OFF" ) \
-      "Exit" "Exit the script" OFF \
-      3>&1 1>&2 2>&3)
-    
-    # Falls "Exit" gewählt, Script beenden
-    case "$var_os" in
-      "Exit")
+  whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Default distribution for $APP" "${var_os} ${var_version} \n \nIf the default Linux distribution is not adhered to, script support will be discontinued. \n" 10 58
+  if [ "$var_os" != "alpine" ]; then
+    var_os=""
+    while [ -z "$var_os" ]; do
+      if var_os=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISTRIBUTION" --radiolist "Choose Distribution:" 10 58 2 \
+        "debian" "" OFF \
+        "ubuntu" "" OFF \
+        3>&1 1>&2 2>&3); then
+        if [ -n "$var_os" ]; then
+          echo -e "${OS}${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
+        fi
+      else
         exit_script
-        ;;
-      "debian"|"ubuntu")
-        echo -e "${OS}${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
-        break
-        ;;
-      *)
-        echo "Keine gültige Auswahl getroffen."
-        ;;
-    esac
-  done
-fi
+      fi
+    done
+  fi
 
-# Wenn Debian gewählt wurde, Version wählen
-if [ "$var_os" == "debian" ]; then
-  var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DEBIAN VERSION" --radiolist "Choose Version:" 10 58 3 \
-    "11" "Bullseye" $( [ "$var_version" == "11" ] && echo "ON" || echo "OFF" ) \
-    "12" "Bookworm" $( [ "$var_version" == "12" ] && echo "ON" || echo "OFF" ) \
-    "Return" "Return to OS selection" OFF \
-    3>&1 1>&2 2>&3)
+  if [ "$var_os" == "debian" ]; then
+    var_version=""
+    while [ -z "$var_version" ]; do
+      if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DEBIAN VERSION" --radiolist "Choose Version" 10 58 2 \
+        "11" "Bullseye" OFF \
+        "12" "Bookworm" OFF \
+        3>&1 1>&2 2>&3); then
+        if [ -n "$var_version" ]; then
+          echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
+        fi
+      else
+        exit_script
+      fi
+    done
+  fi
 
-  # Action für Return oder Version
-  case "$var_version" in
-    "Return")
-      var_os=""
-      ;;
-    "11"|"12")
-      echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
-      ;;
-    *)
-      echo "Keine gültige Auswahl getroffen."
-      ;;
-  esac
-fi
-
-# Wenn Ubuntu gewählt wurde, Version wählen
-if [ "$var_os" == "ubuntu" ]; then
-  var_version=""
-  while [ -z "$var_version" ]; do
-    var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "UBUNTU VERSION" --radiolist "Choose Version" 10 58 4 \
-      "20.04" "Focal" $( [ "$var_version" == "20.04" ] && echo "ON" || echo "OFF" ) \
-      "22.04" "Jammy" $( [ "$var_version" == "22.04" ] && echo "ON" || echo "OFF" ) \
-      "24.04" "Noble" $( [ "$var_version" == "24.04" ] && echo "ON" || echo "OFF" ) \
-      "24.10" "Oracular" $( [ "$var_version" == "24.10" ] && echo "ON" || echo "OFF" ) \
-      "Return" "Return to OS selection" OFF \
-      3>&1 1>&2 2>&3)
-
-    # Action für Return oder Version
-    case "$var_version" in
-      "Return")
-        var_os=""
-        ;;
-      "20.04"|"22.04"|"24.04"|"24.10")
-        echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
-        ;;
-      *)
-        echo "Keine gültige Auswahl getroffen."
-        ;;
-    esac
-  done
-fi
-
-  TAGS="community-script;"
+  if [ "$var_os" == "ubuntu" ]; then
+    var_version=""
+    while [ -z "$var_version" ]; do
+      if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "UBUNTU VERSION" --radiolist "Choose Version" 10 58 4 \
+        "20.04" "Focal" OFF \
+        "22.04" "Jammy" OFF \
+        "24.04" "Noble" OFF \
+        "24.10" "Oracular" OFF \
+      3>&1 1>&2 2>&3); then
+        if [ -n "$var_version" ]; then
+          echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
+        fi
+      else
+        exit_script
+      fi
+    done
+  fi
+  # Setting Default Tag for Advanced Settings
+  TAGS="community-script;${var_tags:-}"
 
   CT_TYPE=""
   while [ -z "$CT_TYPE" ]; do
@@ -480,13 +453,13 @@ fi
   if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB" 8 58 $var_disk --title "DISK SIZE" 3>&1 1>&2 2>&3); then
     if [ -z "$DISK_SIZE" ]; then
       DISK_SIZE="$var_disk"
-      echo -e "${DISKSIZE}${DGN}Disk Size: ${BGN}$DISK_SIZE${CL}"
+      echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE} GB${CL}"
     else
       if ! [[ $DISK_SIZE =~ $INTEGER ]]; then
         echo -e "{INFO}${HOLD}${RD} DISK SIZE MUST BE AN INTEGER NUMBER!${CL}"
         advanced_settings
       fi
-      echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}$DISK_SIZE${CL}"
+      echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE} GB${CL}"
     fi
   else
     exit_script
@@ -506,9 +479,9 @@ fi
   if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB" 8 58 $var_ram --title "RAM" 3>&1 1>&2 2>&3); then
     if [ -z "$RAM_SIZE" ]; then
       RAM_SIZE="$var_ram"
-      echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}$RAM_SIZE${CL}"
+      echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE} MiB${CL}"
     else
-      echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}$RAM_SIZE${CL}"
+      echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE} MiB${CL}"
     fi
   else
     exit_script
@@ -574,128 +547,191 @@ fi
       exit_script
     fi
   fi
+    "ipv6")
+        if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "IPv6" --yesno "Disable IPv6?\n\nPress ESC twice to go back" 10 58); then
+          DISABLEIP6="yes"
+        else
+          DISABLEIP6="no"
+        fi
+        echo -e "${DISABLEIPV6}${BOLD}${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
+        previous_menu="ipv6"
+        current_menu="mtu"
+        ;;
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "IPv6" --yesno "Disable IPv6?" 10 58); then
-    DISABLEIP6="yes"
-  else
-    DISABLEIP6="no"
-  fi
-  echo -e "${DISABLEIPV6}${BOLD}${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
+      "mtu")
+        if MTU1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Interface MTU Size (leave blank for default)\nPress ESC twice to go back" 10 58 --title "MTU SIZE" 3>&1 1>&2 2>&3); then
+          if [ -z $MTU1 ]; then
+            MTU1="Default"
+            MTU=""
+          else
+            MTU=",mtu=$MTU1"
+          fi
+          echo -e "${DEFAULT}${BOLD}${DGN}Interface MTU Size: ${BGN}$MTU1${CL}"
+          previous_menu="mtu"
+          current_menu="dns_search"
+        else
+          current_menu="ipv6"
+          continue
+        fi
+        ;;
 
-  if MTU1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Interface MTU Size (leave blank for default)" 8 58 --title "MTU SIZE" 3>&1 1>&2 2>&3); then
-    if [ -z $MTU1 ]; then
-      MTU1="Default"
-      MTU=""
-    else
-      MTU=",mtu=$MTU1"
-    fi
-    echo -e "${DEFAULT}${BOLD}${DGN}Interface MTU Size: ${BGN}$MTU1${CL}"
-  else
-    exit_script
-  fi
+      "dns_search")
+        if SD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a DNS Search Domain (leave blank for HOST)\nPress ESC twice to go back" 10 58 --title "DNS Search Domain" 3>&1 1>&2 2>&3); then
+          if [ -z $SD ]; then
+            SX=Host
+            SD=""
+          else
+            SX=$SD
+            SD="-searchdomain=$SD"
+          fi
+          echo -e "${SEARCH}${BOLD}${DGN}DNS Search Domain: ${BGN}$SX${CL}"
+          previous_menu="dns_search"
+          current_menu="dns_server"
+        else
+          current_menu="mtu"
+          continue
+        fi
+        ;;
 
-  if SD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a DNS Search Domain (leave blank for HOST)" 8 58 --title "DNS Search Domain" 3>&1 1>&2 2>&3); then
-    if [ -z $SD ]; then
-      SX=Host
-      SD=""
-    else
-      SX=$SD
-      SD="-searchdomain=$SD"
-    fi
-    echo -e "${SEARCH}${BOLD}${DGN}DNS Search Domain: ${BGN}$SX${CL}"
-  else
-    exit_script
-  fi
+      "dns_server")
+        if NX=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a DNS Server IP (leave blank for HOST)\nPress ESC twice to go back" 10 58 --title "DNS SERVER IP" 3>&1 1>&2 2>&3); then
+          if [ -z $NX ]; then
+            NX=Host
+            NS=""
+          else
+            NS="-nameserver=$NX"
+          fi
+          echo -e "${NETWORK}${BOLD}${DGN}DNS Server IP Address: ${BGN}$NX${CL}"
+          previous_menu="dns_server"
+          current_menu="mac_address"
+        else
+          current_menu="dns_search"
+          continue
+        fi
+        ;;
 
-  if NX=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a DNS Server IP (leave blank for HOST)" 8 58 --title "DNS SERVER IP" 3>&1 1>&2 2>&3); then
-    if [ -z $NX ]; then
-      NX=Host
-      NS=""
-    else
-      NS="-nameserver=$NX"
-    fi
-    echo -e "${NETWORK}${BOLD}${DGN}DNS Server IP Address: ${BGN}$NX${CL}"
-  else
-    exit_script
-  fi
+      "mac_address")
+        if MAC1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a MAC Address (leave blank for default)\nPress ESC twice to go back" 10 58 --title "MAC ADDRESS" 3>&1 1>&2 2>&3); then
+          if [ -z $MAC1 ]; then
+            MAC1="Default"
+            MAC=""
+          else
+            MAC=",hwaddr=$MAC1"
+          fi
+          echo -e "${MACADDRESS}${BOLD}${DGN}MAC Address: ${BGN}$MAC1${CL}"
+          previous_menu="mac_address"
+          current_menu="vlan"
+        else
+          current_menu="dns_server"
+          continue
+        fi
+        ;;
 
-  if MAC1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a MAC Address(leave blank for default)" 8 58 --title "MAC ADDRESS" 3>&1 1>&2 2>&3); then
-    if [ -z $MAC1 ]; then
-      MAC1="Default"
-      MAC=""
-    else
-      MAC=",hwaddr=$MAC1"
-      echo -e "${MACADDRESS}${BOLD}${DGN}MAC Address: ${BGN}$MAC1${CL}"
-    fi
-  else
-    exit_script
-  fi
+      "vlan")
+        if VLAN1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Vlan (leave blank for default)\nPress ESC twice to go back" 10 58 --title "VLAN" 3>&1 1>&2 2>&3); then
+          if [ -z $VLAN1 ]; then
+            VLAN1="Default"
+            VLAN=""
+          else
+            VLAN=",tag=$VLAN1"
+          fi
+          echo -e "${VLANTAG}${BOLD}${DGN}Vlan: ${BGN}$VLAN1${CL}"
+          previous_menu="vlan"
+          current_menu="tags"
+        else
+          current_menu="mac_address"
+          continue
+        fi
+        ;;
 
-  if VLAN1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Vlan(leave blank for default)" 8 58 --title "VLAN" 3>&1 1>&2 2>&3); then
-    if [ -z $VLAN1 ]; then
-      VLAN1="Default"
-      VLAN=""
-    else
-      VLAN=",tag=$VLAN1"
-    fi
-    echo -e "${VLANTAG}${BOLD}${DGN}Vlan: ${BGN}$VLAN1${CL}"
-  else
-    exit_script
-  fi
+      "tags")
+        if ADV_TAGS=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Custom Tags?[If you remove all, there will be no tags!]\nPress ESC twice to go back" 10 58 ${TAGS} --title "Advanced Tags" 3>&1 1>&2 2>&3); then
+          if [ -n "${ADV_TAGS}" ]; then
+            ADV_TAGS=$(echo "$ADV_TAGS" | tr -d '[:space:]')
+            if [[ "$ADV_TAGS" != *"community-script"* ]]; then
+              TAGS="community-script;${ADV_TAGS}"
+            else
+              TAGS="${ADV_TAGS}"
+            fi
+          else
+            TAGS="community-script;"
+          fi
+          echo -e "${NETWORK}${BOLD}${DGN}Tags: ${BGN}$TAGS${CL}"
+          previous_menu="tags"
+          current_menu="ssh_access"
+        else
+          current_menu="vlan"
+          continue
+        fi
+        ;;
 
-  if ADV_TAGS=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Custom Tags?[If you remove all, there will be no tags!]" 8 58 ${TAGS} --title "Advanced Tags" 3>&1 1>&2 2>&3); then
-    if [ -n "${ADV_TAGS}" ]; then
-      ADV_TAGS=$(echo "$ADV_TAGS" | tr -d '[:space:]') # Remove whitespace from ADV_TAGS
-      if [[ "$ADV_TAGS" != *"community-script"* ]]; then
-        TAGS="community-script;${ADV_TAGS}"
-      else
-        TAGS="${ADV_TAGS}" # ADV_TAGS already contains "community-script"
-      fi
-    else
-      TAGS="community-script;"
-    fi
-      echo -e "${NETWORK}${BOLD}${DGN}Tags: ${BGN}$TAGS${CL}"
-    else
-      exit_script
-  fi																																																	
+      "ssh_access")
+        if [[ "$PW" == -password* ]]; then
+          if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH ACCESS" --yesno "Enable Root SSH Access?\n\nPress ESC twice to go back" 10 58); then
+            SSH="yes"
+            previous_menu="ssh_access"
+            current_menu="ssh_key"
+          else
+            SSH="no"
+            SSH_AUTHORIZED_KEY=""
+            previous_menu="ssh_access"
+            current_menu="verbose_mode"
+          fi
+          echo -e "${ROOTSSH}${BOLD}${DGN}Root SSH Access: ${BGN}$SSH${CL}"
+        else
+          SSH="no"
+          SSH_AUTHORIZED_KEY=""
+          echo -e "${ROOTSSH}${BOLD}${DGN}Root SSH Access: ${BGN}$SSH${CL}"
+          previous_menu="ssh_access"
+          current_menu="verbose_mode"
+        fi
+        ;;
 
-  if [[ "$PW" == -password* ]]; then
-    if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH ACCESS" --yesno "Enable Root SSH Access?" 10 58); then
-      SSH="yes"
-    else
-      SSH="no"
-    fi
-    echo -e "${ROOTSSH}${BOLD}${DGN}Root SSH Access: ${BGN}$SSH${CL}"
-  else
-    SSH="no"
-    echo -e "${ROOTSSH}${BOLD}${DGN}Root SSH Access: ${BGN}$SSH${CL}"
-  fi
-  
-  if [[ "${SSH}" == "yes" ]]; then
-    SSH_AUTHORIZED_KEY="$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "SSH Authorized key for root (leave empty for none)" 8 58 --title "SSH Key" 3>&1 1>&2 2>&3)"
+      "ssh_key")
+        if [[ "${SSH}" == "yes" ]]; then
+          SSH_AUTHORIZED_KEY=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "SSH Authorized key for root (leave empty for none)\nPress ESC twice to go back" 10 58 --title "SSH Key" 3>&1 1>&2 2>&3)
+          exit_status=$?
+          if [ $exit_status -eq 0 ]; then
+            if [[ -z "${SSH_AUTHORIZED_KEY}" ]]; then
+              echo "Warning: No SSH key provided."
+            fi
+            previous_menu="ssh_key"
+            current_menu="verbose_mode"
+          else
+            current_menu="ssh_access"
+            continue
+          fi
+        else
+          SSH_AUTHORIZED_KEY=""
+          current_menu="verbose_mode"
+        fi
+        ;;
 
-    if [[ -z "${SSH_AUTHORIZED_KEY}" ]]; then
-      echo "Warning: No SSH key provided."
-    fi
-  else
-    SSH_AUTHORIZED_KEY=""
-  fi	  
-  
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?" 10 58); then
-    VERB="yes"
-  else
-    VERB="no"
-  fi
-  echo -e "${SEARCH}${BOLD}${DGN}Verbose Mode: ${BGN}$VERB${CL}"
+      "verbose_mode")
+        if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?\n\nPress ESC twice to go back" 10 58); then
+          VERB="yes"
+        else
+          VERB="no"
+        fi
+        echo -e "${SEARCH}${BOLD}${DGN}Verbose Mode: ${BGN}$VERB${CL}"
+        previous_menu="verbose_mode"
+        current_menu="confirm"
+        ;;
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create ${APP} LXC?" 10 58); then
-    echo -e "${CREATING}${BOLD}${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
-  else
-    clear
-    header_info
-    echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings on node $PVEHOST_NAME${CL}"
-    advanced_settings
-  fi
+      "confirm")
+        if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create ${APP} LXC?\n\nPress ESC twice to go back" 10 58); then
+          echo -e "${CREATING}${BOLD}${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
+          return 0
+        else
+          clear
+          header_info
+          echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings on node $PVEHOST_NAME${CL}"
+          current_menu="verbose_mode"
+          continue
+        fi
+        ;;
+    esac
+  done
 }
 
 install_script() {
