@@ -326,6 +326,7 @@ exit_script() {
 advanced_settings() {
   whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Here is an instructional tip:" "To make a selection, use the Spacebar." 8 58
   # Whiptail für die erste OS-Auswahl
+# Whiptail für die erste OS-Auswahl
 whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Default distribution for $APP" "${var_os} ${var_version} \n \nIf the default Linux distribution is not adhered to, script support will be discontinued. \n" 10 58
 
 # Distribution auswählen (OS-Auswahl, auch wenn bereits gesetzt)
@@ -338,17 +339,22 @@ if [ -z "$var_os" ]; then
       3>&1 1>&2 2>&3)
     
     # Falls "Exit" gewählt, Script beenden
-    if [ "$var_os" == "Exit" ]; then
-      exit_script
-    fi
-
-    if [ -n "$var_os" ]; then
-      echo -e "${OS}${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
-    fi
+    case "$var_os" in
+      "Exit")
+        exit_script
+        ;;
+      "debian"|"ubuntu")
+        echo -e "${OS}${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
+        break
+        ;;
+      *)
+        echo "Keine gültige Auswahl getroffen."
+        ;;
+    esac
   done
 fi
 
-# Falls Debian gewählt wurde, Version wählen:
+# Wenn Debian gewählt wurde, Version wählen
 if [ "$var_os" == "debian" ]; then
   var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DEBIAN VERSION" --radiolist "Choose Version:" 10 58 3 \
     "11" "Bullseye" $( [ "$var_version" == "11" ] && echo "ON" || echo "OFF" ) \
@@ -356,17 +362,21 @@ if [ "$var_os" == "debian" ]; then
     "Return" "Return to OS selection" OFF \
     3>&1 1>&2 2>&3)
 
-  # Falls "Return" gewählt, zurück zur OS-Auswahl
-  if [ "$var_version" == "Return" ]; then
-    var_os=""
-  fi
-
-  if [ -n "$var_version" ]; then
-    echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
-  fi
+  # Action für Return oder Version
+  case "$var_version" in
+    "Return")
+      var_os=""
+      ;;
+    "11"|"12")
+      echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
+      ;;
+    *)
+      echo "Keine gültige Auswahl getroffen."
+      ;;
+  esac
 fi
 
-# Falls Ubuntu gewählt wurde, Version wählen:
+# Wenn Ubuntu gewählt wurde, Version wählen
 if [ "$var_os" == "ubuntu" ]; then
   var_version=""
   while [ -z "$var_version" ]; do
@@ -378,18 +388,21 @@ if [ "$var_os" == "ubuntu" ]; then
       "Return" "Return to OS selection" OFF \
       3>&1 1>&2 2>&3)
 
-    # Falls "Return" gewählt, zurück zur OS-Auswahl
-    if [ "$var_version" == "Return" ]; then
-      var_os=""
-    fi
-    if [ -n "$var_version" ]; then
-      echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
-    fi
+    # Action für Return oder Version
+    case "$var_version" in
+      "Return")
+        var_os=""
+        ;;
+      "20.04"|"22.04"|"24.04"|"24.10")
+        echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
+        ;;
+      *)
+        echo "Keine gültige Auswahl getroffen."
+        ;;
+    esac
   done
 fi
 
-
-  # Setting Default Tag for Advanced Settings
   TAGS="community-script;"
 
   CT_TYPE=""
