@@ -339,7 +339,15 @@ advanced_settings() {
           "ubuntu" "" \
 	  --extra-button --extra-label "Back" \
           3>&1 1>&2 2>&3); then
-          if [ -n "$var_os" ]; then
+          if [ "$var_os" = "Back" ]; then
+            if [ -n "$previous_menu" ]; then
+              current_menu="$previous_menu"
+              previous_menu=""
+              continue
+            else
+              exit_script
+            fi
+          elif [ -n "$var_os" ]; then
             echo -e "${OS}${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
             previous_menu="main"
             current_menu="version"
@@ -357,7 +365,15 @@ advanced_settings() {
           "12" "Bookworm" \
 	  --extra-button --extra-label "Back" \
           3>&1 1>&2 2>&3); then
-          if [ -n "$var_version" ]; then
+	   if [ "$var_version" = "Back" ]; then
+            if [ -n "$previous_menu" ]; then
+              current_menu="$previous_menu"
+              previous_menu=""
+              continue
+            else
+              exit_script
+            fi
+	    elif [ -n "$var_version" ]; then
             echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
             previous_menu="version"
             current_menu="container_type"
@@ -373,7 +389,16 @@ advanced_settings() {
           "24.10" "Oracular" \
 	  --extra-button --extra-label "Back" \
           3>&1 1>&2 2>&3); then
-          if [ -n "$var_version" ]; then
+          if [ "$var_version" = "Back" ]; then
+            if [ -n "$previous_menu" ]; then
+              current_menu="$previous_menu"
+              previous_menu=""
+              continue
+            else
+              exit_script
+            fi
+
+	  elif [ -n "$var_version" ]; then
             echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
             previous_menu="version"
             current_menu="container_type"
