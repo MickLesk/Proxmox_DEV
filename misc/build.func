@@ -337,7 +337,7 @@ advanced_settings() {
         if var_os=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISTRIBUTION" --menu "Choose Distribution:" 10 58 2 \
           "debian" "" \
           "ubuntu" "" \
-	  --extra-button --extra-label "Back" \
+          --extra-button --extra-label "Back" \
           3>&1 1>&2 2>&3); then
           if [ "$var_os" = "Back" ]; then
             if [ -n "$previous_menu" ]; then
@@ -363,17 +363,13 @@ advanced_settings() {
         if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DEBIAN VERSION" --menu "Choose Version" 10 58 2 \
           "11" "Bullseye" \
           "12" "Bookworm" \
-	  --extra-button --extra-label "Back" \
+          --extra-button --extra-label "Back" \
           3>&1 1>&2 2>&3); then
-	   if [ "$var_version" = "Back" ]; then
-            if [ -n "$previous_menu" ]; then
-              current_menu="$previous_menu"
-              previous_menu=""
-              continue
-            else
-              exit_script
-            fi
-	    elif [ -n "$var_version" ]; then
+          if [ "$var_version" = "Back" ]; then
+            current_menu="main"
+            var_os=""
+            continue
+          elif [ -n "$var_version" ]; then
             echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
             previous_menu="version"
             current_menu="container_type"
@@ -387,18 +383,13 @@ advanced_settings() {
           "22.04" "Jammy" \
           "24.04" "Noble" \
           "24.10" "Oracular" \
-	  --extra-button --extra-label "Back" \
+          --extra-button --extra-label "Back" \
           3>&1 1>&2 2>&3); then
           if [ "$var_version" = "Back" ]; then
-            if [ -n "$previous_menu" ]; then
-              current_menu="$previous_menu"
-              previous_menu=""
-              continue
-            else
-              exit_script
-            fi
-
-	  elif [ -n "$var_version" ]; then
+            current_menu="main"
+            var_os=""
+            continue
+          elif [ -n "$var_version" ]; then
             echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
             previous_menu="version"
             current_menu="container_type"
@@ -415,9 +406,13 @@ advanced_settings() {
       if CT_TYPE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "CONTAINER TYPE" --menu "Choose Type" 10 58 2 \
         "1" "Unprivileged" \
         "0" "Privileged" \
-	--extra-button --extra-label "Back" \
+        --extra-button --extra-label "Back" \
         3>&1 1>&2 2>&3); then
-        if [ -n "$CT_TYPE" ]; then
+        if [ "$CT_TYPE" = "Back" ]; then
+          current_menu="version"
+          var_version=""
+          continue
+        elif [ -n "$CT_TYPE" ]; then
           CT_TYPE_DESC="Unprivileged"
           if [ "$CT_TYPE" -eq 0 ]; then
             CT_TYPE_DESC="Privileged"
@@ -471,8 +466,11 @@ advanced_settings() {
       ;;
 
     "container_id")
-      if CT_ID=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Container ID\nPress ESC twice to go back" 10 58 $NEXTID --title "CONTAINER ID" 3>&1 1>&2 2>&3); then
-        if [ -n "$CT_ID" ]; then
+      if CT_ID=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Container ID\nPress ESC twice to go back" 10 58 $NEXTID --title "CONTAINER ID" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$CT_ID" = "Back" ]; then
+          current_menu="password"
+          continue
+        elif [ -n "$CT_ID" ]; then
           echo -e "${CONTAINERID}${BOLD}${DGN}Container ID: ${BGN}$CT_ID${CL}"
           previous_menu="container_id"
           current_menu="hostname"
@@ -489,8 +487,11 @@ advanced_settings() {
       ;;
 
     "hostname")
-      if CT_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Hostname\nPress ESC twice to go back" 10 58 $NSAPP --title "HOSTNAME" 3>&1 1>&2 2>&3); then
-        if [ -z "$CT_NAME" ]; then
+      if CT_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Hostname\nPress ESC twice to go back" 10 58 $NSAPP --title "HOSTNAME" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$CT_NAME" = "Back" ]; then
+          current_menu="container_id"
+          continue
+        elif [ -z "$CT_NAME" ]; then
           HN="$NSAPP"
         else
           HN=$(echo ${CT_NAME,,} | tr -d ' ')
@@ -505,8 +506,11 @@ advanced_settings() {
       ;;
 
     "disk_size")
-      if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB\nPress ESC twice to go back" 10 58 $var_disk --title "DISK SIZE" 3>&1 1>&2 2>&3); then
-        if [ -z "$DISK_SIZE" ]; then
+      if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB\nPress ESC twice to go back" 10 58 $var_disk --title "DISK SIZE" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$DISK_SIZE" = "Back" ]; then
+          current_menu="hostname"
+          continue
+        elif [ -z "$DISK_SIZE" ]; then
           DISK_SIZE="$var_disk"
         else
           if ! [[ $DISK_SIZE =~ $INTEGER ]]; then
@@ -524,8 +528,11 @@ advanced_settings() {
       ;;
 
     "cpu_cores")
-      if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores\nPress ESC twice to go back" 10 58 $var_cpu --title "CORE COUNT" 3>&1 1>&2 2>&3); then
-        if [ -z "$CORE_COUNT" ]; then
+      if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores\nPress ESC twice to go back" 10 58 $var_cpu --title "CORE COUNT" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$CORE_COUNT" = "Back" ]; then
+          current_menu="disk_size"
+          continue
+        elif [ -z "$CORE_COUNT" ]; then
           CORE_COUNT="$var_cpu"
         fi
         echo -e "${CPUCORE}${BOLD}${DGN}CPU Cores: ${BGN}$CORE_COUNT${CL}"
@@ -538,8 +545,11 @@ advanced_settings() {
       ;;
 
     "ram")
-      if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB\nPress ESC twice to go back" 10 58 $var_ram --title "RAM" 3>&1 1>&2 2>&3); then
-        if [ -z "$RAM_SIZE" ]; then
+      if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB\nPress ESC twice to go back" 10 58 $var_ram --title "RAM" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$RAM_SIZE" = "Back" ]; then
+          current_menu="cpu_cores"
+          continue
+        elif [ -z "$RAM_SIZE" ]; then
           RAM_SIZE="$var_ram"
         fi
         echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE} MiB${CL}"
@@ -552,8 +562,11 @@ advanced_settings() {
       ;;
 
     "bridge")
-      if BRG=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Bridge\nPress ESC twice to go back" 10 58 vmbr0 --title "BRIDGE" 3>&1 1>&2 2>&3); then
-        if [ -z "$BRG" ]; then
+      if BRG=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Bridge\nPress ESC twice to go back" 10 58 vmbr0 --title "BRIDGE" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$BRG" = "Back" ]; then
+          current_menu="ram"
+          continue
+        elif [ -z "$BRG" ]; then
           BRG="vmbr0"
         fi
         echo -e "${BRIDGE}${BOLD}${DGN}Bridge: ${BGN}$BRG${CL}"
@@ -566,10 +579,13 @@ advanced_settings() {
       ;;
 
     "ip_address")
-      NET=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Static IPv4 CIDR Address (/24)\nPress ESC twice to go back" 10 58 dhcp --title "IP ADDRESS" 3>&1 1>&2 2>&3)
+      NET=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Static IPv4 CIDR Address (/24)\nPress ESC twice to go back" 10 58 dhcp --title "IP ADDRESS" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3)
       exit_status=$?
       if [ $exit_status -eq 0 ]; then
-        if [ "$NET" = "dhcp" ]; then
+        if [ "$NET" = "Back" ]; then
+          current_menu="bridge"
+          continue
+        elif [ "$NET" = "dhcp" ]; then
           echo -e "${NETWORK}${BOLD}${DGN}IP Address: ${BGN}$NET${CL}"
           previous_menu="ip_address"
           current_menu="gateway"
@@ -589,10 +605,13 @@ advanced_settings() {
 
     "gateway")
       if [ "$NET" != "dhcp" ]; then
-        GATE1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Enter gateway IP address\nPress ESC twice to go back" 10 58 --title "Gateway IP" 3>&1 1>&2 2>&3)
+        GATE1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Enter gateway IP address\nPress ESC twice to go back" 10 58 --title "Gateway IP" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3)
         exit_status=$?
         if [ $exit_status -eq 0 ]; then
-          if [ -z "$GATE1" ]; then
+          if [ "$GATE1" = "Back" ]; then
+            current_menu="ip_address"
+            continue
+          elif [ -z "$GATE1" ]; then
             whiptail --msgbox "Gateway IP address cannot be empty" 8 58
             continue
           elif [[ ! "$GATE1" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
@@ -622,8 +641,15 @@ advanced_settings() {
         APT_CACHER_IP=""
         current_menu="ipv6"
       else
-        if APT_CACHER_IP=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set APT-Cacher IP (leave blank for default)\nPress ESC twice to go back" 10 58 --title "APT-Cacher IP" 3>&1 1>&2 2>&3); then
-          APT_CACHER="${APT_CACHER_IP:+yes}"
+        if APT_CACHER_IP=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set APT-Cacher IP (leave blank for default)\nPress ESC twice to go back" 10 58 --title "APT-Cacher IP" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+          if [ "$APT_CACHER_IP" = "Back" ]; then
+            current_menu="gateway"
+            continue
+          elif [ -n "$APT_CACHER_IP" ]; then
+            APT_CACHER="yes"
+          else
+            APT_CACHER=""
+          fi
           echo -e "${NETWORK}${BOLD}${DGN}APT-Cacher IP Address: ${BGN}${APT_CACHER_IP:-Default}${CL}"
           previous_menu="apt_cacher"
           current_menu="ipv6"
@@ -633,7 +659,7 @@ advanced_settings() {
         fi
       fi
       ;;
-
+      
     "ipv6")
       if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "IPv6" --yesno "Disable IPv6?\n\nPress ESC twice to go back" 10 58); then
         DISABLEIP6="yes"
