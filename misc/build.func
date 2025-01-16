@@ -685,7 +685,7 @@ advanced_settings() {
       fi
       ;;
 
-    "vlan")
+      "vlan")
       if VLAN1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Vlan (leave blank for default)\nPress ESC twice to go back" 10 58 --title "VLAN" 3>&1 1>&2 2>&3); then
         if [ -z $VLAN1 ]; then
           VLAN1="Default"
@@ -703,31 +703,26 @@ advanced_settings() {
       ;;
 
     "tags")
-      if ADV_TAGS=$(whiptail --backtitle "Proadvanced_settings() {
-  local previous_menu=""
-  local current_menu="main"
-
-  whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Here is an instructional tip:" "To make a selection, use the Spacebar.\nUse 'Back' to return to previous menu." 8 58
-  whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Default distribution for $APP" "${var_os} ${var_version} \n \nIf the default Linux distribution is not adhered to, script support will be discontinued. \n" 10 58
-
-  while true; do
-    case $current_menu in
-    "main")
-      if [ "$var_os" != "alpine" ]; then
-        if var_os=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISTRIBUTION" --menu "Choose Distribution:" 10 58 2 \
-          "debian" "" \
-          "ubuntu" "" \
-          3>&1 1>&2 2>&3); then
-          if [ -n "$var_os" ]; then
-            echo -e "${OS}${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
-            previous_menu="main"
-            current_menu="version"
+      if ADV_TAGS=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Custom Tags?[If you remove all, there will be no tags!]\nPress ESC twice to go back" 10 58 ${TAGS} --title "Advanced Tags" 3>&1 1>&2 2>&3); then
+        if [ -n "${ADV_TAGS}" ]; then
+          ADV_TAGS=$(echo "$ADV_TAGS" | tr -d '[:space:]')
+          if [[ "$ADV_TAGS" != *"community-script"* ]]; then
+            TAGS="community-script;${ADV_TAGS}"
+          else
+            TAGS="${ADV_TAGS}"
           fi
         else
-          exit_script
+          TAGS="community-script;"
         fi
+        echo -e "${NETWORK}${BOLD}${DGN}Tags: ${BGN}$TAGS${CL}"
+        previous_menu="tags"
+        current_menu="ssh_access"
+      else
+        current_menu="vlan"
+        continue
       fi
       ;;
+
 
     "version")
       if [ "$var_os" == "debian" ]; then
