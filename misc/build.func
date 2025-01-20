@@ -8,6 +8,7 @@ variables() {
   NSAPP=$(echo ${APP,,} | tr -d ' ') # This function sets the NSAPP variable by converting the value of the APP variable to lowercase and removing any spaces.
   var_install="${NSAPP}-install"     # sets the var_install variable by appending "-install" to the value of NSAPP.
   INTEGER='^[0-9]+([.][0-9]+)?$'     # it defines the INTEGER regular expression pattern.
+  PVEHOST_NAME=$(hostname) # gets the Proxmox Hostname and sets it to Uppercase
 }
 
 # This function sets various color variables using ANSI escape codes for formatting text in the terminal.
@@ -35,7 +36,7 @@ color() {
   INFO="${TAB}💡${TAB}${CL}"
   OS="${TAB}🖥️${TAB}${CL}"
   OSVERSION="${TAB}🌟${TAB}${CL}"
-  CONTAINERTYPE="${TAB}📦${TAB}${CL}" 
+  CONTAINERTYPE="${TAB}📦${TAB}${CL}"
   DISKSIZE="${TAB}💾${TAB}${CL}"
   CPUCORE="${TAB}🧠${TAB}${CL}"
   RAMSIZE="${TAB}🛠️${TAB}${CL}"
@@ -156,6 +157,36 @@ arch_check() {
   fi
 }
 
+# Function to get the current IP address based on the distribution
+get_current_ip() {
+  if [ -f /etc/os-release ]; then
+    # Check for Debian/Ubuntu (uses hostname -I)
+    if grep -qE 'ID=debian|ID=ubuntu' /etc/os-release; then
+      CURRENT_IP=$(hostname -I | awk '{print $1}')
+    # Check for Alpine (uses ip command)
+    elif grep -q 'ID=alpine' /etc/os-release; then
+      CURRENT_IP=$(ip -4 addr show eth0 | awk '/inet / {print $2}' | cut -d/ -f1 | head -n 1)
+    else
+      CURRENT_IP="Unknown"
+    fi
+  fi
+  echo "$CURRENT_IP"
+}
+
+# Function to update the IP address in the MOTD file
+update_motd_ip() {
+  MOTD_FILE="/etc/motd"
+  
+  if [ -f "$MOTD_FILE" ]; then
+    # Remove existing IP Address lines to prevent duplication
+    sed -i '/IP Address:/d' "$MOTD_FILE"
+    
+    IP=$(get_current_ip)
+    # Add the new IP address
+    echo -e "${TAB}${NETWORK}${YW} IP Address: ${GN}${IP}${CL}" >> "$MOTD_FILE"
+  fi
+}							  
+
 # This function sets the APP-Name into an ASCII Header in Slant, figlet needed on proxmox main node.
 header_info() {
   APP_NAME="$APP"
@@ -166,7 +197,7 @@ header_info() {
   if [ ! -f "$OUTPUT_FILE" ]; then
     curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/.app-headers"
     if [ ! -f "$OUTPUT_FILE" ]; then
-      echo "Error: Failed to download the file."
+      echo "Error: Failed to download the file."											 
       return 1
     fi
   else
@@ -179,7 +210,7 @@ header_info() {
         return 1
       fi
     else
-      echo "Local file for $APP_NAME is up to date, no action needed." >/dev/null
+      echo "Local file for $APP_NAME is up to date, no action needed." >/dev/null	  
     fi
   fi
 
@@ -196,14 +227,13 @@ header_info() {
     echo "Error: ASCII Art for $APP_NAME not found."
     return 1
   fi
-
   # Display ASCII header
   export TERM=xterm
   term_width=$(tput cols 2>/dev/null || echo 120)
+													  
   clear
   echo "$app_ascii"
 }
-
 
 # This function checks if the script is running through SSH and prompts the user to confirm if they want to proceed or exit.
 ssh_check() {
@@ -240,6 +270,7 @@ base_settings() {
   MAC=""
   VLAN=""
   SSH="no"
+  SSH_AUTHORIZED_KEY=""
   TAGS="community-script;"
   
   # Override default settings with variables from ct script
@@ -293,327 +324,904 @@ exit_script() {
 
 # This function allows the user to configure advanced settings for the script.
 advanced_settings() {
-  whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Here is an instructional tip:" "To make a selection, use the Spacebar." 8 58
+  local previous_menu=""
+  local current_menu="main"
+
+  whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Here is an instructional tip:" "To make a selection, use the Spacebar.\nUse 'Back' to return to previous menu." 8 58
   whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Default distribution for $APP" "${var_os} ${var_version} \n \nIf the default Linux distribution is not adhered to, script support will be discontinued. \n" 10 58
-  if [ "$var_os" != "alpine" ]; then
-    var_os=""
-    while [ -z "$var_os" ]; do
-      if var_os=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISTRIBUTION" --radiolist "Choose Distribution:" 10 58 2 \
-        "debian" "" OFF \
-        "ubuntu" "" OFF \
-        3>&1 1>&2 2>&3); then
-        if [ -n "$var_os" ]; then
-          echo -e "${OS}${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
-        fi
-      else
-        exit_script
-      fi
-    done
-  fi
-
-  if [ "$var_os" == "debian" ]; then
-    var_version=""
-    while [ -z "$var_version" ]; do
-      if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DEBIAN VERSION" --radiolist "Choose Version" 10 58 2 \
-        "11" "Bullseye" OFF \
-        "12" "Bookworm" OFF \
-        3>&1 1>&2 2>&3); then
-        if [ -n "$var_version" ]; then
-          echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
-        fi
-      else
-        exit_script
-      fi
-    done
-  fi
-
-  if [ "$var_os" == "ubuntu" ]; then
-    var_version=""
-    while [ -z "$var_version" ]; do
-      if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "UBUNTU VERSION" --radiolist "Choose Version" 10 58 4 \
-        "20.04" "Focal" OFF \
-        "22.04" "Jammy" OFF \
-        "24.04" "Noble" OFF \
-        "24.10" "Oracular" OFF \
-      3>&1 1>&2 2>&3); then
-        if [ -n "$var_version" ]; then
-          echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
-        fi
-      else
-        exit_script
-      fi
-    done
-  fi
-
-  # Setting Default Tag for Advanced Settings
-  TAGS="community-script;"
-
-  CT_TYPE=""
-  while [ -z "$CT_TYPE" ]; do
-    if CT_TYPE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "CONTAINER TYPE" --radiolist "Choose Type" 10 58 2 \
-      "1" "Unprivileged" OFF \
-      "0" "Privileged" OFF \
-      3>&1 1>&2 2>&3); then
-      if [ -n "$CT_TYPE" ]; then
-        CT_TYPE_DESC="Unprivileged"
-        if [ "$CT_TYPE" -eq 0 ]; then
-          CT_TYPE_DESC="Privileged"
-        fi
-        echo -e "${CONTAINERTYPE}${BOLD}${DGN}Container Type: ${BGN}$CT_TYPE_DESC${CL}"
-      fi
-    else
-      exit_script
-    fi
-  done
 
   while true; do
-    if PW1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "\nSet Root Password (needed for root ssh access)" 9 58 --title "PASSWORD (leave blank for automatic login)" 3>&1 1>&2 2>&3); then
-      if [[ ! -z "$PW1" ]]; then
-        if [[ "$PW1" == *" "* ]]; then
-          whiptail --msgbox "Password cannot contain spaces. Please try again." 8 58
-        elif [ ${#PW1} -lt 5 ]; then
-          whiptail --msgbox "Password must be at least 5 characters long. Please try again." 8 58
-        else
-          if PW2=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "\nVerify Root Password" 9 58 --title "PASSWORD VERIFICATION" 3>&1 1>&2 2>&3); then
-            if [[ "$PW1" == "$PW2" ]]; then
-              PW="-password $PW1"
-              echo -e "${VERIFYPW}${BOLD}${DGN}Root Password: ${BGN}********${CL}"
-              break
+    case $current_menu in
+    "main")
+      if [ "$var_os" != "alpine" ]; then
+        if var_os=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISTRIBUTION" --menu "Choose Distribution:" 10 58 2 \
+          "debian" "" \
+          "ubuntu" "" \
+          --extra-button --extra-label "Back" \
+          3>&1 1>&2 2>&3); then
+          if [ "$var_os" = "Back" ]; then
+            if [ -n "$previous_menu" ]; then
+              current_menu="$previous_menu"
+              previous_menu=""
+              continue
             else
-              whiptail --msgbox "Passwords do not match. Please try again." 8 58
+              exit_script
             fi
+          elif [ -n "$var_os" ]; then
+            echo -e "${OS}${BOLD}${DGN}Operating System: ${BGN}$var_os${CL}"
+            previous_menu="main"
+            current_menu="version"
+          fi
+        else
+          exit_script
+        fi
+      fi
+      ;;
+
+    "version")
+      if [ "$var_os" == "debian" ]; then
+        if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DEBIAN VERSION" --menu "Choose Version" 10 58 2 \
+          "11" "Bullseye" \
+          "12" "Bookworm" \
+          --extra-button --extra-label "Back" \
+          3>&1 1>&2 2>&3); then
+          if [ "$var_version" = "Back" ]; then
+            current_menu="main"
+            var_os=""
+            continue
+          elif [ -n "$var_version" ]; then
+            echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
+            previous_menu="version"
+            current_menu="container_type"
+          fi
+        else
+          exit_script
+        fi
+      elif [ "$var_os" == "ubuntu" ]; then
+        if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "UBUNTU VERSION" --menu "Choose Version" 10 58 4 \
+          "20.04" "Focal" \
+          "22.04" "Jammy" \
+          "24.04" "Noble" \
+          "24.10" "Oracular" \
+          --extra-button --extra-label "Back" \
+          3>&1 1>&2 2>&3); then
+          if [ "$var_version" = "Back" ]; then
+            current_menu="main"
+            var_os=""
+            continue
+          elif [ -n "$var_version" ]; then
+            echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
+            previous_menu="version"
+            current_menu="container_type"
+          fi
+        else
+          exit_script
+        fi
+      fi
+      ;;
+
+    "container_type")
+      TAGS="community-script;${var_tags:-}"
+
+      if CT_TYPE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "CONTAINER TYPE" --menu "Choose Type" 10 58 2 \
+        "1" "Unprivileged" \
+        "0" "Privileged" \
+        --extra-button --extra-label "Back" \
+        3>&1 1>&2 2>&3); then
+        if [ "$CT_TYPE" = "Back" ]; then
+          current_menu="version"
+          var_version=""
+          continue
+        elif [ -n "$CT_TYPE" ]; then
+          CT_TYPE_DESC="Unprivileged"
+          if [ "$CT_TYPE" -eq 0 ]; then
+            CT_TYPE_DESC="Privileged"
+          fi
+          echo -e "${CONTAINERTYPE}${BOLD}${DGN}Container Type: ${BGN}$CT_TYPE_DESC${CL}"
+          previous_menu="container_type"
+          current_menu="password"
+        fi
+      else
+        exit_script
+      fi
+      ;;
+
+    "password")
+      if PW1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "\nSet Root Password (needed for root ssh access)\nPress ESC twice to go back" 10 58 --title "PASSWORD (leave blank for automatic login)" 3>&1 1>&2 2>&3); then
+        if [[ ! -z "$PW1" ]]; then
+          if [[ "$PW1" == *" "* ]]; then
+            whiptail --msgbox "Password cannot contain spaces. Please try again." 8 58
+            continue
+          elif [ ${#PW1} -lt 5 ]; then
+            whiptail --msgbox "Password must be at least 5 characters long. Please try again." 8 58
+            continue
           else
-            exit_script
+            if PW2=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "\nVerify Root Password\nPress ESC twice to go back" 10 58 --title "PASSWORD VERIFICATION" 3>&1 1>&2 2>&3); then
+              if [[ "$PW1" == "$PW2" ]]; then
+                PW="-password $PW1"
+                echo -e "${VERIFYPW}${BOLD}${DGN}Root Password: ${BGN}********${CL}"
+                previous_menu="password"
+                current_menu="container_id"
+              else
+                whiptail --msgbox "Passwords do not match. Please try again." 8 58
+              fi
+            else
+              current_menu="container_type"
+              CT_TYPE=""
+              continue
+            fi
+          fi
+        else
+          PW1="Automatic Login"
+          PW=""
+          echo -e "${VERIFYPW}${BOLD}${DGN}Root Password: ${BGN}$PW1${CL}"
+          previous_menu="password"
+          current_menu="container_id"
+        fi
+      else
+        current_menu="container_type"
+        CT_TYPE=""
+        continue
+      fi
+      ;;
+
+    "container_id")
+      if CT_ID=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Container ID\nPress ESC twice to go back" 10 58 $NEXTID --title "CONTAINER ID" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$CT_ID" = "Back" ]; then
+          current_menu="password"
+          continue
+        elif [ -n "$CT_ID" ]; then
+          echo -e "${CONTAINERID}${BOLD}${DGN}Container ID: ${BGN}$CT_ID${CL}"
+          previous_menu="container_id"
+          current_menu="hostname"
+        else
+          CT_ID="$NEXTID"
+          echo -e "${CONTAINERID}${BOLD}${DGN}Container ID: ${BGN}$CT_ID${CL}"
+          previous_menu="container_id"
+          current_menu="hostname"
+        fi
+      else
+        current_menu="password"
+        continue
+      fi
+      ;;
+
+    "hostname")
+      if CT_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Hostname\nPress ESC twice to go back" 10 58 $NSAPP --title "HOSTNAME" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$CT_NAME" = "Back" ]; then
+          current_menu="container_id"
+          continue
+        elif [ -z "$CT_NAME" ]; then
+          HN="$NSAPP"
+        else
+          HN=$(echo ${CT_NAME,,} | tr -d ' ')
+        fi
+        echo -e "${HOSTNAME}${BOLD}${DGN}Hostname: ${BGN}$HN${CL}"
+        previous_menu="hostname"
+        current_menu="disk_size"
+      else
+        current_menu="container_id"
+        continue
+      fi
+      ;;
+
+    "disk_size")
+      if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB\nPress ESC twice to go back" 10 58 $var_disk --title "DISK SIZE" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$DISK_SIZE" = "Back" ]; then
+          current_menu="hostname"
+          continue
+        elif [ -z "$DISK_SIZE" ]; then
+          DISK_SIZE="$var_disk"
+        else
+          if ! [[ $DISK_SIZE =~ $INTEGER ]]; then
+            whiptail --msgbox "DISK SIZE MUST BE AN INTEGER NUMBER!" 8 58
+            continue
           fi
         fi
+        echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE} GB${CL}"
+        previous_menu="disk_size"
+        current_menu="cpu_cores"
       else
-        PW1="Automatic Login"
-        PW=""
-        echo -e "${VERIFYPW}${BOLD}${DGN}Root Password: ${BGN}$PW1${CL}"
-        break
+        current_menu="hostname"
+        continue
       fi
-    else
-      exit_script
-    fi
-  done
+      ;;
 
-
-  if CT_ID=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Container ID" 8 58 $NEXTID --title "CONTAINER ID" 3>&1 1>&2 2>&3); then
-    if [ -z "$CT_ID" ]; then
-      CT_ID="$NEXTID"
-      echo -e "${CONTAINERID}${BOLD}${DGN}Container ID: ${BGN}$CT_ID${CL}"
-    else
-      echo -e "${CONTAINERID}${BOLD}${DGN}Container ID: ${BGN}$CT_ID${CL}"
-    fi
-  else
-    exit
-  fi
-
-  if CT_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Hostname" 8 58 $NSAPP --title "HOSTNAME" 3>&1 1>&2 2>&3); then
-    if [ -z "$CT_NAME" ]; then
-      HN="$NSAPP"
-    else
-      HN=$(echo ${CT_NAME,,} | tr -d ' ')
-    fi
-    echo -e "${HOSTNAME}${BOLD}${DGN}Hostname: ${BGN}$HN${CL}"
-  else
-    exit_script
-  fi
-
-  if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB" 8 58 $var_disk --title "DISK SIZE" 3>&1 1>&2 2>&3); then
-    if [ -z "$DISK_SIZE" ]; then
-      DISK_SIZE="$var_disk"
-      echo -e "${DISKSIZE}${DGN}Disk Size: ${BGN}$DISK_SIZE${CL}"
-    else
-      if ! [[ $DISK_SIZE =~ $INTEGER ]]; then
-        echo -e "{INFO}${HOLD}${RD} DISK SIZE MUST BE AN INTEGER NUMBER!${CL}"
-        advanced_settings
-      fi
-      echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}$DISK_SIZE${CL}"
-    fi
-  else
-    exit_script
-  fi
-
-  if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores" 8 58 $var_cpu --title "CORE COUNT" 3>&1 1>&2 2>&3); then
-    if [ -z "$CORE_COUNT" ]; then
-      CORE_COUNT="$var_cpu"
-      echo -e "${CPUCORE}${BOLD}${DGN}CPU Cores: ${BGN}$CORE_COUNT${CL}"
-    else
-      echo -e "${CPUCORE}${BOLD}${DGN}CPU Cores: ${BGN}$CORE_COUNT${CL}"
-    fi
-  else
-    exit_script
-  fi
-
-  if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB" 8 58 $var_ram --title "RAM" 3>&1 1>&2 2>&3); then
-    if [ -z "$RAM_SIZE" ]; then
-      RAM_SIZE="$var_ram"
-      echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}$RAM_SIZE${CL}"
-    else
-      echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}$RAM_SIZE${CL}"
-    fi
-  else
-    exit_script
-  fi
-
-  if BRG=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Bridge" 8 58 vmbr0 --title "BRIDGE" 3>&1 1>&2 2>&3); then
-    if [ -z "$BRG" ]; then
-      BRG="vmbr0"
-      echo -e "${BRIDGE}${BOLD}${DGN}Bridge: ${BGN}$BRG${CL}"
-    else
-      echo -e "${BRIDGE}${BOLD}${DGN}Bridge: ${BGN}$BRG${CL}"
-    fi
-  else
-    exit_script
-  fi
-
-  while true; do
-    NET=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Static IPv4 CIDR Address (/24)" 8 58 dhcp --title "IP ADDRESS" 3>&1 1>&2 2>&3)
-    exit_status=$?
-    if [ $exit_status -eq 0 ]; then
-      if [ "$NET" = "dhcp" ]; then
-        echo -e "${NETWORK}${BOLD}${DGN}IP Address: ${BGN}$NET${CL}"
-        break
+    "cpu_cores")
+      if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores\nPress ESC twice to go back" 10 58 $var_cpu --title "CORE COUNT" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$CORE_COUNT" = "Back" ]; then
+          current_menu="disk_size"
+          continue
+        elif [ -z "$CORE_COUNT" ]; then
+          CORE_COUNT="$var_cpu"
+        fi
+        echo -e "${CPUCORE}${BOLD}${DGN}CPU Cores: ${BGN}$CORE_COUNT${CL}"
+        previous_menu="cpu_cores"
+        current_menu="ram"
       else
-        if [[ "$NET" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
+        current_menu="disk_size"
+        continue
+      fi
+      ;;
+
+    "ram")
+      if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB\nPress ESC twice to go back" 10 58 $var_ram --title "RAM" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$RAM_SIZE" = "Back" ]; then
+          current_menu="cpu_cores"
+          continue
+        elif [ -z "$RAM_SIZE" ]; then
+          RAM_SIZE="$var_ram"
+        fi
+        echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE} MiB${CL}"
+        previous_menu="ram"
+        current_menu="bridge"
+      else
+        current_menu="cpu_cores"
+        continue
+      fi
+      ;;
+
+    "bridge")
+      if BRG=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Bridge\nPress ESC twice to go back" 10 58 vmbr0 --title "BRIDGE" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+        if [ "$BRG" = "Back" ]; then
+          current_menu="ram"
+          continue
+        elif [ -z "$BRG" ]; then
+          BRG="vmbr0"
+        fi
+        echo -e "${BRIDGE}${BOLD}${DGN}Bridge: ${BGN}$BRG${CL}"
+        previous_menu="bridge"
+        current_menu="ip_address"
+      else
+        current_menu="ram"
+        continue
+      fi
+      ;;
+
+    "ip_address")
+      NET=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Static IPv4 CIDR Address (/24)\nPress ESC twice to go back" 10 58 dhcp --title "IP ADDRESS" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3)
+      exit_status=$?
+      if [ $exit_status -eq 0 ]; then
+        if [ "$NET" = "Back" ]; then
+          current_menu="bridge"
+          continue
+        elif [ "$NET" = "dhcp" ]; then
           echo -e "${NETWORK}${BOLD}${DGN}IP Address: ${BGN}$NET${CL}"
-          break
+          previous_menu="ip_address"
+          current_menu="gateway"
+        elif [[ "$NET" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
+          echo -e "${NETWORK}${BOLD}${DGN}IP Address: ${BGN}$NET${CL}"
+          previous_menu="ip_address"
+          current_menu="gateway"
         else
-          whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox "$NET is an invalid IPv4 CIDR address. Please enter a valid IPv4 CIDR address or 'dhcp'" 8 58
+          whiptail --msgbox "$NET is an invalid IPv4 CIDR address. Please enter a valid IPv4 CIDR address or 'dhcp'" 8 58
+          continue
+        fi
+      else
+        current_menu="bridge"
+        continue
+      fi
+      ;;
+
+    "gateway")
+      if [ "$NET" != "dhcp" ]; then
+        GATE1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Enter gateway IP address\nPress ESC twice to go back" 10 58 --title "Gateway IP" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3)
+        exit_status=$?
+        if [ $exit_status -eq 0 ]; then
+          if [ "$GATE1" = "Back" ]; then
+            current_menu="ip_address"
+            continue
+          elif [ -z "$GATE1" ]; then
+            whiptail --msgbox "Gateway IP address cannot be empty" 8 58
+            continue
+          elif [[ ! "$GATE1" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+            whiptail --msgbox "Invalid IP address format" 8 58
+            continue
+          else
+            GATE=",gw=$GATE1"
+            echo -e "${GATEWAY}${BOLD}${DGN}Gateway IP Address: ${BGN}$GATE1${CL}"
+            previous_menu="gateway"
+            current_menu="apt_cacher"
+          fi
+        else
+          current_menu="ip_address"
+          continue
+        fi
+      else
+        GATE=""
+        echo -e "${GATEWAY}${BOLD}${DGN}Gateway IP Address: ${BGN}Default${CL}"
+        previous_menu="gateway"
+        current_menu="apt_cacher"
+      fi
+      ;;
+
+    "apt_cacher")
+      if [ "$var_os" == "alpine" ]; then
+        APT_CACHER=""
+        APT_CACHER_IP=""
+        current_menu="ipv6"
+      else
+        if APT_CACHER_IP=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set APT-Cacher IP (leave blank for default)\nPress ESC twice to go back" 10 58 --title "APT-Cacher IP" --extra-button --extra-label "Back" 3>&1 1>&2 2>&3); then
+          if [ "$APT_CACHER_IP" = "Back" ]; then
+            current_menu="gateway"
+            continue
+          elif [ -n "$APT_CACHER_IP" ]; then
+            APT_CACHER="yes"
+          else
+            APT_CACHER=""
+          fi
+          echo -e "${NETWORK}${BOLD}${DGN}APT-Cacher IP Address: ${BGN}${APT_CACHER_IP:-Default}${CL}"
+          previous_menu="apt_cacher"
+          current_menu="ipv6"
+        else
+          current_menu="gateway"
+          continue
         fi
       fi
-    else
-      exit_script
-    fi
-  done
-
-  if [ "$NET" != "dhcp" ]; then
-    while true; do
-      GATE1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Enter gateway IP address" 8 58 --title "Gateway IP" 3>&1 1>&2 2>&3)
-      if [ -z "$GATE1" ]; then
-        whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox "Gateway IP address cannot be empty" 8 58
-      elif [[ ! "$GATE1" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
-        whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox "Invalid IP address format" 8 58
+      ;;
+      
+    "ipv6")
+      if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "IPv6" --yesno "Disable IPv6?\n\nPress ESC twice to go back" 10 58); then
+        DISABLEIP6="yes"
       else
-        GATE=",gw=$GATE1"
-        echo -e "${GATEWAY}${BOLD}${DGN}Gateway IP Address: ${BGN}$GATE1${CL}"
-        break
+        DISABLEIP6="no"
       fi
-    done
-  else
-    GATE=""
-    echo -e "${GATEWAY}${BOLD}${DGN}Gateway IP Address: ${BGN}Default${CL}"
-  fi
+      echo -e "${DISABLEIPV6}${BOLD}${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
+      previous_menu="ipv6"
+      current_menu="mtu"
+      ;;
 
-  if [ "$var_os" == "alpine" ]; then
-    APT_CACHER=""
-    APT_CACHER_IP=""
-  else
-    if APT_CACHER_IP=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set APT-Cacher IP (leave blank for default)" 8 58 --title "APT-Cacher IP" 3>&1 1>&2 2>&3); then
-      APT_CACHER="${APT_CACHER_IP:+yes}"
-      echo -e "${NETWORK}${BOLD}${DGN}APT-Cacher IP Address: ${BGN}${APT_CACHER_IP:-Default}${CL}"
-    else
-      exit_script
-    fi
-  fi
+    "mtu")
+      if MTU1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Interface MTU Size (leave blank for default)\nPress ESC twice to go back" 10 58 --title "MTU SIZE" 3>&1 1>&2 2>&3); then
+        if [ -z $MTU1 ]; then
+          MTU1="Default"
+          MTU=""
+        else
+          MTU=",mtu=$MTU1"
+        fi
+        echo -e "${DEFAULT}${BOLD}${DGN}Interface MTU Size: ${BGN}$MTU1${CL}"
+        previous_menu="mtu"
+        current_menu="dns_search"
+      else
+        current_menu="ipv6"
+        continue
+      fi
+      ;;
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "IPv6" --yesno "Disable IPv6?" 10 58); then
-    DISABLEIP6="yes"
-  else
-    DISABLEIP6="no"
-  fi
-  echo -e "${DISABLEIPV6}${BOLD}${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
+    "dns_search")
+      if SD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a DNS Search Domain (leave blank for HOST)\nPress ESC twice to go back" 10 58 --title "DNS Search Domain" 3>&1 1>&2 2>&3); then
+        if [ -z $SD ]; then
+          SX=Host
+          SD=""
+        else
+          SX=$SD
+          SD="-searchdomain=$SD"
+        fi
+        echo -e "${SEARCH}${BOLD}${DGN}DNS Search Domain: ${BGN}$SX${CL}"
+        previous_menu="dns_search"
+        current_menu="dns_server"
+      else
+        current_menu="mtu"
+        continue
+      fi
+      ;;
 
-  if MTU1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Interface MTU Size (leave blank for default)" 8 58 --title "MTU SIZE" 3>&1 1>&2 2>&3); then
-    if [ -z $MTU1 ]; then
-      MTU1="Default"
-      MTU=""
-    else
-      MTU=",mtu=$MTU1"
-    fi
-    echo -e "${DEFAULT}${BOLD}${DGN}Interface MTU Size: ${BGN}$MTU1${CL}"
-  else
-    exit_script
-  fi
+    "dns_server")
+      if NX=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a DNS Server IP (leave blank for HOST)\nPress ESC twice to go back" 10 58 --title "DNS SERVER IP" 3>&1 1>&2 2>&3); then
+        if [ -z $NX ]; then
+          NX=Host
+          NS=""
+        else
+          NS="-nameserver=$NX"
+        fi
+        echo -e "${NETWORK}${BOLD}${DGN}DNS Server IP Address: ${BGN}$NX${CL}"
+        previous_menu="dns_server"
+        current_menu="mac_address"
+      else
+        current_menu="dns_search"
+        continue
+      fi
+      ;;
 
-  if SD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a DNS Search Domain (leave blank for HOST)" 8 58 --title "DNS Search Domain" 3>&1 1>&2 2>&3); then
-    if [ -z $SD ]; then
-      SX=Host
-      SD=""
-    else
-      SX=$SD
-      SD="-searchdomain=$SD"
-    fi
-    echo -e "${SEARCH}${BOLD}${DGN}DNS Search Domain: ${BGN}$SX${CL}"
-  else
-    exit_script
-  fi
+    "mac_address")
+      if MAC1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a MAC Address (leave blank for default)\nPress ESC twice to go back" 10 58 --title "MAC ADDRESS" 3>&1 1>&2 2>&3); then
+        if [ -z $MAC1 ]; then
+          MAC1="Default"
+          MAC=""
+        else
+          MAC=",hwaddr=$MAC1"
+        fi
+        echo -e "${MACADDRESS}${BOLD}${DGN}MAC Address: ${BGN}$MAC1${CL}"
+        previous_menu="mac_address"
+        current_menu="vlan"
+      else
+        current_menu="dns_server"
+        continue
+      fi
+      ;;
 
-  if NX=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a DNS Server IP (leave blank for HOST)" 8 58 --title "DNS SERVER IP" 3>&1 1>&2 2>&3); then
-    if [ -z $NX ]; then
-      NX=Host
-      NS=""
-    else
-      NS="-nameserver=$NX"
-    fi
-    echo -e "${NETWORK}${BOLD}${DGN}DNS Server IP Address: ${BGN}$NX${CL}"
-  else
-    exit_script
-  fi
+      "vlan")
+      if VLAN1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Vlan (leave blank for default)\nPress ESC twice to go back" 10 58 --title "VLAN" 3>&1 1>&2 2>&3); then
+        if [ -z $VLAN1 ]; then
+          VLAN1="Default"
+          VLAN=""
+        else
+          VLAN=",tag=$VLAN1"
+        fi
+        echo -e "${VLANTAG}${BOLD}${DGN}Vlan: ${BGN}$VLAN1${CL}"
+        previous_menu="vlan"
+        current_menu="tags"
+      else
+        current_menu="mac_address"
+        continue
+      fi
+      ;;
 
-  if MAC1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a MAC Address(leave blank for default)" 8 58 --title "MAC ADDRESS" 3>&1 1>&2 2>&3); then
-    if [ -z $MAC1 ]; then
-      MAC1="Default"
-      MAC=""
-    else
-      MAC=",hwaddr=$MAC1"
-      echo -e "${MACADDRESS}${BOLD}${DGN}MAC Address: ${BGN}$MAC1${CL}"
-    fi
-  else
-    exit_script
-  fi
+    "tags")
+      if ADV_TAGS=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Custom Tags?[If you remove all, there will be no tags!]\nPress ESC twice to go back" 10 58 ${TAGS} --title "Advanced Tags" 3>&1 1>&2 2>&3); then
+        if [ -n "${ADV_TAGS}" ]; then
+          ADV_TAGS=$(echo "$ADV_TAGS" | tr -d '[:space:]')
+          if [[ "$ADV_TAGS" != *"community-script"* ]]; then
+            TAGS="community-script;${ADV_TAGS}"
+          else
+            TAGS="${ADV_TAGS}"
+          fi
+        else
+          TAGS="community-script;"
+        fi
+        echo -e "${NETWORK}${BOLD}${DGN}Tags: ${BGN}$TAGS${CL}"
+        previous_menu="tags"
+        current_menu="ssh_access"
+      else
+        current_menu="vlan"
+        continue
+      fi
+      ;;
 
-  if VLAN1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Vlan(leave blank for default)" 8 58 --title "VLAN" 3>&1 1>&2 2>&3); then
-    if [ -z $VLAN1 ]; then
-      VLAN1="Default"
-      VLAN=""
-    else
-      VLAN=",tag=$VLAN1"
-    fi
-    echo -e "${VLANTAG}${BOLD}${DGN}Vlan: ${BGN}$VLAN1${CL}"
-  else
-    exit_script
-  fi
 
-  if [[ "$PW" == -password* ]]; then
-    if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH ACCESS" --yesno "Enable Root SSH Access?" 10 58); then
-      SSH="yes"
-    else
-      SSH="no"
-    fi
-    echo -e "${ROOTSSH}${BOLD}${DGN}Root SSH Access: ${BGN}$SSH${CL}"
-  else
-    SSH="no"
-    echo -e "${ROOTSSH}${BOLD}${DGN}Root SSH Access: ${BGN}$SSH${CL}"
-  fi
+    "version")
+      if [ "$var_os" == "debian" ]; then
+        if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DEBIAN VERSION" --menu "Choose Version" 10 58 2 \
+          "11" "Bullseye" \
+          "12" "Bookworm" \
+          3>&1 1>&2 2>&3); then
+          if [ -n "$var_version" ]; then
+            echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
+            previous_menu="version"
+            current_menu="container_type"
+          fi
+        else
+          exit_script
+        fi
+      elif [ "$var_os" == "ubuntu" ]; then
+        if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "UBUNTU VERSION" --menu "Choose Version" 10 58 4 \
+          "20.04" "Focal" \
+          "22.04" "Jammy" \
+          "24.04" "Noble" \
+          "24.10" "Oracular" \
+          3>&1 1>&2 2>&3); then
+          if [ -n "$var_version" ]; then
+            echo -e "${OSVERSION}${BOLD}${DGN}Version: ${BGN}$var_version${CL}"
+            previous_menu="version"
+            current_menu="container_type"
+          fi
+        else
+          exit_script
+        fi
+      fi
+      ;;
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?" 10 58); then
-    VERB="yes"
-  else
-    VERB="no"
-  fi
-  echo -e "${SEARCH}${BOLD}${DGN}Verbose Mode: ${BGN}$VERB${CL}"
+    "container_type")
+      TAGS="community-script;${var_tags:-}"
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create ${APP} LXC?" 10 58); then
-    echo -e "${CREATING}${BOLD}${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
-  else
-    clear
-    header_info
-    echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings${CL}"
-    advanced_settings
-  fi
+      if CT_TYPE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "CONTAINER TYPE" --menu "Choose Type" 10 58 2 \
+        "1" "Unprivileged" \
+        "0" "Privileged" \
+        3>&1 1>&2 2>&3); then
+        if [ -n "$CT_TYPE" ]; then
+          CT_TYPE_DESC="Unprivileged"
+          if [ "$CT_TYPE" -eq 0 ]; then
+            CT_TYPE_DESC="Privileged"
+          fi
+          echo -e "${CONTAINERTYPE}${BOLD}${DGN}Container Type: ${BGN}$CT_TYPE_DESC${CL}"
+          previous_menu="container_type"
+          current_menu="password"
+        fi
+      else
+        exit_script
+      fi
+      ;;
+
+    "password")
+      if PW1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "\nSet Root Password (needed for root ssh access)\nPress ESC twice to go back" 10 58 --title "PASSWORD (leave blank for automatic login)" 3>&1 1>&2 2>&3); then
+        if [[ ! -z "$PW1" ]]; then
+          if [[ "$PW1" == *" "* ]]; then
+            whiptail --msgbox "Password cannot contain spaces. Please try again." 8 58
+            continue
+          elif [ ${#PW1} -lt 5 ]; then
+            whiptail --msgbox "Password must be at least 5 characters long. Please try again." 8 58
+            continue
+          else
+            if PW2=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "\nVerify Root Password\nPress ESC twice to go back" 10 58 --title "PASSWORD VERIFICATION" 3>&1 1>&2 2>&3); then
+              if [[ "$PW1" == "$PW2" ]]; then
+                PW="-password $PW1"
+                echo -e "${VERIFYPW}${BOLD}${DGN}Root Password: ${BGN}********${CL}"
+                previous_menu="password"
+                current_menu="container_id"
+              else
+                whiptail --msgbox "Passwords do not match. Please try again." 8 58
+              fi
+            else
+              current_menu="container_type"
+              CT_TYPE=""
+              continue
+            fi
+          fi
+        else
+          PW1="Automatic Login"
+          PW=""
+          echo -e "${VERIFYPW}${BOLD}${DGN}Root Password: ${BGN}$PW1${CL}"
+          previous_menu="password"
+          current_menu="container_id"
+        fi
+      else
+        current_menu="container_type"
+        CT_TYPE=""
+        continue
+      fi
+      ;;
+
+    "container_id")
+      if CT_ID=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Container ID\nPress ESC twice to go back" 10 58 $NEXTID --title "CONTAINER ID" 3>&1 1>&2 2>&3); then
+        if [ -n "$CT_ID" ]; then
+          echo -e "${CONTAINERID}${BOLD}${DGN}Container ID: ${BGN}$CT_ID${CL}"
+          previous_menu="container_id"
+          current_menu="hostname"
+        else
+          CT_ID="$NEXTID"
+          echo -e "${CONTAINERID}${BOLD}${DGN}Container ID: ${BGN}$CT_ID${CL}"
+          previous_menu="container_id"
+          current_menu="hostname"
+        fi
+      else
+        current_menu="password"
+        continue
+      fi
+      ;;
+
+    "hostname")
+      if CT_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Hostname\nPress ESC twice to go back" 10 58 $NSAPP --title "HOSTNAME" 3>&1 1>&2 2>&3); then
+        if [ -z "$CT_NAME" ]; then
+          HN="$NSAPP"
+        else
+          HN=$(echo ${CT_NAME,,} | tr -d ' ')
+        fi
+        echo -e "${HOSTNAME}${BOLD}${DGN}Hostname: ${BGN}$HN${CL}"
+        previous_menu="hostname"
+        current_menu="disk_size"
+      else
+        current_menu="container_id"
+        continue
+      fi
+      ;;
+
+    "disk_size")
+      if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB\nPress ESC twice to go back" 10 58 $var_disk --title "DISK SIZE" 3>&1 1>&2 2>&3); then
+        if [ -z "$DISK_SIZE" ]; then
+          DISK_SIZE="$var_disk"
+        else
+          if ! [[ $DISK_SIZE =~ $INTEGER ]]; then
+            whiptail --msgbox "DISK SIZE MUST BE AN INTEGER NUMBER!" 8 58
+            continue
+          fi
+        fi
+        echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE} GB${CL}"
+        previous_menu="disk_size"
+        current_menu="cpu_cores"
+      else
+        current_menu="hostname"
+        continue
+      fi
+      ;;
+
+    "cpu_cores")
+      if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores\nPress ESC twice to go back" 10 58 $var_cpu --title "CORE COUNT" 3>&1 1>&2 2>&3); then
+        if [ -z "$CORE_COUNT" ]; then
+          CORE_COUNT="$var_cpu"
+        fi
+        echo -e "${CPUCORE}${BOLD}${DGN}CPU Cores: ${BGN}$CORE_COUNT${CL}"
+        previous_menu="cpu_cores"
+        current_menu="ram"
+      else
+        current_menu="disk_size"
+        continue
+      fi
+      ;;
+
+    "ram")
+      if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB\nPress ESC twice to go back" 10 58 $var_ram --title "RAM" 3>&1 1>&2 2>&3); then
+        if [ -z "$RAM_SIZE" ]; then
+          RAM_SIZE="$var_ram"
+        fi
+        echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE} MiB${CL}"
+        previous_menu="ram"
+        current_menu="bridge"
+      else
+        current_menu="cpu_cores"
+        continue
+      fi
+      ;;
+
+    "bridge")
+      if BRG=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Bridge\nPress ESC twice to go back" 10 58 vmbr0 --title "BRIDGE" 3>&1 1>&2 2>&3); then
+        if [ -z "$BRG" ]; then
+          BRG="vmbr0"
+        fi
+        echo -e "${BRIDGE}${BOLD}${DGN}Bridge: ${BGN}$BRG${CL}"
+        previous_menu="bridge"
+        current_menu="ip_address"
+      else
+        current_menu="ram"
+        continue
+      fi
+      ;;
+
+    "ip_address")
+      NET=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Static IPv4 CIDR Address (/24)\nPress ESC twice to go back" 10 58 dhcp --title "IP ADDRESS" 3>&1 1>&2 2>&3)
+      exit_status=$?
+      if [ $exit_status -eq 0 ]; then
+        if [ "$NET" = "dhcp" ]; then
+          echo -e "${NETWORK}${BOLD}${DGN}IP Address: ${BGN}$NET${CL}"
+          previous_menu="ip_address"
+          current_menu="gateway"
+        elif [[ "$NET" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
+          echo -e "${NETWORK}${BOLD}${DGN}IP Address: ${BGN}$NET${CL}"
+          previous_menu="ip_address"
+          current_menu="gateway"
+        else
+          whiptail --msgbox "$NET is an invalid IPv4 CIDR address. Please enter a valid IPv4 CIDR address or 'dhcp'" 8 58
+          continue
+        fi
+      else
+        current_menu="bridge"
+        continue
+      fi
+      ;;
+
+    "gateway")
+      if [ "$NET" != "dhcp" ]; then
+        GATE1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Enter gateway IP address\nPress ESC twice to go back" 10 58 --title "Gateway IP" 3>&1 1>&2 2>&3)
+        exit_status=$?
+        if [ $exit_status -eq 0 ]; then
+          if [ -z "$GATE1" ]; then
+            whiptail --msgbox "Gateway IP address cannot be empty" 8 58
+            continue
+          elif [[ ! "$GATE1" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+            whiptail --msgbox "Invalid IP address format" 8 58
+            continue
+          else
+            GATE=",gw=$GATE1"
+            echo -e "${GATEWAY}${BOLD}${DGN}Gateway IP Address: ${BGN}$GATE1${CL}"
+            previous_menu="gateway"
+            current_menu="apt_cacher"
+          fi
+        else
+          current_menu="ip_address"
+          continue
+        fi
+      else
+        GATE=""
+        echo -e "${GATEWAY}${BOLD}${DGN}Gateway IP Address: ${BGN}Default${CL}"
+        previous_menu="gateway"
+        current_menu="apt_cacher"
+      fi
+      ;;
+
+    "apt_cacher")
+      if [ "$var_os" == "alpine" ]; then
+        APT_CACHER=""
+        APT_CACHER_IP=""
+        current_menu="ipv6"
+      else
+        if APT_CACHER_IP=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set APT-Cacher IP (leave blank for default)\nPress ESC twice to go back" 10 58 --title "APT-Cacher IP" 3>&1 1>&2 2>&3); then
+          APT_CACHER="${APT_CACHER_IP:+yes}"
+          echo -e "${NETWORK}${BOLD}${DGN}APT-Cacher IP Address: ${BGN}${APT_CACHER_IP:-Default}${CL}"
+          previous_menu="apt_cacher"
+          current_menu="ipv6"
+        else
+          current_menu="gateway"
+          continue
+        fi
+      fi
+      ;;
+
+    "ipv6")
+      if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "IPv6" --yesno "Disable IPv6?\n\nPress ESC twice to go back" 10 58); then
+        DISABLEIP6="yes"
+      else
+        DISABLEIP6="no"
+      fi
+      echo -e "${DISABLEIPV6}${BOLD}${DGN}Disable IPv6: ${BGN}$DISABLEIP6${CL}"
+      previous_menu="ipv6"
+      current_menu="mtu"
+      ;;
+
+    "mtu")
+      if MTU1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Interface MTU Size (leave blank for default)\nPress ESC twice to go back" 10 58 --title "MTU SIZE" 3>&1 1>&2 2>&3); then
+        if [ -z $MTU1 ]; then
+          MTU1="Default"
+          MTU=""
+        else
+          MTU=",mtu=$MTU1"
+        fi
+        echo -e "${DEFAULT}${BOLD}${DGN}Interface MTU Size: ${BGN}$MTU1${CL}"
+        previous_menu="mtu"
+        current_menu="dns_search"
+      else
+        current_menu="ipv6"
+        continue
+      fi
+      ;;
+
+    "dns_search")
+      if SD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a DNS Search Domain (leave blank for HOST)\nPress ESC twice to go back" 10 58 --title "DNS Search Domain" 3>&1 1>&2 2>&3); then
+        if [ -z $SD ]; then
+          SX=Host
+          SD=""
+        else
+          SX=$SD
+          SD="-searchdomain=$SD"
+        fi
+        echo -e "${SEARCH}${BOLD}${DGN}DNS Search Domain: ${BGN}$SX${CL}"
+        previous_menu="dns_search"
+        current_menu="dns_server"
+      else
+        current_menu="mtu"
+        continue
+      fi
+      ;;
+
+    "dns_server")
+      if NX=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a DNS Server IP (leave blank for HOST)\nPress ESC twice to go back" 10 58 --title "DNS SERVER IP" 3>&1 1>&2 2>&3); then
+        if [ -z $NX ]; then
+          NX=Host
+          NS=""
+        else
+          NS="-nameserver=$NX"
+        fi
+        echo -e "${NETWORK}${BOLD}${DGN}DNS Server IP Address: ${BGN}$NX${CL}"
+        previous_menu="dns_server"
+        current_menu="mac_address"
+      else
+        current_menu="dns_search"
+        continue
+      fi
+      ;;
+
+    "mac_address")
+      if MAC1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a MAC Address (leave blank for default)\nPress ESC twice to go back" 10 58 --title "MAC ADDRESS" 3>&1 1>&2 2>&3); then
+        if [ -z $MAC1 ]; then
+          MAC1="Default"
+          MAC=""
+        else
+          MAC=",hwaddr=$MAC1"
+        fi
+        echo -e "${MACADDRESS}${BOLD}${DGN}MAC Address: ${BGN}$MAC1${CL}"
+        previous_menu="mac_address"
+        current_menu="vlan"
+      else
+        current_menu="dns_server"
+        continue
+      fi
+      ;;
+
+    "vlan")
+      if VLAN1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a Vlan (leave blank for default)\nPress ESC twice to go back" 10 58 --title "VLAN" 3>&1 1>&2 2>&3); then
+        if [ -z $VLAN1 ]; then
+          VLAN1="Default"
+          VLAN=""
+        else
+          VLAN=",tag=$VLAN1"
+        fi
+        echo -e "${VLANTAG}${BOLD}${DGN}Vlan: ${BGN}$VLAN1${CL}"
+        previous_menu="vlan"
+        current_menu="tags"
+      else
+        current_menu="mac_address"
+        continue
+      fi
+      ;;
+
+        "tags")
+      if ADV_TAGS=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Custom Tags?[If you remove all, there will be no tags!]\nPress ESC twice to go back" 10 58 ${TAGS} --title "Advanced Tags" 3>&1 1>&2 2>&3); then
+        if [ -n "${ADV_TAGS}" ]; then
+          ADV_TAGS=$(echo "$ADV_TAGS" | tr -d '[:space:]')
+          if [[ "$ADV_TAGS" != *"community-script"* ]]; then
+            TAGS="community-script;${ADV_TAGS}"
+          else
+            TAGS="${ADV_TAGS}"
+          fi
+        else
+          TAGS="community-script;"
+        fi
+        echo -e "${NETWORK}${BOLD}${DGN}Tags: ${BGN}$TAGS${CL}"
+        previous_menu="tags"
+        current_menu="ssh_access"
+      else
+        current_menu="vlan"
+        continue
+      fi
+      ;;
+
+    "ssh_access")
+      if [[ "$PW" == -password* ]]; then
+        if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH ACCESS" --yesno "Enable Root SSH Access?\n\nPress ESC twice to go back" 10 58); then
+          SSH="yes"
+          previous_menu="ssh_access"
+          current_menu="ssh_key"
+        else
+          SSH="no"
+          SSH_AUTHORIZED_KEY=""
+          previous_menu="ssh_access"
+          current_menu="verbose_mode"
+        fi
+        echo -e "${ROOTSSH}${BOLD}${DGN}Root SSH Access: ${BGN}$SSH${CL}"
+      else
+        SSH="no"
+        SSH_AUTHORIZED_KEY=""
+        echo -e "${ROOTSSH}${BOLD}${DGN}Root SSH Access: ${BGN}$SSH${CL}"
+        previous_menu="ssh_access"
+        current_menu="verbose_mode"
+      fi
+      ;;
+
+    "ssh_key")
+      if [[ "${SSH}" == "yes" ]]; then
+        SSH_AUTHORIZED_KEY=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "SSH Authorized key for root (leave empty for none)\nPress ESC twice to go back" 10 58 --title "SSH Key" 3>&1 1>&2 2>&3)
+        exit_status=$?
+        if [ $exit_status -eq 0 ]; then
+          if [[ -z "${SSH_AUTHORIZED_KEY}" ]]; then
+            echo "Warning: No SSH key provided."
+          fi
+          previous_menu="ssh_key"
+          current_menu="verbose_mode"
+        else
+          current_menu="ssh_access"
+          continue
+        fi
+      else
+        SSH_AUTHORIZED_KEY=""
+        current_menu="verbose_mode"
+      fi
+      ;;
+
+    "verbose_mode")
+      if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?\n\nPress ESC twice to go back" 10 58); then
+        VERB="yes"
+      else
+        VERB="no"
+      fi
+      echo -e "${SEARCH}${BOLD}${DGN}Verbose Mode: ${BGN}$VERB${CL}"
+      previous_menu="verbose_mode"
+      current_menu="confirm"
+      ;;
+
+    "confirm")
+      if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create ${APP} LXC?\n\nPress ESC twice to go back" 10 58); then
+        echo -e "${CREATING}${BOLD}${RD}Creating a ${APP} LXC using the above advanced settings${CL}"
+        return 0
+      else
+        clear
+        header_info
+        echo -e "${ADVANCED}${BOLD}${RD}Using Advanced Settings on node $PVEHOST_NAME${CL}"
+        current_menu="verbose_mode"
+        continue
+      fi
+      ;;
+    esac
+  done
 }
+
 
 install_script() {
   pve_check
@@ -644,17 +1252,17 @@ install_script() {
     case $CHOICE in
       1)
         header_info
-        echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings${CL}"
+        echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings on node $PVEHOST_NAME${CL}"
         VERB="no"
-        base_settings "$VERB"  
+        base_settings "$VERB"
         echo_default
         break
         ;;
       2)
         header_info
-        echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings (${SEARCH}${BOLD}${BL} Verbose)${CL}"
+        echo -e "${DEFAULT}${BOLD}${BL}Using Default Settings on node $PVEHOST_NAME (${SEARCH}Verbose)${CL}"
         VERB="yes"
-        base_settings "$VERB"  
+        base_settings "$VERB"
         echo_default
         break
         ;;
@@ -678,7 +1286,7 @@ install_script() {
 check_container_resources() {
   # Check actual RAM & Cores
   current_ram=$(free -m | awk 'NR==2{print $2}')
-  current_cpu=$(nproc) 
+  current_cpu=$(nproc)
 
   # Check whether the current RAM is less than the required RAM or the CPU cores are less than required
   if [[ "$current_ram" -lt "$var_ram" ]] || [[ "$current_cpu" -lt "$var_cpu" ]]; then
@@ -761,6 +1369,7 @@ build_container() {
   export PASSWORD="$PW"
   export VERBOSE="$VERB"
   export SSH_ROOT="${SSH}"
+						   
   export CTID="$CT_ID"
   export CTTYPE="$CT_TYPE"
   export PCT_OSTYPE="$var_os"
