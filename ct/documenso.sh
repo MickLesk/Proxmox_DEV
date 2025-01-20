@@ -20,9 +20,9 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Documenso"
-var_disk="10"
+var_disk="12"
 var_cpu="6"
-var_ram="8096"
+var_ram="6144"
 var_os="debian"
 var_version="12"
 var_unprivileged="1"
