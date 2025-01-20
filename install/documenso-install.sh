@@ -72,6 +72,8 @@ sed -i "s|NEXT_PRIVATE_DATABASE_URL=.*|NEXT_PRIVATE_DATABASE_URL=\"postgres://$D
 sed -i "s|NEXT_PRIVATE_DIRECT_DATABASE_URL=.*|NEXT_PRIVATE_DIRECT_DATABASE_URL=\"postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME\"|" /opt/documenso/.env
 export TURBO_CACHE=1
 export NEXT_TELEMETRY_DISABLED=1
+export CYPRESS_INSTALL_BINARY=0
+export NODE_OPTIONS="--max-old-space-size=2048"
 
 $STD npm ci
 npm run build
