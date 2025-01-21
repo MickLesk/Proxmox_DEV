@@ -18,13 +18,16 @@ update_os
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
   gpg \
+  libc6 \
   curl \
   sudo \
   make \
   cmake \
   mc \
   jq \
-  postgresql 
+  postgresql \
+  python3 \
+  python3-bcmath
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Node.js Repository"
@@ -74,15 +77,19 @@ export TURBO_CACHE=1
 export NEXT_TELEMETRY_DISABLED=1
 export CYPRESS_INSTALL_BINARY=0
 export NODE_OPTIONS="--max-old-space-size=2048"
-
-$STD npm ci
+npm ci --cache ~/.npm-cache --maxsockets=5
 npm run build
-#npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
-#turbo run build --filter=@documenso/web...
-
-#npm run prisma:migrate-deploy
+npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
+#$STD npm ci
+#$STD npm run build
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Documenso"
+
+msg_info "Create User"
+PASSWORD_HASH=$(python3 -c "import bcrypt; print(bcrypt.hashpw(b'helper-scripts', bcrypt.gensalt(rounds=12)).decode())")
+sudo -u postgres psql -d documenso_db -c "INSERT INTO \"User\" (name, email, \"emailVerified\", password, \"identityProvider\", roles, \"createdAt\", \"lastSignedIn\", \"updatedAt\", \"customerId\") VALUES ('helper-scripts', 'helper-scripts@local.com', '2025-01-20 17:14:45.058', '$PASSWORD_HASH', 'DOCUMENSO', ARRAY['USER', 'ADMIN']::\"Role\"[], '2025-01-20 16:04:05.543', '2025-01-20 16:14:55.249', '2025-01-20 16:14:55.25', NULL) RETURNING id;"
+$STD npm run prisma:migrate-deploy
+msg_ok "User created"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/documenso.service
