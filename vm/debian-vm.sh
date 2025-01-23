@@ -431,17 +431,15 @@ for i in {0,1}; do
 done
 
 msg_info "Creating a Debian 12 VM"
-echo "Bootdisk size: $DISK_SIZE"
 qm create $VMID -agent 1${MACHINE} -tablet 0 -localtime 1 -bios ovmf${CPU_TYPE} -cores $CORE_COUNT -memory $RAM_SIZE \
   -name $HN -tags proxmox-helper-scripts -net0 virtio,bridge=$BRG,macaddr=$MAC$VLAN$MTU -onboot 1 -ostype l26 -scsihw virtio-scsi-pci
 pvesm alloc $STORAGE $VMID $DISK0 4M 1>&/dev/null
 qm importdisk $VMID ${FILE} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 qm set $VMID \
-  -efidisk0 ${DISK0_REF}${FORMAT},size=${DISK_SIZE} \
+  -efidisk0 ${DISK0_REF}${FORMAT} \
   -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=${DISK_SIZE} \
   -boot order=scsi0 \
   -serial0 socket >/dev/null
-
 DESCRIPTION=$(
   cat <<EOF
 <div align='center'>
@@ -473,6 +471,13 @@ DESCRIPTION=$(
 EOF
 )
 qm set "$VMID" -description "$DESCRIPTION" >/dev/null
+if [ -n "$DISK_SIZE" ]; then
+    msg_info "Resizing disk to $DISK_SIZE GB"
+    qm resize $VMID scsi0 ${DISK_SIZE} >/dev/null
+else
+    msg_info "Using default disk size of $DEFAULT_DISK_SIZE GB"
+    qm resize $VMID scsi0 ${DEFAULT_DISK_SIZE} >/dev/null
+fi							
 
 msg_ok "Created a Debian 12 VM ${CL}${BL}(${HN})"
 if [ "$START_VM" == "yes" ]; then
@@ -481,5 +486,6 @@ if [ "$START_VM" == "yes" ]; then
   msg_ok "Started Debian 12 VM"
 fi
 
+qm guest exec 104 -- bash -c "resize2fs /dev/vda1" >/dev/null
 msg_ok "Completed Successfully!\n"
 echo "More Info at https://github.com/community-scripts/ProxmoxVE/discussions/836"
