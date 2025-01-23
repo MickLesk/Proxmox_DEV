@@ -484,12 +484,10 @@ else
 fi
 
 msg_ok "Created a Debian 12 VM ${CL}${BL}(${HN})"
-
 if [ "$START_VM" == "yes" ]; then
-    msg_info "Starting Debian 12 VM"
-      qm start $VMID
-    msg_ok "Started and ready Debian 12 VM"
+  msg_info "Starting Debian 12 VM"
+  qm start $VMID
+  msg_ok "Started Debian 12 VM"
 fi
-
 msg_ok "Completed Successfully!\n"
 echo "More Info at https://github.com/community-scripts/ProxmoxVE/discussions/836"
