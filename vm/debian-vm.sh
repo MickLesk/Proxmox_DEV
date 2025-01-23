@@ -218,7 +218,7 @@ function advanced_settings() {
   
   if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB" 8 58 7 --title "DISK SIZE" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z "$DISK_SIZE" ] || ! [[ "$DISK_SIZE" =~ ^[0-9]+$ ]] || [ "$DISK_SIZE" -lt 7 ]; then
-      DISK_SIZE="7"
+      DISK_SIZE="10"
       echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}$DISK_SIZE GB (Default)${CL}"
     else
       echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}$DISK_SIZE GB${CL}"
@@ -484,23 +484,10 @@ else
 fi
 
 msg_ok "Created a Debian 12 VM ${CL}${BL}(${HN})"
-
 if [ "$START_VM" == "yes" ]; then
-    msg_info "Starting Debian 12 VM"
-    qm start $VMID
-
-    # Warten, bis die VM wirklich betriebsbereit ist
-    while ! qm guest exec $VMID -- bash -c "uptime" >/dev/null 2>&1; do
-        echo "VM is not ready yet. Waiting..."
-        sleep 5
-    done
-    msg_ok "Started and ready Debian 12 VM"
+  msg_info "Starting Debian 12 VM"
+  qm start $VMID
+  msg_ok "Started Debian 12 VM"
 fi
-
-msg_ok "Created a Debian 12 VM ${CL}${BL}(${HN})"
-
 msg_ok "Completed Successfully!\n"
 echo "More Info at https://github.com/community-scripts/ProxmoxVE/discussions/836"
-
-
-qm guest exec 104 -- bash -c "resize2fs /dev/vda1" >/dev/null
