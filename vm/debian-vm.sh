@@ -218,11 +218,16 @@ function advanced_settings() {
   
   if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GiB (e.g., 10, 20)" 8 58 "$DISK_SIZE" --title "DISK SIZE" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     DISK_SIZE=$(echo "$DISK_SIZE" | tr -d ' ') 
-    [[ "$DISK_SIZE" =~ ^[0-9]+$ ]] && DISK_SIZE="${DISK_SIZE}G" 
-    [[ "$DISK_SIZE" =~ ^[0-9]+G$ ]] || exit-script 
+    if [[ "$DISK_SIZE" =~ ^[0-9]+$ ]]; then
+      DISK_SIZE="${DISK_SIZE}G" 
+    fi
+    if ! [[ "$DISK_SIZE" =~ ^[0-9]+G$ ]]; then
+      exit-script
+    fi
   else
     exit-script
   fi
+
 
   if DISK_CACHE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISK CACHE" --radiolist "Choose" --cancel-button Exit-Script 10 58 2 \
     "0" "None (Default)" ON \
