@@ -497,36 +497,6 @@ if [ "$START_VM" == "yes" ]; then
     msg_ok "Started and ready Debian 12 VM"
 fi
 
-msg_info "Checking if QEMU guest agent is installed and running inside the VM"
-# Überprüfen, ob der QEMU-Gast-Agent läuft
-if ! qm guest exec $VMID -- bash -c "systemctl is-active --quiet qemu-guest-agent"; then
-    msg_info "QEMU guest agent not running, installing and starting it..."
-    # Netzwerkverbindung sicherstellen und dann QEMU-Gast-Agent installieren
-    retries=5
-    until qm guest exec $VMID -- bash -c "apt update && apt install -y qemu-guest-agent"; do
-        echo "Retrying QEMU guest agent installation..."
-        sleep 10
-        retries=$((retries - 1))
-        if [ $retries -le 0 ]; then
-            echo "Failed to install QEMU guest agent after multiple attempts. Exiting."
-            exit 1
-        fi
-    done
-
-    # Starten und aktivieren des Gast-Agenten
-    qm guest exec $VMID -- bash -c "systemctl start qemu-guest-agent" >/dev/null
-    qm guest exec $VMID -- bash -c "systemctl enable qemu-guest-agent" >/dev/null
-else
-    msg_ok "QEMU guest agent is already running"
-fi
-
-sleep 5
-
-msg_info "Resizing partitions and filesystem inside the VM"
-# Dateisystem und Partitionen vergrößern
-qm guest exec $VMID -- bash -c "resize2fs /dev/vda1" >/dev/null
-msg_ok "Disk resizing process completed"
-
 msg_ok "Created a Debian 12 VM ${CL}${BL}(${HN})"
 
 msg_ok "Completed Successfully!\n"
