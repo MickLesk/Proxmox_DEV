@@ -154,7 +154,7 @@ function default_settings() {
   VMID="$NEXTID"
   FORMAT=",efitype=4m"
   MACHINE=""
-  DEFAULT_DISK_SIZE="10G"
+  DISK_SIZE="10"
   DISK_CACHE=""
   HN="debian"
   CPU_TYPE=""
@@ -167,7 +167,7 @@ function default_settings() {
   START_VM="yes"
   echo -e "${CONTAINERID}${BOLD}${DGN}Virtual Machine ID: ${BGN}${VMID}${CL}"
   echo -e "${CONTAINERTYPE}${BOLD}${DGN}Machine Type: ${BGN}i440fx${CL}"
-  echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}${DEFAULT_DISK_SIZE}${CL}"
+  echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE} G${CL}"
   echo -e "${DISKSIZE}${BOLD}${DGN}Disk Cache: ${BGN}None${CL}"
   echo -e "${HOSTNAME}${BOLD}${DGN}Hostname: ${BGN}${HN}${CL}"
   echo -e "${OS}${BOLD}${DGN}CPU Model: ${BGN}KVM64${CL}"
@@ -216,16 +216,12 @@ function advanced_settings() {
     exit-script
   fi
   
-  if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size in GB" 8 58 7 --title "DISK SIZE" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
-    if [ -z "$DISK_SIZE" ] || ! [[ "$DISK_SIZE" =~ ^[0-9]+$ ]] || [ "$DISK_SIZE" -lt 7 ]; then
-      DISK_SIZE="10"
-      echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}$DISK_SIZE GB (Default)${CL}"
-    else
-      echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}$DISK_SIZE GB${CL}"
-    fi
-  else
-    exit-script
-  fi
+if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Disk Size (e.g., 10G, 20G)" 8 58 "$DISK_SIZE" --title "DISK SIZE" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
+  DISK_SIZE="${DISK_SIZE:-10G}"
+  echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}$DISK_SIZE${CL}"
+else
+  exit-script
+fi
   
   if DISK_CACHE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "DISK CACHE" --radiolist "Choose" --cancel-button Exit-Script 10 58 2 \
     "0" "None (Default)" ON \
@@ -441,7 +437,7 @@ pvesm alloc $STORAGE $VMID $DISK0 4M 1>&/dev/null
 qm importdisk $VMID ${FILE} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 qm set $VMID \
   -efidisk0 ${DISK0_REF}${FORMAT} \
-  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=${DISK_SIZE:-$DEFAULT_DISK_SIZE} \
+  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=${DISK_SIZE} \
   -boot order=scsi0 \
   -serial0 socket >/dev/null
 DESCRIPTION=$(
@@ -475,13 +471,6 @@ DESCRIPTION=$(
 EOF
 )
 qm set "$VMID" -description "$DESCRIPTION" >/dev/null
-if [ -n "$DISK_SIZE" ]; then
-    msg_info "Resizing disk to $DISK_SIZE GB"
-    qm resize $VMID scsi0 ${DISK_SIZE} >/dev/null
-else
-    msg_info "Using default disk size of $DEFAULT_DISK_SIZE GB"
-    qm resize $VMID scsi0 ${DEFAULT_DISK_SIZE} >/dev/null
-fi
 
 msg_ok "Created a Debian 12 VM ${CL}${BL}(${HN})"
 if [ "$START_VM" == "yes" ]; then
