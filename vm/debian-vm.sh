@@ -486,6 +486,5 @@ if [ "$START_VM" == "yes" ]; then
   msg_ok "Started Debian 12 VM"
 fi
 
-qm guest exec 104 -- bash -c "resize2fs /dev/vda1" >/dev/null
 msg_ok "Completed Successfully!\n"
 echo "More Info at https://github.com/community-scripts/ProxmoxVE/discussions/836"
