@@ -10,6 +10,14 @@ function header_info {
 /_/   /_/_/\___/_____/_/   \____/|__/|__/____/\___/_/   
 EOF
 }
+YW=$(echo "\033[33m")
+GN=$(echo "\033[1;92m")
+RD=$(echo "\033[01;31m")
+BL=$(echo "\033[36m")
+CL=$(echo "\033[m")
+CM="${GN}✔️${CL}"
+CROSS="${RD}✖️${CL}"
+INFO="${BL}ℹ️${CL}"
 
 APP="FileBrowser"
 INSTALL_PATH="/usr/local/bin/filebrowser"
@@ -19,20 +27,23 @@ IP=$(hostname -I | awk '{print $1}')
 header_info
 
 function msg_info() {
-    echo -ne " - $1..."
+    local msg="$1"
+    echo -e "${INFO} ${YW}${msg}...${CL}"
 }
 
 function msg_ok() {
-    echo -e " ✓ $1"
+    local msg="$1"
+    echo -e "${CM} ${GN}${msg}${CL}"
 }
 
 function msg_error() {
-    echo -e " ✗ $1"
+    local msg="$1"
+    echo -e "${CROSS} ${RD}${msg}${CL}"
 }
 
 # Prüfen, ob FileBrowser installiert ist
 if [ -f "$INSTALL_PATH" ]; then
-    echo -e "${APP} is already installed."
+    echo -e "${YW}⚠️ ${APP} is already installed.${CL}"
     read -r -p "Would you like to uninstall ${APP}? (y/N): " uninstall_prompt
     if [[ "${uninstall_prompt,,}" =~ ^(y|yes)$ ]]; then
         msg_info "Uninstalling ${APP}"
@@ -49,13 +60,13 @@ if [ -f "$INSTALL_PATH" ]; then
         msg_ok "Updated ${APP}"
         exit 0
     else
-        echo "Update skipped. Exiting."
+        echo -e "${YW}⚠️ Update skipped. Exiting.${CL}"
         exit 0
     fi
 fi
 
 # Installation, falls nicht vorhanden
-echo -e "${APP} is not installed."
+echo -e "${YW}⚠️ ${APP} is not installed.${CL}"
 read -r -p "Would you like to install ${APP}? (y/n): " install_prompt
 if [[ "${install_prompt,,}" =~ ^(y|yes)$ ]]; then
     msg_info "Installing ${APP}"
@@ -65,14 +76,16 @@ if [[ "${install_prompt,,}" =~ ^(y|yes)$ ]]; then
 
     read -r -p "Would you like to use No Authentication? (y/N): " auth_prompt
     if [[ "${auth_prompt,,}" =~ ^(y|yes)$ ]]; then
+        msg_info "Configuring No Authentication"
         filebrowser config init -a '0.0.0.0' &>/dev/null
-        filebrowser config set -a '0.0.0.0' &>/dev/null
-        filebrowser config init --auth.method=noauth &>/dev/null
-        filebrowser config set --auth.method=noauth &>/dev/null
+        filebrowser config set -a '0.0.0.0' --auth.method=noauth &>/dev/null
+        msg_ok "No Authentication configured"
     else
+        msg_info "Setting up default authentication"
         filebrowser config init -a '0.0.0.0' &>/dev/null
         filebrowser config set -a '0.0.0.0' &>/dev/null
         filebrowser users add admin helper-scripts.com --perm.admin &>/dev/null
+        msg_ok "Default authentication configured (admin:helper-scripts.com)"
     fi
 
     msg_info "Creating service"
@@ -90,10 +103,10 @@ ExecStart=/usr/local/bin/filebrowser -r /
 WantedBy=default.target
 EOF
     systemctl enable -q --now filebrowser.service
-    msg_ok "Service created successfully."
+    msg_ok "Service created successfully"
 
-    echo -e "${APP} is reachable at: http://$IP:8080"
+    echo -e "${CM} ${GN}${APP} is reachable at: ${BL}http://$IP:8080${CL}"
 else
-    echo "Installation skipped. Exiting."
+    echo -e "${YW}⚠️ Installation skipped. Exiting.${CL}"
     exit 0
 fi
