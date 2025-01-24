@@ -34,8 +34,8 @@ jobs:
       # Step 4: Run the updated generate-app-files.sh script
       - name: Run generate-app-files.sh
         run: |
-          chmod +x .github/workflows/generate-app-files.sh
-          .github/workflows/generate-app-files.sh
+          chmod +x .github/workflows/generate-app-headers.sh
+          .github/workflows/generate-app-headers.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
