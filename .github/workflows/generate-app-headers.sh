@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 
-# Base directory where .AppName files will be stored
-output_dir="./misc"
-
-# Ensure the output directory exists
-mkdir -p "$output_dir"
-
 # Find all .sh files in ./ct directory, sorted alphabetically
 find ./ct -type f -name "*.sh" | sort | while read -r script; do
   # Extract the APP name from the APP line
@@ -13,7 +7,7 @@ find ./ct -type f -name "*.sh" | sort | while read -r script; do
 
   if [[ -n "$app_name" ]]; then
     # Define the output file name based on the .sh file
-    output_file="$output_dir/$(basename "${script%.sh}").$app_name"
+    output_file="${script%.sh}.app"
 
     # Check if the output file already exists
     if [[ ! -f "$output_file" ]]; then
