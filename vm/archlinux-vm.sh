@@ -153,12 +153,12 @@ function default_settings() {
   VMID="$NEXTID"
   FORMAT=",efitype=4m"
   MACHINE=""
-  DISK_SIZE="8G"
+  DISK_SIZE="4G"
   DISK_CACHE=""
   HN="arch-linux"
   CPU_TYPE=""
-  CORE_COUNT="2"
-  RAM_SIZE="2048"
+  CORE_COUNT="1"
+  RAM_SIZE="1024"
   BRG="vmbr0"
   MAC="$GEN_MAC"
   VLAN=""
@@ -407,7 +407,7 @@ fi
 msg_ok "Using ${CL}${BL}$STORAGE${CL} ${GN}for Storage Location."
 msg_ok "Virtual Machine ID is ${CL}${BL}$VMID${CL}."
 msg_info "Retrieving the URL for the Arch Linux .qcow2 File"
-URL=https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2
+URL=https://gitlab.archlinux.org/archlinux/arch-boxes/-/package_files/8469/download
 sleep 2
 msg_ok "${CL}${BL}${URL}${CL}"
 wget -q --show-progress $URL
