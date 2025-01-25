@@ -417,25 +417,20 @@ msg_ok "Downloaded ${CL}${BL}${FILE}${CL}"
 
 STORAGE_TYPE=$(pvesm status -storage $STORAGE | awk 'NR>1 {print $2}')
 case $STORAGE_TYPE in
-  nfs | dir)
-    DISK_EXT=".raw"
-    DISK_REF="$VMID/"
-    DISK_IMPORT="-format raw"
-    THIN=""
-    ;;
-  btrfs)
-    DISK_EXT=".raw"
-    DISK_REF="$VMID/"
-    DISK_IMPORT="-format raw"
-    FORMAT=",efitype=4m"
-    THIN=""
-    ;;
-  *)
-    msg_error "Unsupported storage type: $STORAGE_TYPE"
-    exit 1
-    ;;
+nfs | dir | cifs)
+  DISK_EXT=".qcow2"
+  DISK_REF="$VMID/"
+  DISK_IMPORT="-format qcow2"
+  THIN=""
+  ;;
+btrfs)
+  DISK_EXT=".raw"
+  DISK_REF="$VMID/"
+  DISK_IMPORT="-format raw"
+  FORMAT=",efitype=4m"
+  THIN=""
+  ;;
 esac
-
 for i in {0,1}; do
   disk="DISK$i"
   eval DISK${i}=vm-${VMID}-disk-${i}${DISK_EXT:-}
