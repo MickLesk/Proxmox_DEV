@@ -410,7 +410,7 @@ msg_info "Retrieving the URL for the Arch Linux .qcow2 File"
 URL=https://geo.mirror.pkgbuild.com/iso/latest/archlinux-x86_64.iso
 sleep 2
 msg_ok "${CL}${BL}${URL}${CL}"
-wget -q --show-progress $URL -O "/var/lib/vz/template/iso/$(basename $URL)" || { msg_error "Failed to download the ISO"; exit 1; }
+wget -q --show-progress $URL
 echo -en "\e[1A\e[0K"
 FILE=$(basename $URL)
 msg_ok "Downloaded ${CL}${BL}${FILE}${CL}"
