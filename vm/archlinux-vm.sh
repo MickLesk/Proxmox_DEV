@@ -410,27 +410,32 @@ msg_info "Retrieving the URL for the Arch Linux .qcow2 File"
 URL=https://geo.mirror.pkgbuild.com/iso/latest/archlinux-x86_64.iso
 sleep 2
 msg_ok "${CL}${BL}${URL}${CL}"
-wget -q --show-progress $URL
+wget -q --show-progress $URL -O "/var/lib/vz/template/iso/$(basename $URL)" || { msg_error "Failed to download the ISO"; exit 1; }
 echo -en "\e[1A\e[0K"
 FILE=$(basename $URL)
 msg_ok "Downloaded ${CL}${BL}${FILE}${CL}"
 
 STORAGE_TYPE=$(pvesm status -storage $STORAGE | awk 'NR>1 {print $2}')
 case $STORAGE_TYPE in
-nfs | dir)
-  DISK_EXT=".raw"
-  DISK_REF="$VMID/"
-  DISK_IMPORT="-format raw"
-  THIN=""
-  ;;
-btrfs)
-  DISK_EXT=".raw"
-  DISK_REF="$VMID/"
-  DISK_IMPORT="-format raw"
-  FORMAT=",efitype=4m"
-  THIN=""
-  ;;
+  nfs | dir)
+    DISK_EXT=".raw"
+    DISK_REF="$VMID/"
+    DISK_IMPORT="-format raw"
+    THIN=""
+    ;;
+  btrfs)
+    DISK_EXT=".raw"
+    DISK_REF="$VMID/"
+    DISK_IMPORT="-format raw"
+    FORMAT=",efitype=4m"
+    THIN=""
+    ;;
+  *)
+    msg_error "Unsupported storage type: $STORAGE_TYPE"
+    exit 1
+    ;;
 esac
+
 for i in {0,1}; do
   disk="DISK$i"
   eval DISK${i}=vm-${VMID}-disk-${i}${DISK_EXT:-}
@@ -444,7 +449,7 @@ qm create $VMID -agent 1${MACHINE} -tablet 0 -localtime 1 -bios ovmf${CPU_TYPE} 
 pvesm alloc $STORAGE $VMID $DISK0 4M 1>&/dev/null
 pvesm alloc $STORAGE $VMID $DISK1 $DISK_SIZE 1>&/dev/null
 
-qm importdisk $VMID ${FILE} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
+qm importdisk $VMID /var/lib/vz/template/iso/${FILE} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 
 qm set $VMID \
   -efidisk0 ${DISK0_REF}${FORMAT} \
