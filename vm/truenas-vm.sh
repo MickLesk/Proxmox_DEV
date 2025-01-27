@@ -7,12 +7,12 @@
 function header_info {
   clear
   cat <<"EOF"
-    ___              __       __    _                     _    ____  ___
-   /   |  __________/ /_     / /   (_)___  __  ___  __   | |  / /  |/  /
-  / /| | / ___/ ___/ __ \   / /   / / __ \/ / / / |/_/   | | / / /|_/ / 
- / ___ |/ /  / /__/ / / /  / /___/ / / / / /_/ />  <     | |/ / /  / /  
-/_/  |_/_/   \___/_/ /_/  /_____/_/_/ /_/\__,_/_/|_|     |___/_/  /_/   
-                                                                        
+  ______                _   __              _    ____  ___
+ /_  __/______  _____  / | / /___ ______   | |  / /  |/  /
+  / / / ___/ / / / _ \/  |/ / __ `/ ___/   | | / / /|_/ / 
+ / / / /  / /_/ /  __/ /|  / /_/ (__  )    | |/ / /  / /  
+/_/ /_/   \__,_/\___/_/ |_/\__,_/____/     |___/_/  /_/   
+                                                          
 EOF
 }
 header_info
@@ -153,12 +153,12 @@ function default_settings() {
   VMID="$NEXTID"
   FORMAT=",efitype=4m"
   MACHINE=""
-  DISK_SIZE="4G"
+  DISK_SIZE="8G"
   DISK_CACHE=""
-  HN="arch-linux"
+  HN="truenas"
   CPU_TYPE=""
-  CORE_COUNT="1"
-  RAM_SIZE="1024"
+  CORE_COUNT="2"
+  RAM_SIZE="2048"
   BRG="vmbr0"
   MAC="$GEN_MAC"
   VLAN=""
@@ -245,9 +245,9 @@ function advanced_settings() {
     exit-script
   fi
 
-  if VM_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Hostname" 8 58 arch-linux --title "HOSTNAME" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
+  if VM_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Hostname" 8 58 truenas --title "HOSTNAME" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z $VM_NAME ]; then
-      HN="arch-linux"
+      HN="truenas"
       echo -e "${HOSTNAME}${BOLD}${DGN}Hostname: ${BGN}$HN${CL}"
     else
       HN=$(echo ${VM_NAME,,} | tr -d ' ')
