@@ -43,21 +43,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 6: Check if there are any changes
-      - name: Check if there are any changes
-        id: verify-diff
-        run: |
-          echo "Checking for changes..."
-          git status
-          if git diff --quiet; then
-            echo "No changes detected."
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "Changes detected:"
-            git diff --stat
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
-
       # Step 7: Commit changes (if any) and create a PR
       - name: Commit and create PR if changes exist
         if: steps.verify-diff.outputs.changed == 'true'
