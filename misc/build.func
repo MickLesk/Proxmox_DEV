@@ -202,7 +202,7 @@ header_info() {
   if [ ! -f "$HEADER_FILE" ]; then
     for attempt in $(seq 1 $MAX_RETRIES); do
       echo "Attempting to download header file for $APP_NAME (Attempt $attempt of $MAX_RETRIES)..."
-      curl -s -o "$HEADER_FILE" "https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/headers/${APP_NAME}"
+      curl -s -o "$HEADER_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/ct/headers/${APP_NAME}"
       if [ -f "$HEADER_FILE" ]; then
         echo "Header file for $APP_NAME downloaded successfully."
         break
