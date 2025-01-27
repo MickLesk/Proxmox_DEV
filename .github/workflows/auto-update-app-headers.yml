@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'ct/**.sh'
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   update-app-files:
@@ -43,11 +43,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 7: Commit changes (if any) and create a PR
-      - name: Commit and create PR if changes exist
-        if: steps.verify-diff.outputs.changed == 'true'
+      # Step 6: Check for changes
+      - name: Check for changes
+        id: git-status
         run: |
           git add -A
+          if git diff-index --quiet HEAD --; then
+            echo "changed=false" >> $GITHUB_ENV
+          else
+            echo "changed=true" >> $GITHUB_ENV
+          fi
+
+      # Step 7: Commit and create PR if changes exist
+      - name: Commit and create PR if changes exist
+        if: env.changed == 'true'
+        run: |
           git commit -m "Update .app files"
           git checkout -b pr-update-app-files
           git push origin pr-update-app-files --force
@@ -62,5 +72,5 @@ jobs:
 
       # Step 8: Output success message when no changes
       - name: No changes detected
-        if: steps.verify-diff.outputs.changed == 'false'
+        if: env.changed == 'false'
         run: echo "No changes to commit. Workflow completed successfully."
