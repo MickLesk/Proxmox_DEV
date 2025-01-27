@@ -187,53 +187,44 @@ update_motd_ip() {
   fi
 }							  
 
-# This function sets the APP-Name into an ASCII Header in Slant, figlet needed on proxmox main node.
+# This function displays the APP-Name header from its corresponding file.
 header_info() {
-  APP_NAME="$APP"
-  OUTPUT_FILE="/opt/.app-headers"
-  CURRENT_DATE=$(date +'%m-%d-%Y')
+  SCRIPT_NAME=$(basename "$0") # Name des ausgeführten .sh-Skripts, z. B. docker.sh
+  APP_NAME="${SCRIPT_NAME%.*}" # Entferne die Dateiendung, z. B. docker
+  HEADER_DIR="/usr/local/community-scripts" # Verzeichnis der Header-Dateien
+  HEADER_FILE="${HEADER_DIR}/${APP_NAME}" # Dateipfad zur Header-Datei
+  MAX_RETRIES=3 # Maximale Anzahl an Download-Versuchen
 
-  # Check if the local file exists
-  if [ ! -f "$OUTPUT_FILE" ]; then
-    curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/.app-headers"
-    if [ ! -f "$OUTPUT_FILE" ]; then
-      echo "Error: Failed to download the file."											 
-      return 1
-    fi
-  else
-    header=$(head -n 3 "$OUTPUT_FILE" | head -n 1)
-    # Header is outdated or different, download the updated file
-    if [[ "$header" != "### Generated on $CURRENT_DATE" ]]; then
-      curl -s -o "$OUTPUT_FILE" "https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/refs/heads/main/misc/.app-headers"
-      if [ ! -f "$OUTPUT_FILE" ]; then
-        echo "Error: Failed to download the file."
+  # Sicherstellen, dass das Zielverzeichnis existiert
+  mkdir -p "$HEADER_DIR"
+
+  # Wenn die Datei nicht existiert, versuchen sie herunterzuladen
+  if [ ! -f "$HEADER_FILE" ]; then
+    for attempt in $(seq 1 $MAX_RETRIES); do
+      echo "Attempting to download header file for $APP_NAME (Attempt $attempt of $MAX_RETRIES)..."
+      curl -s -o "$HEADER_FILE" "https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/headers/${APP_NAME}"
+      if [ -f "$HEADER_FILE" ]; then
+        echo "Header file for $APP_NAME downloaded successfully."
+        break
+      elif [ "$attempt" -eq "$MAX_RETRIES" ]; then
+        echo "ERROR: App Header cannot be downloaded, check DNS or network." >&2
         return 1
       fi
-    else
-      echo "Local file for $APP_NAME is up to date, no action needed." >/dev/null	  
-    fi
+      sleep 1
+    done
   fi
 
-  # Search for the ASCII art in the file
-  app_ascii=$(awk -v app="$APP_NAME" '
-    BEGIN {found=0}
-    /###/ {if(found==1) exit}
-    found==1 {print}
-    $0 ~ "APP="app {found=1}
-  ' "$OUTPUT_FILE")
-
-  # Check if ASCII art is found
-  if [[ -z "$app_ascii" ]]; then
-    echo "Error: ASCII Art for $APP_NAME not found."
+  # Prüfen, ob die Datei existiert und sie anzeigen
+  if [ -f "$HEADER_FILE" ]; then
+    export TERM=xterm
+    clear
+    cat "$HEADER_FILE" # Direkt die Datei ausgeben
+  else
+    echo "ERROR: Header file for $APP_NAME not found or could not be downloaded." >&2
     return 1
   fi
-  # Display ASCII header
-  export TERM=xterm
-  term_width=$(tput cols 2>/dev/null || echo 120)
-													  
-  clear
-  echo "$app_ascii"
 }
+
 
 # This function checks if the script is running through SSH and prompts the user to confirm if they want to proceed or exit.
 ssh_check() {
