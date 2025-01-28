@@ -111,7 +111,7 @@ cat <<EOF >/opt/nodebb/config.json
     "port": "4567"
 }
 EOF
-$STD ./nodebb setup
+#$STD ./nodebb setup
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed NodeBB"
 
