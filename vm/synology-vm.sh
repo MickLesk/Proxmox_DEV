@@ -389,7 +389,7 @@ nfs | dir)
   THIN=""
   ;;
 esac
-for i in {0,1,2}; do
+for i in {0,1}; do
   disk="DISK$i"
   eval DISK${i}=vm-${VMID}-disk-${i}${DISK_EXT:-}
   eval DISK${i}_REF=${STORAGE}:${DISK_REF:-}${!disk}
@@ -401,8 +401,8 @@ qm create $VMID -agent 1${MACHINE} -tablet 0 -localtime 1 -bios seabios${CPU_TYP
 pvesm alloc $STORAGE $VMID $DISK1 12G 1>&/dev/null
 qm importdisk $VMID ${FILE} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 qm set $VMID \
-  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN} \
-  -scsi1 ${DISK2_REF},${DISK_CACHE}${THIN} \
+  -scsi0 ${DISK0_REF},${DISK_CACHE}${THIN} \
+  -scsi1 ${DISK1_REF},${DISK_CACHE}${THIN} \
   -boot order='scsi1;scsi0' \
   -description "<div align='center'><a href='https://Helper-Scripts.com'><img src='https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/images/logo-81x112.png'/></a>
 
