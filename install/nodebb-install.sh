@@ -95,6 +95,8 @@ mv NodeBB-${RELEASE} /opt/nodebb
 cd /opt/nodebb
 touch pidfile
 expect <<EOF
+log_file /dev/null
+exp_internal 0
 set timeout -1
 
 spawn ./nodebb setup
