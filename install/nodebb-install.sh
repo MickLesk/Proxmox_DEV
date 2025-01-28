@@ -30,8 +30,8 @@ mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
 
-curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor
-echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+wget -qO- https://www.mongodb.org/static/pgp/server-8.0.asc | gpg --dearmor >/usr/share/keyrings/mongodb-server-8.0.gpg
+echo "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg] http://repo.mongodb.org/apt/debian $(grep '^VERSION_CODENAME=' /etc/os-release | cut -d'=' -f2)/mongodb-org/8.0 main" >/etc/apt/sources.list.d/mongodb-org-8.0.list
 $STD apt-get update
 msg_ok "Set up Repositories"
 
@@ -41,6 +41,9 @@ msg_ok "Installed Node.js"
 
 msg_info "Installing MongoDB"
 $STD apt-get install -y mongodb-org
+sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
+sed -i '/security:/d' /etc/mongod.conf
+bash -c 'echo -e "\nsecurity:\n  authorization: enabled" >> /etc/mongod.conf'
 systemctl enable -q --now mongod
 sleep 10 # MongoDB needs some secounds to start, if not sleep it collide with following mongosh
 msg_ok "Installed MongoDB"   
@@ -80,8 +83,6 @@ db.createUser({
 })
 quit()
 EOF
-sed -i '/security:/d' /etc/mongod.conf
-bash -c 'echo -e "\nsecurity:\n  authorization: enabled" >> /etc/mongod.conf'
 systemctl restart mongod
 msg_ok "MongoDB successfully configurated" 
 
@@ -92,10 +93,8 @@ wget -q "https://github.com/NodeBB/NodeBB/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
 mv NodeBB-${RELEASE} /opt/nodebb
 cd /opt/nodebb
-NODEBB_USER=$(grep "NodeBB User" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
-NODEBB_PWD=$(grep "NodeBB Password" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
-NODEBB_SECRET=$(grep "NodeBB Secret" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
-expect <<EOF
+touch pidfile
+$STD expect <<EOF
 set timeout -1
 
 spawn ./nodebb setup
@@ -142,9 +141,9 @@ After=system.slice multi-user.target mongod.service
 Type=forking
 User=root
 
-WorkingDirectory=/opt/nodebb/nodebb
+WorkingDirectory=/opt/nodebb
 PIDFile=/opt/nodebb/pidfile
-ExecStart=/usr/bin/env node loader.js --no-silent
+ExecStart=/usr/bin/node /opt/nodebb/loader.js
 Restart=always
 
 [Install]
