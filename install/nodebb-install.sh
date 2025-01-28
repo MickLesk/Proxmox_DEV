@@ -41,9 +41,6 @@ msg_ok "Installed Node.js"
 
 msg_info "Installing MongoDB"
 $STD apt-get install -y mongodb-org
-sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
-sed -i '/security:/d' /etc/mongod.conf
-bash -c 'echo -e "\nsecurity:\n  authorization: enabled" >> /etc/mongod.conf'
 systemctl enable -q --now mongod
 sleep 10 # MongoDB needs some secounds to start, if not sleep it collide with following mongosh
 msg_ok "Installed MongoDB"   
@@ -83,6 +80,9 @@ db.createUser({
 })
 quit()
 EOF
+sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
+sed -i '/security:/d' /etc/mongod.conf
+bash -c 'echo -e "\nsecurity:\n  authorization: enabled" >> /etc/mongod.conf'
 systemctl restart mongod
 msg_ok "MongoDB successfully configurated" 
 
@@ -94,7 +94,7 @@ unzip -q v${RELEASE}.zip
 mv NodeBB-${RELEASE} /opt/nodebb
 cd /opt/nodebb
 touch pidfile
-$STD expect <<EOF
+expect <<EOF
 set timeout -1
 
 spawn ./nodebb setup
