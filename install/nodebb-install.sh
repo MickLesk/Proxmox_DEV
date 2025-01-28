@@ -19,6 +19,7 @@ $STD apt-get install -y \
   curl \
   sudo \
   make \
+  redis-server \
   expect \
   gnupg \
   ca-certificates \
