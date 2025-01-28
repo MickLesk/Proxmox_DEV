@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
 # Copyright (c) 2021-2024 tteck
-# Author: tteck
-# Co-Author: MickLesk (Canbiz)
-# License: MIT
-# https://github.com/tteck/Proxmox/raw/main/LICENSE
+# Author: MickLesk (Canbiz)
+# License: MIT | https://github.com/tteck/Proxmox/raw/main/LICENSE
 # Source: https://github.com/NodeBB/NodeBB
 
 source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
@@ -29,11 +27,12 @@ msg_ok "Installed Dependencies"
 msg_info "Setting up Node.js & MongoDB Repository"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
-curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
-sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/setup_lts.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
+
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
+   sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg \
    --dearmor
-echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
 $STD apt-get update
 msg_ok "Set up Repositories"
 
@@ -42,9 +41,9 @@ $STD apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
 msg_info "Installing MongoDB"
-$STD sudo apt-get install -y mongodb-org
+$STD apt-get install -y mongodb-org
 sudo systemctl start mongod
-sleep 5 # MongoDB needs some secounds to start, if not sleep it collide with following mongosh
+sleep 10 # MongoDB needs some secounds to start, if not sleep it collide with following mongosh
 msg_ok "Installed MongoDB"   
 
 msg_info "Configure MongoDB"
@@ -81,9 +80,9 @@ db.createUser({
 })
 quit()
 EOF
-sudo sed -i '/security:/d' /etc/mongod.conf
-sudo bash -c 'echo -e "\nsecurity:\n  authorization: enabled" >> /etc/mongod.conf'
-sudo systemctl restart mongod
+sed -i '/security:/d' /etc/mongod.conf
+bash -c 'echo -e "\nsecurity:\n  authorization: enabled" >> /etc/mongod.conf'
+systemctl restart mongod
 msg_ok "MongoDB successfully configurated" 
 
 msg_info "Install NodeBB" 
@@ -112,7 +111,7 @@ cat <<EOF >/opt/nodebb/config.json
     "port": "4567"
 }
 EOF
-#$STD ./nodebb setup
+$STD ./nodebb setup
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed NodeBB"
 
@@ -146,3 +145,20 @@ rm -R /opt/v${RELEASE}.zip
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
+
+
+{
+    "url": "http://localhost:4567",
+    "secret": "6b9a22d8-66c0-40e8-9ffb-901fc724542e",
+    "database": "mongo",
+    "mongo": {
+        "host": "127.0.0.1",
+        "port": "27017",
+        "username": "nodebb",
+        "password": "4InPk/23weOcO",
+        "database": "nodebb",
+        "uri": ""
+    },
+    "port": "4567"
+}
+
