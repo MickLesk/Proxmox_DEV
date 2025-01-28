@@ -19,6 +19,7 @@ $STD apt-get install -y \
   curl \
   sudo \
   make \
+  expect \
   gnupg \
   ca-certificates \
   mc
@@ -40,7 +41,7 @@ msg_ok "Installed Node.js"
 
 msg_info "Installing MongoDB"
 $STD apt-get install -y mongodb-org
-sudo systemctl start mongod
+systemctl enable -q --now mongod
 sleep 10 # MongoDB needs some secounds to start, if not sleep it collide with following mongosh
 msg_ok "Installed MongoDB"   
 
@@ -49,6 +50,7 @@ MONGO_ADMIN_USER="admin"
 MONGO_ADMIN_PWD="$(openssl rand -base64 18 | cut -c1-13)"
 NODEBB_USER="nodebb"
 NODEBB_PWD="$(openssl rand -base64 18 | cut -c1-13)"
+MONGO_CONNECTION_STRING="mongodb://${NODEBB_USER}:${NODEBB_PWD}@localhost:27017/nodebb"
 NODEBB_SECRET=$(uuidgen)
 {
     echo "NodeBB-Credentials"
@@ -93,23 +95,39 @@ cd /opt/nodebb
 NODEBB_USER=$(grep "NodeBB User" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
 NODEBB_PWD=$(grep "NodeBB Password" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
 NODEBB_SECRET=$(grep "NodeBB Secret" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
-#cat <<EOF >/opt/nodebb/config.json
-#{
-#    "url": "http://localhost:4567",
-#    "secret": "$NODEBB_SECRET",
-#    "database": "mongo",
-#    "mongo": {
-#        "host": "127.0.0.1",
-#        "port": "27017",
-#        "username": "$NODEBB_USER",
-#        "password": "$NODEBB_PWD",
-#        "database": "nodebb",
-#        "uri": ""
-#    },
-#    "port": "4567"
-#0}
-#EOF
-#$STD ./nodebb setup
+expect <<EOF
+set timeout -1
+
+spawn ./nodebb setup
+expect "URL used to access this NodeBB" {
+    send "http://localhost:4567\r"
+}
+expect "Please enter a NodeBB secret" {
+    send "$NODEBB_SECRET\r"
+}
+expect "Would you like to submit anonymous plugin usage to nbbpm? (yes)" {
+    send "no\r"
+}
+expect "Which database to use (mongo)" {
+    send "mongo\r"
+}
+expect "Format: mongodb://*" {
+    send "$MONGO_CONNECTION_STRING\r"
+}
+expect "Administrator username" {
+    send "helper-scripts\r"
+}
+expect "Administrator email address" {
+    send "helper-scripts@local.com\r"
+}
+expect "Password" {
+    send "helper-scripts\r"
+}
+expect "Confirm Password" {
+    send "helper-scripts\r"
+}
+expect eof
+EOF
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed NodeBB"
 
@@ -132,7 +150,7 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
-#systemctl enable -q --now nodebb
+systemctl enable -q --now nodebb
 msg_ok "Created Service"
 
 motd_ssh
@@ -143,20 +161,3 @@ rm -R /opt/v${RELEASE}.zip
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
-
-
-{
-    "url": "http://localhost:4567",
-    "secret": "6b9a22d8-66c0-40e8-9ffb-901fc724542e",
-    "database": "mongo",
-    "mongo": {
-        "host": "127.0.0.1",
-        "port": "27017",
-        "username": "nodebb",
-        "password": "4InPk/23weOcO",
-        "database": "nodebb",
-        "uri": ""
-    },
-    "port": "4567"
-}
-
