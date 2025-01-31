@@ -24,7 +24,6 @@ cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | grep -oP '"tag_name": "\K[^"]+' | sed 's/release-//')
 wget -q https://github.com/userdocs/qbittorrent-nox-static/releases/download/release-${RELEASE}/x86_64-qbittorrent-nox
 mv x86_64-qbittorrent-nox /usr/bin/qbittorrent-nox
-mkdir -p /root/.config/qBittorrent/qBittorrent.conf
 cat <<EOF >/root/.config/qBittorrent/qBittorrent.conf
 [Preferences]
 WebUI\Password_PBKDF2="@ByteArray(amjeuVrF3xRbgzqWQmes5A==:XK3/Ra9jUmqUc4RwzCtrhrkQIcYczBl90DJw2rT8DFVTss4nxpoRhvyxhCf87ahVE3SzD8K9lyPdpyUCfmVsUg==)"
