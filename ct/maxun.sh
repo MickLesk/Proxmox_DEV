@@ -38,8 +38,9 @@ function update_script() {
     systemctl stop maxun minio redis
     msg_ok "Services Stopped"
 
-    msg_info "Updating ${APP} to ${RELEASE}"
-      
+    msg_info "Updating ${APP} to v${RELEASE}"
+    cd /opt/maxun
+    git pull
     #echo "${RELEASE}" >/opt/${APP}_version.txt
     msg_ok "Currently we don't support an Update for ${APP} and it should be updated via the user interface."
 
