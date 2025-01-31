@@ -24,6 +24,7 @@ cd /opt
 RELEASE=$(curl -s https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | grep -oP '"tag_name": "\K[^"]+' | sed 's/release-//')
 wget -q https://github.com/userdocs/qbittorrent-nox-static/releases/download/release-${RELEASE}/x86_64-qbittorrent-nox
 mv x86_64-qbittorrent-nox /usr/bin/qbittorrent-nox
+chmod +x /usr/bin/qbittorrent-nox
 mkdir -p /root/.config/qBittorrent/
 cat <<EOF >/root/.config/qBittorrent/qBittorrent.conf
 [Preferences]

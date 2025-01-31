@@ -43,6 +43,7 @@ function update_script() {
     cd /opt
     wget -q https://github.com/userdocs/qbittorrent-nox-static/releases/download/release-${RELEASE}/x86_64-qbittorrent-nox
     mv x86_64-qbittorrent-nox /usr/bin/qbittorrent-nox
+    chmod +x /usr/bin/qbittorrent-nox
     echo "${RELEASE}" >/opt/qbittorrent-nox_version.txt
     msg_ok "Updated ${APP}"
 
