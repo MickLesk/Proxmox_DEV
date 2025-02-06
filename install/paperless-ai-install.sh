@@ -38,6 +38,7 @@ wget -q "https://github.com/clusterzx/paperless-ai/archive/refs/tags/v${RELEASE}
 unzip -q v${RELEASE}.zip
 mv paperless-ai-${RELEASE} /opt/paperless-ai
 cd /opt/paperless-ai
+$STD npm install
 cat <<EOF >/opt/paperless-ai/data/.env
 PAPERLESS_API_URL=
 PAPERLESS_API_TOKEN=
@@ -61,7 +62,6 @@ CUSTOM_API_KEY=
 CUSTOM_BASE_URL=
 CUSTOM_MODEL=
 EOF
-$STD npm install
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Setup Paperless-AI"
 
