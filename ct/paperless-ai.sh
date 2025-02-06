@@ -63,7 +63,7 @@ function update_script() {
     msg_ok "No update required. ${APP} is already at v${RELEASE}"
   fi
   exit
-
+}
 start
 build_container
 description
