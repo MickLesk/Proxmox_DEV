@@ -45,7 +45,7 @@ function update_script() {
     wget -q "https://github.com/clusterzx/paperless-ai/archive/refs/tags/v${RELEASE}.zip"
     unzip -q v${RELEASE}.zip
     mv paperless-ai-${RELEASE} /opt/paperless-ai
-	mkdir -p /opt/paperless-ai/data
+	  mkdir -p /opt/paperless-ai/data
     cp -a /opt/paperless-ai_bak/data/. /opt/paperless-ai/data/
     npm install &>/dev/null
     echo "${RELEASE}" >/opt/${APP}_version.txt
