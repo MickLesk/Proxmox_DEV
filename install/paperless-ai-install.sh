@@ -16,7 +16,8 @@ msg_info "Installing Dependencies"
 $STD apt-get install -y \
 	curl \
 	sudo \
-	mc
+	mc \
+	gpg
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Node.js Repository"
