@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2024 tteck
-# Author: tteck
-# Co-Author: MickLesk (Canbiz)
-# License: MIT
-# https://github.com/tteck/Proxmox/raw/main/LICENSE
+# Copyright (c) 2021-2025 community-scripts ORG
+# Author: MickLesk (Canbiz)
+# License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 # Source: https://github.com/documenso/documenso
 
 source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
@@ -32,7 +30,7 @@ msg_ok "Installed Dependencies"
 msg_info "Setting up Node.js Repository"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
 msg_ok "Set up Node.js Repository"
 
 msg_info "Installing Node.js"
@@ -76,11 +74,9 @@ export TURBO_CACHE=1
 export NEXT_TELEMETRY_DISABLED=1
 export CYPRESS_INSTALL_BINARY=0
 export NODE_OPTIONS="--max-old-space-size=2048"
-npm ci --cache ~/.npm-cache --maxsockets=5
-npm run build
-npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
-#$STD npm ci
-#$STD npm run build
+$STD npm ci --cache ~/.npm-cache --maxsockets=5
+$STD npm run build
+$STD npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Documenso"
 
@@ -98,14 +94,14 @@ After=network.target postgresql.service
 
 [Service]
 WorkingDirectory=/opt/documenso
-ExecStart=/usr/bin/npm start
+ExecStart=/usr/bin/npm run d
 Restart=always
 EnvironmentFile=/opt/documenso/.env
 
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable -q --now documenso.service
+systemctl enable -q --now documenso
 msg_ok "Created Service"
 
 motd_ssh
