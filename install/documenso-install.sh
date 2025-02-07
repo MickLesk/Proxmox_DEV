@@ -25,7 +25,7 @@ $STD apt-get install -y \
   jq \
   postgresql \
   python3 \
-  python3-bcmath
+  python3-bcrypt
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Node.js Repository"
