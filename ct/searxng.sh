@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
 # Copyright (c) 2021-2025 community-scripts ORG
-# Author: MickLesk (CanbiZ)
-# License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
-# Source: https://github.com/clusterzx/paperless-ai
+# Author: MickLesk (Canbiz)
+# License: MIT | https://github.com/MickLesk/Proxmox_DEV/raw/main/LICENSE
+# Source: https://github.com/searxng/searxng
 
 # App Default Values
 APP="SearXNG"

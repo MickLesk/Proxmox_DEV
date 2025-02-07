@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2024 tteck
+# Copyright (c) 2021-2025 community-scripts ORG
 # Author: MickLesk (Canbiz)
-# License: MIT
-# https://github.com/MickLesk/Proxmox_DEV/raw/main/LICENSE
+# License: MIT | https://github.com/MickLesk/Proxmox_DEV/raw/main/LICENSE
+# Source: https://github.com/searxng/searxng
 
 source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
 color
@@ -29,7 +29,6 @@ msg_info "Setup Python3"
 $STD apt-get install -y \
   python3 \
   python3-{pip,venv,yaml,dev} 
-# rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
 $STD pip install --upgrade pip setuptools wheel 
 $STD pip install pyyaml
 msg_ok "Setup Python3"
@@ -105,7 +104,7 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable --now searxng
+$STD systemctl enable --now searxng
 msg_ok "Created Services"
 
 motd_ssh
