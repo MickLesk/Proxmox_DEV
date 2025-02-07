@@ -38,7 +38,7 @@ msg_info "Setup SearXNG"
 mkdir -p /usr/local/searxng /etc/searxng
 useradd -d /etc/searxng searxng
 chown searxng:searxng /usr/local/searxng /etc/searxng
-git clone https://github.com/searxng/searxng.git /usr/local/searxng/searxng-src
+$STD git clone https://github.com/searxng/searxng.git /usr/local/searxng/searxng-src
 cd /usr/local/searxng/
 sudo -u searxng python3 -m venv /usr/local/searxng/searx-pyenv
 source /usr/local/searxng/searx-pyenv/bin/activate
