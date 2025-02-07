@@ -75,9 +75,12 @@ export TURBO_CACHE=1
 export NEXT_TELEMETRY_DISABLED=1
 export CYPRESS_INSTALL_BINARY=0
 export NODE_OPTIONS="--max-old-space-size=2048"
-$STD npm ci --cache ~/.npm-cache --maxsockets=5
-$STD npm run build
-$STD npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
+# $STD npm ci --cache ~/.npm-cache --maxsockets=5
+# $STD npm run build
+# $STD npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
+$STD npm ci
+$STD npm run build:web
+$STD npm run prisma:migrate-deploy
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Documenso"
 
@@ -94,8 +97,8 @@ Description=Documenso Service
 After=network.target postgresql.service
 
 [Service]
-WorkingDirectory=/opt/documenso
-ExecStart=/usr/bin/npm run d
+WorkingDirectory=/opt/documenso/apps/web
+ExecStart=/usr/bin/next start -p 3500
 Restart=always
 EnvironmentFile=/opt/documenso/.env
 
