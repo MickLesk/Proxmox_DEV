@@ -29,7 +29,7 @@ msg_info "Setup Python3"
 $STD apt-get install -y \
   python3 \
   python3-{pip,venv,yaml,dev} 
-rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
+# rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
 $STD pip install --upgrade pip setuptools wheel 
 $STD pip install pyyaml
 msg_ok "Setup Python3"
