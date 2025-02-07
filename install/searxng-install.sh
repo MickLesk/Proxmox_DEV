@@ -42,7 +42,9 @@ $STD git clone https://github.com/searxng/searxng.git /usr/local/searxng/searxng
 cd /usr/local/searxng/
 sudo -u searxng python3 -m venv /usr/local/searxng/searx-pyenv
 source /usr/local/searxng/searx-pyenv/bin/activate
-$STD pip install -e /usr/local/searxng/searxng-src
+pip install --upgrade pip setuptools wheel 
+pip install pyyaml
+pip install -e /usr/local/searxng/searxng-src
 
 SECRET_KEY=$(openssl rand -hex 32)
 cat <<EOF >/etc/searxng/settings.yml
