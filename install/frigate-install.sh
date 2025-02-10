@@ -28,8 +28,6 @@ msg_info "Setup Python3"
 $STD apt-get install -y \
 	python3 python3-dev python3-setuptools python3-distutils python3-pip
 $STD pip install --upgrade pip
-$STD pip install -r /opt/frigate/docker/main/requirements.txt --break-system-packages
-$STD pip install -r /opt/frigate/docker/main/requirements-ov.txt --break-system-packages
 msg_ok "Setup Python3"
 
 msg_info "Installing Node.js"
@@ -64,6 +62,8 @@ wget -q https://github.com/blakeblackshear/frigate/archive/refs/tags/${RELEASE}.
 tar -xzf frigate.tar.gz -C /opt/frigate --strip-components 1
 rm -rf frigate.tar.gz
 cd /opt/frigate
+$STD pip install -r /opt/frigate/docker/main/requirements.txt --break-system-packages
+$STD pip install -r /opt/frigate/docker/main/requirements-ov.txt --break-system-packages
 $STD pip3 wheel --wheel-dir=/wheels -r /opt/frigate/docker/main/requirements-wheels.txt
 pip3 install -U /wheels/*.whl
 cp -a /opt/frigate/docker/main/rootfs/. /
