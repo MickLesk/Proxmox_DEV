@@ -39,25 +39,31 @@ function update_script() {
     msg_ok "Services Stopped"
 
     msg_info "Updating ${APP} to v${RELEASE}"
+    mv /opt/maxun /opt/maxun_bak
+    cd /opt
+    wget -q "https://github.com/getmaxun/maxun/archive/refs/tags/v${RELEASE}.zip"
+    unzip -q v${RELEASE}.zip
+    mv maxun-${RELEASE} /opt/maxun
+    mv /opt/maxun_bak/.env /opt/maxun/
     cd /opt/maxun
-    git pull
-    #echo "${RELEASE}" >/opt/${APP}_version.txt
-    msg_ok "Currently we don't support an Update for ${APP} and it should be updated via the user interface."
-
-    msg_info "Update Dependencies" 
+    npm install --legacy-peer-deps
+    cd /opt/maxun/maxun-core
+    npm install --legacy-peer-deps
+    cd /opt/maxun
+    npx playwright install --with-deps chromium
+    npx playwright install-deps
+    "${RELEASE}" >/opt/${APP}_version.txt
     
-    msg_ok "Updated Dependencies"
-
     msg_info "Starting Services"
       systemctl start minio redis maxun
     msg_ok "Started Services"
 
-    #msg_info "Cleaning Up"
-    #rm -rf v${RELEASE}.zip
-    #msg_ok "Cleaned"
-    #msg_ok "Updated Successfully"
+    msg_info "Cleaning Up"
+    rm -rf /opt/v${RELEASE}.zip
+    msg_ok "Cleaned"
+    msg_ok "Updated Successfully"
   else
-    msg_ok "No update required. ${APP} is already at ${RELEASE}"
+    msg_ok "No update required. ${APP} is already at v${RELEASE}"
   fi
   exit
 }
