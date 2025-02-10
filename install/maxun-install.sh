@@ -151,7 +151,7 @@ msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/maxun.service
 [Unit]
 Description=Maxun Service
-After=network.target postgresql.service
+After=network.target postgresql.service redis.service
 
 [Service]
 WorkingDirectory=/opt/maxun
