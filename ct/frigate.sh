@@ -12,7 +12,7 @@ var_cpu="4"
 var_ram="4096"
 var_disk="20"
 var_os="debian"
-var_version="12"
+var_version="11"
 var_unprivileged="0"
 
 # App Output
