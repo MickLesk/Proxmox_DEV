@@ -24,11 +24,22 @@ $STD apt-get install -y \
     libopenexr-dev
 msg_ok "Installed Dependencies"
 
-msg_info "Setup Python3"
+msg_info "Setup Python3.9"
+
 $STD apt-get install -y \
-	python3 python3-dev python3-setuptools python3-distutils python3-pip
-$STD pip install --upgrade pip
-msg_ok "Setup Python3"
+cd /usr/src
+$STD sudo curl -O https://www.python.org/ftp/python/3.9.18/Python-3.9.18.tgz
+$STD sudo tar -xvf Python-3.9.18.tgz
+cd Python-3.9.18
+$STD ./configure --enable-optimizations
+$STD make -j$(nproc)
+$STD make altinstall
+$STD apt-get install -y python3-dev python3-setuptools python3-distutils python3-pip
+$STD python3.9 -m ensurepip
+$STD python3.9 -m pip install --upgrade pip setuptools distutils
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.9 1
+sudo update-alternatives --config python3
+msg_ok "Setup Python3.9"
 
 msg_info "Installing Node.js"
 mkdir -p /etc/apt/keyrings
