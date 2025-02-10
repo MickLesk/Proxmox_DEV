@@ -29,6 +29,7 @@ $STD apt-get install -y \
 	python3 python3-dev python3-setuptools python3-distutils python3-pip
 $STD pip install --upgrade pip
 $STD pip install -r /opt/frigate/docker/main/requirements.txt --break-system-packages
+$STD pip install -r /opt/frigate/docker/main/requirements-ov.txt --break-system-packages
 msg_ok "Setup Python3"
 
 msg_info "Installing Node.js"
@@ -48,7 +49,7 @@ ln -sf /usr/local/go2rtc/bin/go2rtc /usr/local/bin/go2rtc
 msg_ok "Installed go2rtc"
 
 msg_info "Setting Up Hardware Acceleration"
-$STD apt-get -y install {va-driver-all,ocl-icd-libopencl1,intel-opencl-icd,vainfo,intel-gpu-tools}
+$STD apt-get -y install {va-driver-all,ocl-icd-libopencl1,intel-opencl-icd,onevpl-tools,vainfo,intel-gpu-tools}
 if [[ "$CTTYPE" == "0" ]]; then
   chgrp video /dev/dri
   chmod 755 /dev/dri
@@ -64,6 +65,7 @@ tar -xzf frigate.tar.gz -C /opt/frigate --strip-components 1
 rm -rf frigate.tar.gz
 cd /opt/frigate
 $STD pip3 wheel --wheel-dir=/wheels -r /opt/frigate/docker/main/requirements-wheels.txt
+pip3 install -U /wheels/*.whl
 cp -a /opt/frigate/docker/main/rootfs/. /
 export TARGETARCH="amd64"
 echo 'libc6 libraries/restart-without-asking boolean true' | debconf-set-selections
@@ -108,6 +110,16 @@ else
 fi
 echo "tmpfs   /tmp/cache      tmpfs   defaults        0       0" >> /etc/fstab
 msg_ok "Installed Frigate $RELEASE"
+
+read -p "Semantic Search requires a dedicated GPU and at least 16GB RAM. Would you like to install it? (y/n): " semantic_choice
+if [[ "$semantic_choice" == "y" ]]; then
+    msg_info "Configuring Semantic Search & AI Models"
+    mkdir -p /opt/frigate/models/semantic_search
+    wget -qO /opt/frigate/models/semantic_search/clip_model.pt https://huggingface.co/openai/clip-vit-base-patch32/resolve/main/pytorch_model.bin
+    msg_ok "Semantic Search Models Installed"
+else
+    msg_ok "Skipped Semantic Search Setup"
+fi
 
 if grep -q -o -m1 -E 'avx[^ ]*' /proc/cpuinfo; then
   msg_ok "AVX Support Detected"
