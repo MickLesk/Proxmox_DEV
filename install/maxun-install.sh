@@ -22,6 +22,8 @@ $STD apt-get install -y \
   redis
 msg_ok "Installed Dependencies"
 
+configure_lxc "Semantic Search requires a dedicated GPU and at least 16GB RAM. Would you like to install it?" 100 "memory" "16000"
+
 msg_info "Setting up Node.js Repository"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
