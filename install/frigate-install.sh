@@ -24,22 +24,11 @@ $STD apt-get install -y \
     libopenexr-dev
 msg_ok "Installed Dependencies"
 
-msg_info "Setup Python3.9"
-
+msg_info "Setup Python3"
 $STD apt-get install -y \
-cd /usr/src
-$STD sudo curl -O https://www.python.org/ftp/python/3.9.18/Python-3.9.18.tgz
-$STD sudo tar -xvf Python-3.9.18.tgz
-cd Python-3.9.18
-$STD ./configure --enable-optimizations
-$STD make -j$(nproc)
-$STD make altinstall
-$STD apt-get install -y python3-dev python3-setuptools python3-distutils python3-pip
-$STD python3.9 -m ensurepip
-$STD python3.9 -m pip install --upgrade pip setuptools distutils
-sudo update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.9 1
-sudo update-alternatives --config python3
-msg_ok "Setup Python3.9"
+	python3 python3-dev python3-setuptools python3-distutils python3-pip
+$STD pip install --upgrade pip
+msg_ok "Setup Python3"
 
 msg_info "Installing Node.js"
 mkdir -p /etc/apt/keyrings
@@ -121,40 +110,6 @@ else
 fi
 echo "tmpfs   /tmp/cache      tmpfs   defaults        0       0" >> /etc/fstab
 msg_ok "Installed Frigate $RELEASE"
-
-if grep -q -o -m1 -E 'avx[^ ]*' /proc/cpuinfo; then
-  msg_ok "AVX Support Detected"
-  msg_info "Installing Openvino Object Detection Model (Resilience)"
-  $STD pip install -r /opt/frigate/docker/main/requirements-ov.txt
-  cd /opt/frigate/models
-  export ENABLE_ANALYTICS=NO
-  $STD /usr/local/bin/omz_downloader --name ssdlite_mobilenet_v2 --num_attempts 2
-  $STD /usr/local/bin/omz_converter --name ssdlite_mobilenet_v2 --precision FP16 --mo /usr/local/bin/mo
-  cd /
-  cp -r /opt/frigate/models/public/ssdlite_mobilenet_v2 openvino-model
-  wget -q https://github.com/openvinotoolkit/open_model_zoo/raw/master/data/dataset_classes/coco_91cl_bkgr.txt -O openvino-model/coco_91cl_bkgr.txt
-  sed -i 's/truck/car/g' openvino-model/coco_91cl_bkgr.txt
-  cat <<EOF >>/config/config.yml
-detectors:
-  ov:
-    type: openvino
-    device: CPU
-    model:
-      path: /openvino-model/FP16/ssdlite_mobilenet_v2.xml
-model:
-  width: 300
-  height: 300
-  input_tensor: nhwc
-  input_pixel_format: bgr
-  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
-EOF
-  msg_ok "Installed Openvino Object Detection Model"
-else
-  cat <<EOF >>/config/config.yml
-model:
-  path: /cpu_model.tflite
-EOF
-fi
 
 read -p "Semantic Search requires a dedicated GPU and at least 16GB RAM. Would you like to install it? (y/n): " semantic_choice
 if [[ "$semantic_choice" == "y" ]]; then
