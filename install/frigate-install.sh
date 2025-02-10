@@ -55,40 +55,6 @@ if [[ "$CTTYPE" == "0" ]]; then
 fi
 msg_ok "Set Up Hardware Acceleration"
 
-if grep -q -o -m1 -E 'avx[^ ]*' /proc/cpuinfo; then
-  msg_ok "AVX Support Detected"
-  msg_info "Installing Openvino Object Detection Model (Resilience)"
-  $STD pip install -r /opt/frigate/docker/main/requirements-ov.txt
-  cd /opt/frigate/models
-  export ENABLE_ANALYTICS=NO
-  $STD /usr/local/bin/omz_downloader --name ssdlite_mobilenet_v2 --num_attempts 2
-  $STD /usr/local/bin/omz_converter --name ssdlite_mobilenet_v2 --precision FP16 --mo /usr/local/bin/mo
-  cd /
-  cp -r /opt/frigate/models/public/ssdlite_mobilenet_v2 openvino-model
-  wget -q https://github.com/openvinotoolkit/open_model_zoo/raw/master/data/dataset_classes/coco_91cl_bkgr.txt -O openvino-model/coco_91cl_bkgr.txt
-  sed -i 's/truck/car/g' openvino-model/coco_91cl_bkgr.txt
-  cat <<EOF >>/config/config.yml
-detectors:
-  ov:
-    type: openvino
-    device: CPU
-    model:
-      path: /openvino-model/FP16/ssdlite_mobilenet_v2.xml
-model:
-  width: 300
-  height: 300
-  input_tensor: nhwc
-  input_pixel_format: bgr
-  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
-EOF
-  msg_ok "Installed Openvino Object Detection Model"
-else
-  cat <<EOF >>/config/config.yml
-model:
-  path: /cpu_model.tflite
-EOF
-fi
-
 msg_info "Setup Frigate" 
 RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | jq -r '.tag_name')
 mkdir -p /opt/frigate/models
@@ -144,6 +110,40 @@ else
 fi
 echo "tmpfs   /tmp/cache      tmpfs   defaults        0       0" >> /etc/fstab
 msg_ok "Installed Frigate $RELEASE"
+
+if grep -q -o -m1 -E 'avx[^ ]*' /proc/cpuinfo; then
+  msg_ok "AVX Support Detected"
+  msg_info "Installing Openvino Object Detection Model (Resilience)"
+  $STD pip install -r /opt/frigate/docker/main/requirements-ov.txt
+  cd /opt/frigate/models
+  export ENABLE_ANALYTICS=NO
+  $STD /usr/local/bin/omz_downloader --name ssdlite_mobilenet_v2 --num_attempts 2
+  $STD /usr/local/bin/omz_converter --name ssdlite_mobilenet_v2 --precision FP16 --mo /usr/local/bin/mo
+  cd /
+  cp -r /opt/frigate/models/public/ssdlite_mobilenet_v2 openvino-model
+  wget -q https://github.com/openvinotoolkit/open_model_zoo/raw/master/data/dataset_classes/coco_91cl_bkgr.txt -O openvino-model/coco_91cl_bkgr.txt
+  sed -i 's/truck/car/g' openvino-model/coco_91cl_bkgr.txt
+  cat <<EOF >>/config/config.yml
+detectors:
+  ov:
+    type: openvino
+    device: CPU
+    model:
+      path: /openvino-model/FP16/ssdlite_mobilenet_v2.xml
+model:
+  width: 300
+  height: 300
+  input_tensor: nhwc
+  input_pixel_format: bgr
+  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+EOF
+  msg_ok "Installed Openvino Object Detection Model"
+else
+  cat <<EOF >>/config/config.yml
+model:
+  path: /cpu_model.tflite
+EOF
+fi
 
 read -p "Semantic Search requires a dedicated GPU and at least 16GB RAM. Would you like to install it? (y/n): " semantic_choice
 if [[ "$semantic_choice" == "y" ]]; then
