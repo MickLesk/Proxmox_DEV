@@ -18,10 +18,9 @@ msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y \
     curl sudo mc git gpg ca-certificates automake build-essential xz-utils libtool ccache pkg-config \
     libgtk-3-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev \
-    libjpeg-dev libpng-dev libtiff-dev gfortran openexr libatlas-base-dev libssl-dev libtbbmalloc2 libtbb-dev \
+    libjpeg-dev libpng-dev libtiff-dev gfortran openexr libatlas-base-dev libssl-dev libtbb-dev \
     libopenexr-dev libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev gcc gfortran \
-    libopenblas-dev liblapack-dev libusb-1.0-0-dev jq moreutils tclsh libhdf5-dev \
-    libopenexr-dev
+    libopenblas-dev liblapack-dev libusb-1.0-0-dev jq moreutils tclsh libhdf5-dev libopenexr-dev
 msg_ok "Installed Dependencies"
 
 msg_info "Setup Python3"
