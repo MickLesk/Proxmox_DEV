@@ -46,7 +46,7 @@ ln -sf /usr/local/go2rtc/bin/go2rtc /usr/local/bin/go2rtc
 msg_ok "Installed go2rtc"
 
 msg_info "Setting Up Hardware Acceleration"
-$STD apt-get -y install {va-driver-all,ocl-icd-libopencl1,intel-opencl-icd,onevpl-tools,vainfo,intel-gpu-tools}
+$STD apt-get -y install {va-driver-all,ocl-icd-libopencl1,intel-opencl-icd,vainfo,intel-gpu-tools}
 if [[ "$CTTYPE" == "0" ]]; then
   chgrp video /dev/dri
   chmod 755 /dev/dri
