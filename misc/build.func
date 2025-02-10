@@ -1274,6 +1274,23 @@ install_script() {
   done
 }
 
+configure_lxc() {
+    local message="$1"  # Die Frage, die dem Nutzer gestellt wird
+    local vmid="$2"     # Die LXC-VM-ID
+    local option="$3"   # Die pct-Option, die gesetzt werden soll
+    local value="$4"    # Der Wert für die Option
+
+    # Benutzer fragen, ob die Einstellung gesetzt werden soll
+    read -p "$message (y/n): " choice
+    if [[ "$choice" == "y" ]]; then
+        msg_info "Applying: pct set $vmid -$option $value"
+        pct set "$vmid" "-$option" "$value"
+        msg_ok "$option set to $value"
+    else
+
+    fi
+}
+
 check_container_resources() {
   # Check actual RAM & Cores
   current_ram=$(free -m | awk 'NR==2{print $2}')
