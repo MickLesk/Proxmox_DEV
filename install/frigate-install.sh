@@ -76,8 +76,8 @@ msg_info "Installing Frigate"
 RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | jq -r '.tag_name')
 mkdir -p /opt/frigate/models
 wget -q https://github.com/blakeblackshear/frigate/archive/refs/tags/${RELEASE}.zip 
-unzip -q v${RELEASE}.zip
-mv frigate-${RELEASE} /opt/frigate
+unzip -q ${RELEASE}.zip
+mv frigate-${RELEASE:1} /opt/frigate
 cd /opt/frigate
 $STD pip install -r /opt/frigate/docker/main/requirements.txt --break-system-packages
 $STD pip install -r /opt/frigate/docker/main/requirements-ov.txt --break-system-packages
