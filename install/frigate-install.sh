@@ -21,21 +21,20 @@ $STD apt-get install -y \
     libjpeg-dev libpng-dev libtiff-dev gfortran openexr libatlas-base-dev libssl-dev libtbb-dev \
     libopenexr-dev libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev gcc gfortran \
     libopenblas-dev liblapack-dev libusb-1.0-0-dev jq moreutils tclsh libhdf5-dev libopenexr-dev
-msg_ok "Installed Dependencies"
+msg_ok "Dependencies Installed"
 
-msg_info "Setup Python3"
-$STD apt-get install -y \
-	python3 python3-dev python3-setuptools python3-distutils python3-pip
+msg_info "Setting Up Python3"
+$STD apt-get install -y python3 python3-dev python3-setuptools python3-distutils python3-pip
 $STD pip install --upgrade pip
-msg_ok "Setup Python3"
+msg_ok "Python3 Setup Complete"
 
 msg_info "Installing Node.js"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
 $STD apt-get update
 $STD apt-get install -y nodejs
-msg_ok "Installed Node.js"
+msg_ok "Node.js Installed"
 
 msg_info "Installing go2rtc"
 mkdir -p /usr/local/go2rtc/bin
@@ -52,9 +51,28 @@ if [[ "$CTTYPE" == "0" ]]; then
   chmod 755 /dev/dri
   chmod 660 /dev/dri/*
 fi
+if [[ "$CTTYPE" == "0" ]]; then
+  sed -i -e 's/^kvm:x:104:$/render:x:104:root,frigate/' -e 's/^render:x:105:root$/kvm:x:105:/' /etc/group
+else
+  sed -i -e 's/^kvm:x:104:$/render:x:104:frigate/' -e 's/^render:x:105:$/kvm:x:105:/' /etc/group
+fi
+echo "tmpfs   /tmp/cache      tmpfs   defaults        0       0" >> /etc/fstab
 msg_ok "Set Up Hardware Acceleration"
 
-msg_info "Setup Frigate" 
+msg_info "Building and Installing libUSB without udev"
+wget -qO /tmp/libusb.zip https://github.com/libusb/libusb/archive/v1.0.26.zip
+unzip -q /tmp/libusb.zip -d /tmp/
+cd /tmp/libusb-1.0.26
+$STD ./bootstrap.sh
+$STD ./configure --disable-udev --enable-shared
+$STD make -j$(nproc --all)
+$STD make install
+$STD ldconfig
+rm -rf /tmp/libusb.zip /tmp/libusb-1.0.26
+msg_ok "libUSB Installed without udev"
+
+
+msg_info "Installing Frigate"
 RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | jq -r '.tag_name')
 mkdir -p /opt/frigate/models
 wget -q https://github.com/blakeblackshear/frigate/archive/refs/tags/${RELEASE}.tar.gz -O frigate.tar.gz
@@ -64,51 +82,9 @@ cd /opt/frigate
 $STD pip install -r /opt/frigate/docker/main/requirements.txt --break-system-packages
 $STD pip install -r /opt/frigate/docker/main/requirements-ov.txt --break-system-packages
 $STD pip3 wheel --wheel-dir=/wheels -r /opt/frigate/docker/main/requirements-wheels.txt
-pip3 install -U /wheels/*.whl
+$STD  pip3 install -U /wheels/*.whl
 cp -a /opt/frigate/docker/main/rootfs/. /
-export TARGETARCH="amd64"
-echo 'libc6 libraries/restart-without-asking boolean true' | debconf-set-selections
-$STD /opt/frigate/docker/main/install_deps.sh
-$STD apt update
-$STD ln -svf /usr/lib/btbn-ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
-$STD ln -svf /usr/lib/btbn-ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
-$STD pip3 install -U /wheels/*.whl
-ldconfig
-$STD pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
-$STD /opt/frigate/.devcontainer/initialize.sh
-$STD make version
-cd /opt/frigate/web
-$STD npm install
-$STD npm run build
-cp -r /opt/frigate/web/dist/* /opt/frigate/web/
-cp -r /opt/frigate/config/. /config
-sed -i '/^s6-svc -O \.$/s/^/#/' /opt/frigate/docker/main/rootfs/etc/s6-overlay/s6-rc.d/frigate/run
-cat <<EOF >/config/config.yml
-mqtt:
-  enabled: false
-cameras:
-  test:
-    ffmpeg:
-      #hwaccel_args: preset-vaapi
-      inputs:
-        - path: /media/frigate/person-bicycle-car-detection.mp4
-          input_args: -re -stream_loop -1 -fflags +genpts
-          roles:
-            - detect
-            - rtmp
-    detect:
-      height: 1080
-      width: 1920
-      fps: 5
-EOF
-ln -sf /config/config.yml /opt/frigate/config/config.yml
-if [[ "$CTTYPE" == "0" ]]; then
-  sed -i -e 's/^kvm:x:104:$/render:x:104:root,frigate/' -e 's/^render:x:105:root$/kvm:x:105:/' /etc/group
-else
-  sed -i -e 's/^kvm:x:104:$/render:x:104:frigate/' -e 's/^render:x:105:$/kvm:x:105:/' /etc/group
-fi
-echo "tmpfs   /tmp/cache      tmpfs   defaults        0       0" >> /etc/fstab
-msg_ok "Installed Frigate $RELEASE"
+msg_ok "Frigate Installed - Version: $RELEASE"
 
 read -p "Semantic Search requires a dedicated GPU and at least 16GB RAM. Would you like to install it? (y/n): " semantic_choice
 if [[ "$semantic_choice" == "y" ]]; then
@@ -120,18 +96,6 @@ else
     msg_ok "Skipped Semantic Search Setup"
 fi
 msg_info "Building and Installing libUSB without udev"
-wget -qO /tmp/libusb.zip https://github.com/libusb/libusb/archive/v1.0.26.zip
-unzip -q /tmp/libusb.zip -d /tmp/
-cd /tmp/libusb-1.0.26
-./bootstrap.sh
-./configure --disable-udev --enable-shared
-make -j$(nproc --all)
-make install
-ldconfig
-rm -rf /tmp/libusb.zip /tmp/libusb-1.0.26
-msg_ok "Installed libUSB without udev"
-
-msg_info "Installing Coral Object Detection Model (Patience)"
 cd /opt/frigate
 export CCACHE_DIR=/root/.ccache
 export CCACHE_MAXSIZE=2G
