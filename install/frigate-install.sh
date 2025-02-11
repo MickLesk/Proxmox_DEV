@@ -73,11 +73,11 @@ msg_ok "libUSB Installed without udev"
 
 
 msg_info "Installing Frigate"
-RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | jq -r '.tag_name')
+RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 mkdir -p /opt/frigate/models
-wget -q https://github.com/blakeblackshear/frigate/archive/refs/tags/${RELEASE}.tar.gz -O frigate.tar.gz
-tar -xzf frigate.tar.gz -C /opt/frigate --strip-components 1
-rm -rf frigate.tar.gz
+wget -q https://github.com/blakeblackshear/frigate/archive/refs/tags/v${RELEASE}.zip 
+unzip -q v${RELEASE}.zip
+mv frigate-${RELEASE} /opt/frigate
 cd /opt/frigate
 $STD pip install -r /opt/frigate/docker/main/requirements.txt --break-system-packages
 $STD pip install -r /opt/frigate/docker/main/requirements-ov.txt --break-system-packages
