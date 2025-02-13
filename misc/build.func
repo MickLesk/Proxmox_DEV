@@ -998,30 +998,44 @@ start() {
     install_script
   fi
 
+  # Funktion zum Setzen des Verbose-Modus mit Logging
   update_verbose() {
     LOG_DIR="/usr/local/community-scripts/logs"
     mkdir -p "$LOG_DIR"
     LOG_FILE="${LOG_DIR}/update_script_${APP}_$(date +%Y%m%d_%H%M%S).log"
 
     case "$1" in
-      1) # Silent Mode: Logge all, show nothing
+      1) # Silent Mode: Kein Terminal-Output, aber Logging aktiv
         VERBOSE="no"
-        STD="silent"
-        exec > "$LOG_FILE" 2>&1
-        silent() { "$@" >/dev/null 2>&1; }
+        exec > >(tee -a "$LOG_FILE") 2>&1
         ;;
-      2) # Verbose Mode: Logge all and show all
+      2) # Verbose Mode: Log + Terminal Output
         VERBOSE="yes"
-        STD=""
         exec > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
         ;;
-      3) # cancel
+      3) # Abbruch
         clear
         exit_script
         exit
         ;;
     esac
   }
+
+  if ! command -v pveversion >/dev/null 2>&1; then
+    CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
+      "Support/Update functions for ${APP} LXC. Choose an option:" 12 60 3 \
+      "1" "YES (Silent Mode)" \
+      "2" "YES (Verbose Mode)" \
+      "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
+
+    update_verbose "$CHOICE"
+    SPINNER_PID=""
+
+    # ANSI Escape Codes entfernen, um saubere Logs zu haben
+    update_script 2>&1 | tee >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$LOG_FILE")
+  fi
+}
+
 
   if ! command -v pveversion >/dev/null 2>&1; then
     CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
