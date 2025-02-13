@@ -1274,6 +1274,37 @@ install_script() {
   done
 }
 
+configure_lxc() {
+    local message="$1"  # Nutzerfrage
+    local vmid="$2"     # LXC-VM-ID
+    local option="$3"   # Die pct-Option
+    local value="$4"    # Der Wert
+
+    # Zulässige Optionen (Whitelist)
+    local -A allowed_options=(
+        ["memory"]="Amount of RAM in MB (min 16MB)"
+        ["cores"]="Number of CPU cores (1-8192)"
+        ["swap"]="SWAP in MB (default 512MB)"
+    )
+
+    # Prüfen, ob die Option in der Whitelist ist
+    if [[ -z "${allowed_options[$option]}" ]]; then
+        msg_warn "Skipping unsupported option: $option"
+        return 1
+    fi
+
+    # Nutzerabfrage
+    read -p "$message (y/n): " choice
+    if [[ "$choice" == "y" ]]; then
+        msg_info "Applying: pct set $vmid -$option $value"
+        pct set "$vmid" "-$option" "$value"
+        msg_ok "$option set to $value"
+    else
+        msg_ok "Skipped $option configuration"
+    fi
+}
+
+
 check_container_resources() {
   # Check actual RAM & Cores
   current_ram=$(free -m | awk 'NR==2{print $2}')
