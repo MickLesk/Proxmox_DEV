@@ -1004,18 +1004,15 @@ start() {
     mkdir -p "$LOG_DIR"
     LOG_FILE="${LOG_DIR}/update_script_${APP}_$(date +%Y%m%d_%H%M%S).log"
 
-    # STD-Variable initialisieren
-    STD=""
-    
     case "$1" in
-      1) # Silent Mode: Nur ins Log schreiben, Terminal bleibt leer
+      1) # Silent Mode: Keine Ausgabe im Terminal, nur Logging
         VERBOSE="no"
-        STD="silent"
+        STD=">/dev/null 2>&1"
         exec > "$LOG_FILE" 2>&1
         ;;
-      2) # Verbose Mode: Ins Terminal + Log schreiben
+      2) # Verbose Mode: Terminal & Log gleichzeitig schreiben
         VERBOSE="yes"
-        STD="verbose"
+        STD=""
         exec > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
         ;;
       3) # Abbruch
@@ -1037,24 +1034,8 @@ start() {
     update_verbose "$CHOICE"
     SPINNER_PID=""
 
-    # **Nur eine Logging-Methode nutzen**
-    update_script 2>&1 | sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$LOG_FILE"
-  fi
-}
-
-  # Whiptail-Menü nur EINMAL aufrufen
-  if ! command -v pveversion >/dev/null 2>&1; then
-    CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
-      "Support/Update functions for ${APP} LXC. Choose an option:" 12 60 3 \
-      "1" "YES (Silent Mode)" \
-      "2" "YES (Verbose Mode)" \
-      "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
-
-    update_verbose "$CHOICE"
-    SPINNER_PID=""
-
-    # ANSI Escape Codes entfernen, um saubere Logs zu haben
-    update_script 2>&1 | tee >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$LOG_FILE")
+    # **Logging ohne doppelte Einträge & mit sauberen ANSI-Farben**
+    update_script 2>&1 | sed 's/\x1B\[[0-9;]*[JKmsu]//g' | tee -a "$LOG_FILE"
   fi
 }
 
