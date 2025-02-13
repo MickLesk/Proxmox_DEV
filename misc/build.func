@@ -998,12 +998,28 @@ start() {
     install_script
   fi
 
-  # Funktion zum Setzen des Verbose-Modus
   update_verbose() {
+    LOG_DIR="/usr/local/community-scripts/logs"
+    mkdir -p "$LOG_DIR"
+    LOG_FILE="${LOG_DIR}/update_script_${APP}_$(date +%Y%m%d_%H%M%S).log"
+
     case "$1" in
-      1) VERBOSE="no"; STD="silent"; silent() { "$@" >/dev/null 2>&1; } ;;
-      2) VERBOSE="yes"; STD="" ;;
-      3) clear; exit_script; exit ;;
+      1) # Silent Mode: Logge all, show nothing
+        VERBOSE="no"
+        STD="silent"
+        exec > "$LOG_FILE" 2>&1
+        silent() { "$@" >/dev/null 2>&1; }
+        ;;
+      2) # Verbose Mode: Logge all and show all
+        VERBOSE="yes"
+        STD=""
+        exec > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
+        ;;
+      3) # cancel
+        clear
+        exit_script
+        exit
+        ;;
     esac
   }
 
@@ -1024,7 +1040,6 @@ start() {
     fi
   fi
 }
-
 
 # This function collects user settings and integrates all the collected information.
 build_container() {
