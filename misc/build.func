@@ -1004,16 +1004,18 @@ start() {
     mkdir -p "$LOG_DIR"
     LOG_FILE="${LOG_DIR}/update_script_${APP}_$(date +%Y%m%d_%H%M%S).log"
 
-    # STD-Variable initialisieren, um Fehler zu vermeiden
+    # STD-Variable initialisieren
     STD=""
-
+    
     case "$1" in
-      1) # Silent Mode: Kein Terminal-Output, aber Logging aktiv
+      1) # Silent Mode: Nur ins Log schreiben, Terminal bleibt leer
         VERBOSE="no"
+        STD="silent"
         exec > "$LOG_FILE" 2>&1
         ;;
-      2) # Verbose Mode: Log + Terminal Output
+      2) # Verbose Mode: Ins Terminal + Log schreiben
         VERBOSE="yes"
+        STD="verbose"
         exec > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
         ;;
       3) # Abbruch
@@ -1023,6 +1025,22 @@ start() {
         ;;
     esac
   }
+
+  # Whiptail-Menü nur EINMAL aufrufen
+  if ! command -v pveversion >/dev/null 2>&1; then
+    CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
+      "Support/Update functions for ${APP} LXC. Choose an option:" 12 60 3 \
+      "1" "YES (Silent Mode)" \
+      "2" "YES (Verbose Mode)" \
+      "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
+
+    update_verbose "$CHOICE"
+    SPINNER_PID=""
+
+    # **Nur eine Logging-Methode nutzen**
+    update_script 2>&1 | sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$LOG_FILE"
+  fi
+}
 
   # Whiptail-Menü nur EINMAL aufrufen
   if ! command -v pveversion >/dev/null 2>&1; then
