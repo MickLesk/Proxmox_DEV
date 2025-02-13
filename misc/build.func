@@ -998,32 +998,15 @@ start() {
     install_script
   fi
 
-  # Funktion zum Setzen des Verbose-Modus mit Logging
+  # Funktion zum Setzen des Verbose-Modus
   update_verbose() {
-    LOG_DIR="/usr/local/community-scripts/logs"
-    mkdir -p "$LOG_DIR"
-    LOG_FILE="${LOG_DIR}/update_script_${APP}_$(date +%Y%m%d_%H%M%S).log"
-
     case "$1" in
-      1) # Silent Mode: Keine Ausgabe im Terminal, nur Logging
-        VERBOSE="no"
-        STD=">/dev/null 2>&1"
-        exec > "$LOG_FILE" 2>&1
-        ;;
-      2) # Verbose Mode: Terminal & Log gleichzeitig schreiben
-        VERBOSE="yes"
-        STD=""
-        exec > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
-        ;;
-      3) # Abbruch
-        clear
-        exit_script
-        exit
-        ;;
+      1) VERBOSE="no"; STD="silent"; silent() { "$@" >/dev/null 2>&1; } ;;
+      2) VERBOSE="yes"; STD="" ;;
+      3) clear; exit_script; exit ;;
     esac
   }
 
-  # Whiptail-Menü nur EINMAL aufrufen
   if ! command -v pveversion >/dev/null 2>&1; then
     CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
       "Support/Update functions for ${APP} LXC. Choose an option:" 12 60 3 \
@@ -1034,10 +1017,16 @@ start() {
     update_verbose "$CHOICE"
     SPINNER_PID=""
 
-    # **Logging ohne doppelte Einträge & mit sauberen ANSI-Farben**
-    update_script 2>&1 | sed 's/\x1B\[[0-9;]*[JKmsu]//g' | tee -a "$LOG_FILE"
+    if [ "$VERBOSE" = "yes" ]; then
+      update_script
+    else
+      silent update_script
+    fi
   fi
 }
+
+# Startet die `start`-Funktion
+start
 
 # This function collects user settings and integrates all the collected information.
 build_container() {
