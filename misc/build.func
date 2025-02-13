@@ -998,16 +998,33 @@ start() {
     install_script
   fi
 
-  if ! command -v pveversion >/dev/null 2>&1; then
-    if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --yesno "Support/Update functions for ${APP} LXC.  Proceed?" 10 58); then
-      clear
-      exit_script
-      exit
-    fi
-    SPINNER_PID=""
-    update_script
-  fi
+# Function to set verbose mode based on user selection
+update_verbose() {
+  case "$1" in
+    1) VERBOSE="no"; STD="silent"; silent() { "$@" >/dev/null 2>&1; } ;;
+    2) VERBOSE="yes"; STD="" ;;
+    3) clear; exit_script; exit ;;
+  esac
 }
+
+
+if ! command -v pveversion >/dev/null 2>&1; then
+  CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
+    "Support/Update functions for ${APP} LXC. Choose an option:" 12 60 3 \
+    "1" "YES (Silent Mode)" \
+    "2" "YES (Verbose Mode)" \
+    "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
+
+  update_verbose "$CHOICE"
+  SPINNER_PID=""
+  
+  if [ "$VERBOSE" = "yes" ]; then
+    update_script
+  else
+    silent update_script
+  fi
+fi
+
 
 # This function collects user settings and integrates all the collected information.
 build_container() {
