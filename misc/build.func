@@ -1042,15 +1042,14 @@ start() {
   log_message "Starting ${APP} update..."
 
   if [ "$VERBOSE" = "no" ]; then
-    # Silent Mode: Log everything, but only display `msg_*` in the terminal
-    update_script 2>&1 | tee -a "$LOGFILE" | while read -r line; do
-      case "$line" in
-      *msg_info* | *msg_ok* | *msg_error*) echo "$line" ;;
-      *) echo "$line" >>"$LOGFILE" ;;
-      esac
+    # Silent Mode: Zeigt nur `msg_*` in der Konsole, aber speichert ALLES ins Log
+    update_script 2>&1 | tee -a "$LOGFILE" | while IFS= read -r line; do
+      if [[ "$line" =~ "💡" || "$line" =~ "✔️" || "$line" =~ "✖️" ]]; then
+        echo -e "$line" # Nur msg_info, msg_ok, msg_error ausgeben
+      fi
     done
   else
-    # Verbose Mode: Log everything and show in terminal
+    # Verbose Mode: Zeigt alles im Terminal und speichert ins Log
     update_script 2>&1 | tee -a "$LOGFILE"
   fi
 
