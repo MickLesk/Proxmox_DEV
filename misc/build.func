@@ -988,37 +988,21 @@ check_container_storage() {
 }
 
 start() {
-  # Define silent mode function
+  # Silent-Modus Funktion definieren
   silent() { "$@" >/dev/null 2>&1; }
 
-  # Set log directory and timestamped log file
-  LOGDIR="/usr/local/community-scripts/logs"
-  TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
-  LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
-  mkdir -p "$LOGDIR"
-  touch "$LOGFILE"
-
-  # Logging function (only writes to file)
-  log_message() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOGFILE"
-  }
-
-  # Check if PVE is installed (LXC creation)
+  # Prüfe, ob PVE installiert ist (LXC-Erstellung)
   if command -v pveversion >/dev/null 2>&1; then
-    log_message "Starting ${APP} LXC installation..."
-    
-    if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a new ${APP} LXC. Proceed?" 10 58); then
+    if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a New ${APP} LXC. Proceed?" 10 58); then
       clear
-      log_message "Installation aborted by user."
       exit_script
       exit
     fi
     SPINNER_PID=""
-    install_script 2>&1 | tee -a "$LOGFILE"
-    log_message "Installation of ${APP} LXC completed."
+    install_script
   fi
 
-  # If PVE is not installed → show update options
+  # Falls PVE nicht vorhanden ist -> Update-Option anzeigen
   if ! command -v pveversion >/dev/null 2>&1; then
     CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
       "Support/Update functions for ${APP} LXC. Choose an option:" \
@@ -1029,41 +1013,29 @@ start() {
 
     if [ $? -ne 0 ]; then
       clear
-      log_message "Update aborted by user."
       exit_script
       exit
     fi
 
-    # Set verbose mode
+    # Verbose-Modus setzen
     case "$CHOICE" in
       1)
         VERBOSE="no"
         STD="silent"
-        log_message "Update started in Silent Mode"
         ;;
       2)
         VERBOSE="yes"
         STD=""
-        log_message "Update started in Verbose Mode"
         ;;
       3)
         clear
-        log_message "Update aborted."
         exit_script
         exit
         ;;
     esac
 
     SPINNER_PID=""
-    log_message "Starting ${APP} update..."
-
-    if [ "$VERBOSE" = "no" ]; then
-      update_script 2>&1 | tee -a "$LOGFILE" >/dev/null
-    else
-      update_script 2>&1 | tee -a "$LOGFILE"
-    fi
-
-    log_message "Update completed."
+    update_script
   fi
 }
 
