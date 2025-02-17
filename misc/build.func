@@ -997,9 +997,9 @@ start() {
   mkdir -p "$LOGDIR"
   touch "$LOGFILE"
 
-  # Logging function
+  # Logging function (only logs, does not print to console)
   log_message() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOGFILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOGFILE"
   }
 
   # Check if PVE is installed (LXC creation)
@@ -1057,7 +1057,7 @@ start() {
     log_message "Starting ${APP} update..."
     
     if [ "$VERBOSE" = "no" ]; then
-      update_script > /dev/null 2>>"$LOGFILE"
+      update_script 2>&1 | tee -a "$LOGFILE" >/dev/null
     else
       update_script | tee -a "$LOGFILE"
     fi
@@ -1065,6 +1065,7 @@ start() {
     log_message "Update completed."
   fi
 }
+
 
 # This function collects user settings and integrates all the collected information.
 build_container() {
