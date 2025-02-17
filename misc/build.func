@@ -988,6 +988,10 @@ check_container_storage() {
 }
 
 start() {
+  # Silent-Modus Funktion definieren
+  silent() { "$@" >/dev/null 2>&1; }
+
+  # Prüfe, ob PVE installiert ist (LXC-Erstellung)
   if command -v pveversion >/dev/null 2>&1; then
     if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a New ${APP} LXC. Proceed?" 10 58); then
       clear
@@ -998,6 +1002,7 @@ start() {
     install_script
   fi
 
+  # Falls PVE nicht vorhanden ist -> Update-Option anzeigen
   if ! command -v pveversion >/dev/null 2>&1; then
     CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
       "Support/Update functions for ${APP} LXC. Choose an option:" \
@@ -1016,7 +1021,7 @@ start() {
     case "$CHOICE" in
       1)
         VERBOSE="no"
-        STD=">/dev/null 2>&1"
+        STD="silent"
         ;;
       2)
         VERBOSE="yes"
