@@ -1008,7 +1008,7 @@ start() {
   TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
   LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
 
-  # Logging function
+  # Logging function (only logs `msg_*` messages in Silent Mode)
   log_message() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOGFILE"
   }
@@ -1042,14 +1042,14 @@ start() {
   log_message "Starting ${APP} update..."
 
   if [ "$VERBOSE" = "no" ]; then
-    # Silent Mode: Only log `msg_info`, `msg_ok`, and `msg_error`
-    update_script | while IFS= read -r line; do
-      if [[ "$line" =~ msg_info || "$line" =~ msg_ok || "$line" =~ msg_error ]]; then
+    # Silent Mode: Run update_script but capture only `msg_info`, `msg_ok`, `msg_error`
+    update_script 2>&1 | while IFS= read -r line; do
+      if [[ "$line" =~ ^\ *msg_info || "$line" =~ ^\ *msg_ok || "$line" =~ ^\ *msg_error ]]; then
         echo "$(date '+%Y-%m-%d %H:%M:%S') - ${line}" >> "$LOGFILE"
       fi
     done
   else
-    # Verbose Mode: Log everything and show in terminal
+    # Verbose Mode: Log everything and show it to the user
     update_script 2>&1 | tee -a "$LOGFILE"
   fi
 
