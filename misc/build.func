@@ -85,22 +85,21 @@ spinner() {
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local spin_i=0
   local interval=0.1
-  printf "\e[?25l" # Cursor verstecken
+  printf "\e[?25l"
 
-  while [[ -n "${SPINNER_PID:-}" ]] && kill -0 "$SPINNER_PID" 2>/dev/null; do
-    printf "\r ${YWB}%s${CL}" "${frames[spin_i]}"
+  local color="${YWB}"
+
+  while true; do
+    printf "\r ${color}%s${CL}" "${frames[spin_i]}"
     spin_i=$(((spin_i + 1) % ${#frames[@]}))
     sleep "$interval"
   done
-
-  printf "\e[?25h\r" # Cursor wieder anzeigen und Zeile leeren
 }
 
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
   echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
-
   spinner &
   SPINNER_PID=$!
 
@@ -111,10 +110,8 @@ msg_info() {
 
 # This function displays a success message with logging support.
 msg_ok() {
-  if [[ -n "${SPINNER_PID:-}" ]] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
-    kill "$SPINNER_PID" >/dev/null 2>&1
-  fi
-  printf "\e[?25h" # Cursor wieder anzeigen
+  if [ -n "$SPINNER_PID" ] && ps -p "$SPINNER_PID" >/dev/null; then kill "$SPINNER_PID" >/dev/null; fi
+  printf "\e[?25h"
   local msg="$1"
   echo -e "${BFR}${CM}${GN}${msg}${CL}"
 
@@ -307,7 +304,7 @@ ssh_check() {
 
 base_settings() {
   # Default Settings
-  CT_TYPE="${CT_TYPE:-1}"
+  CT_TYPE="1"
   DISK_SIZE="4"
   CORE_COUNT="1"
   RAM_SIZE="1024"
@@ -1002,17 +999,22 @@ check_container_storage() {
   fi
 }
 
+
 start() {
+  # Ensure log directory exists
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
 
+  # Set timestamped log file
   TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
   LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
 
+  # Logging function
   log_message() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >>"$LOGFILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOGFILE"
   }
 
+  # Select update mode
   CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
     "Choose an update mode:" \
     12 60 3 \
@@ -1037,27 +1039,20 @@ start() {
     ;;
   esac
 
+  SPINNER_PID=""
   log_message "Starting ${APP} update..."
 
-  # 🌀 Spinner direkt starten
-  spinner &
-  SPINNER_PID=$!
-
   if [ "$VERBOSE" = "no" ]; then
+    # Silent Mode: Zeigt nur `msg_*` in der Konsole, aber speichert ALLES ins Log
     update_script 2>&1 | tee -a "$LOGFILE" | while IFS= read -r line; do
-      if [[ "$line" =~ "✔️" || "$line" =~ "✖️" ]]; then
-        if [[ -n "$SPINNER_PID" ]]; then kill "$SPINNER_PID" >/dev/null 2>&1; fi
-        printf "\e[?25h"
-        echo -e "$line"
+      if [[ "$line" =~ "💡" || "$line" =~ "✔️" || "$line" =~ "✖️" ]]; then
+        echo -e "$line" # Nur msg_info, msg_ok, msg_error ausgeben
       fi
     done
   else
+    # Verbose Mode: Zeigt alles im Terminal und speichert ins Log
     update_script 2>&1 | tee -a "$LOGFILE"
   fi
-
-  # 🛑 Spinner sicher stoppen
-  if [[ -n "$SPINNER_PID" ]]; then kill "$SPINNER_PID" >/dev/null 2>&1; fi
-  printf "\e[?25h"
 
   log_message "Update completed."
 }
