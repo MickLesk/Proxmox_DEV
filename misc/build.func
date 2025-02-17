@@ -1042,11 +1042,12 @@ start() {
   log_message "Starting ${APP} update..."
 
   if [ "$VERBOSE" = "no" ]; then
-    # Silent Mode: msg_* always displayed, everything else only logged
-    {
-      update_script 2>&1
-      echo "$(date '+%Y-%m-%d %H:%M:%S') - Update completed."
-    } | tee -a "$LOGFILE" | grep --line-buffered -E "msg_info|msg_ok|msg_error" >/dev/tty
+    # Silent Mode: Log everything, but only display `msg_*` in the terminal (avoiding grep error)
+    update_script 2>&1 | tee -a "$LOGFILE" | while read -r line; do
+      if echo "$line" | grep -qE "msg_info|msg_ok|msg_error"; then
+        echo "$line"
+      fi
+    done
   else
     # Verbose Mode: Log everything and show in terminal
     update_script 2>&1 | tee -a "$LOGFILE"
