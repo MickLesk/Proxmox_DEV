@@ -1040,7 +1040,7 @@ start() {
     case "$CHOICE" in
       1)
         VERBOSE="no"
-        STD=">/dev/null 2>&1"
+        STD="> /dev/null 2>&1"
         log_message "Update started in Silent Mode"
         ;;
       2)
@@ -1061,7 +1061,7 @@ start() {
 
     # Ensure update_script output is correctly logged
     if [ "$VERBOSE" = "no" ]; then
-      update_script > >(tee -a "$LOGFILE") 2> >(tee -a "$LOGFILE" >&2)
+      update_script > "$LOGFILE" 2>&1
     else
       update_script 2>&1 | tee -a "$LOGFILE"
     fi
