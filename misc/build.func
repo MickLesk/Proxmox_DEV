@@ -988,25 +988,6 @@ check_container_storage() {
 }
 
 start() {
-  # Funktion zur Einstellung des Verbose-Modus innerhalb von start()
-  update_verbose() {
-    case "$1" in
-      1)
-        VERBOSE="no"
-        STD=">/dev/null 2>&1"
-        ;;
-      2)
-        VERBOSE="yes"
-        STD=""
-        ;;
-      3)
-        clear
-        exit_script
-        exit
-        ;;
-    esac
-  }
-
   if command -v pveversion >/dev/null 2>&1; then
     if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a New ${APP} LXC. Proceed?" 10 58); then
       clear
@@ -1028,13 +1009,26 @@ start() {
       exit 0
     fi
 
-    update_verbose "$CHOICE"
+    # Direkt eingebauter Case-Block ohne eigene Funktion
+    case "$CHOICE" in
+      1)
+        VERBOSE="no"
+        STD=">/dev/null 2>&1"
+        ;;
+      2)
+        VERBOSE="yes"
+        STD=""
+        ;;
+      3)
+        clear
+        exit_script
+        exit
+        ;;
+    esac
+
     update_script  
   fi
 }
-
-# Start-Funktion aufrufen
-# start
 
 # This function collects user settings and integrates all the collected information.
 build_container() {
