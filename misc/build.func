@@ -85,24 +85,28 @@ spinner() {
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local spin_i=0
   local interval=0.1
-  printf "\e[?25l"
+  printf "\e[?25l" # Cursor verstecken
 
-  local color="${YWB}"
-
-  while true; do
-    printf "\r ${color}%s${CL}" "${frames[spin_i]}"
+  while kill -0 "$SPINNER_PID" 2>/dev/null; do
+    printf "\r ${YWB}%s${CL}" "${frames[spin_i]}"
     spin_i=$(((spin_i + 1) % ${#frames[@]}))
     sleep "$interval"
   done
+
+  printf "\e[?25h\r" # Cursor wieder anzeigen und Zeile leeren
 }
 
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}" | tee -a "$LOGFILE"
+  echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
 
   spinner &
   SPINNER_PID=$!
+
+  if [ "$VERBOSE" = "no" ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - INFO: $msg" >>"$LOGFILE"
+  fi
 }
 
 # This function displays a success message with logging support.
