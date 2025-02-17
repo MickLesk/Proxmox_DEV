@@ -1043,7 +1043,7 @@ start() {
 
   if [ "$VERBOSE" = "no" ]; then
     # Silent Mode: Capture everything in the log but only show `msg_*` in terminal
-    update_script > >(grep -E "msg_info|msg_ok|msg_error") 2>>"$LOGFILE"
+    update_script > >(awk '/msg_info|msg_ok|msg_error/') 2>>"$LOGFILE"
   else
     # Verbose Mode: Log everything and show in terminal
     update_script 2>&1 | tee -a "$LOGFILE"
