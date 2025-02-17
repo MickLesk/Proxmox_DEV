@@ -1042,15 +1042,17 @@ start() {
   log_message "Starting ${APP} update..."
 
   if [ "$VERBOSE" = "no" ]; then
-    # Silent Mode: Log everything, but only display `msg_*` in the terminal
+    # Silent Mode: msg_* always displayed, everything else only logged
     {
       update_script 2>&1
       echo "$(date '+%Y-%m-%d %H:%M:%S') - Update completed."
-    } | tee -a "$LOGFILE" | awk '/msg_info|msg_ok|msg_error/'
+    } | tee -a "$LOGFILE" | grep --line-buffered -E "msg_info|msg_ok|msg_error" >/dev/tty
   else
     # Verbose Mode: Log everything and show in terminal
     update_script 2>&1 | tee -a "$LOGFILE"
   fi
+
+  log_message "Update completed."
 }
 
 # This function collects user settings and integrates all the collected information.
