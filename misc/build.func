@@ -996,13 +996,12 @@ start() {
   TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
   LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
 
-  # Create a named pipe for logging
-  LOG_PIPE="/tmp/logpipe.$$"
-  mkfifo "$LOG_PIPE"
-  tee -a "$LOGFILE" < "$LOG_PIPE" &
-  PIPE_PID=$!
+  # Logging function (only logs `msg_*` messages in Silent Mode)
+  log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOGFILE"
+  }
 
-  # Choose mode
+  # Select update mode
   CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
     "Choose an update mode:" \
     12 60 3 \
@@ -1013,32 +1012,33 @@ start() {
   case "$CHOICE" in
     1)
       VERBOSE="no"
+      log_message "Update started in Silent Mode"
       ;;
     2)
       VERBOSE="yes"
+      log_message "Update started in Verbose Mode"
       ;;
     3)
       clear
-      echo "Update aborted." > "$LOG_PIPE"
-      rm "$LOG_PIPE"
+      log_message "Update aborted."
       exit_script
       exit
       ;;
   esac
 
-  echo "Starting ${APP} update in mode: $VERBOSE" > "$LOG_PIPE"
-  if [ "$VERBOSE" = "yes" ]; then
-    update_script > "$LOG_PIPE" 2>&1
+  SPINNER_PID=""
+  log_message "Starting ${APP} update..."
+
+  if [ "$VERBOSE" = "no" ]; then
+    # Silent Mode: Only log `msg_info` and `msg_ok`, ignore all command outputs
+    update_script | grep --line-buffered "msg_" | tee -a "$LOGFILE"
   else
-    update_script > "$LOG_PIPE" 2>&1 &
+    # Verbose Mode: Log everything and show it to the user
+    update_script 2>&1 | tee -a "$LOGFILE"
   fi
 
-  wait $!
-  echo "Update completed." > "$LOG_PIPE"
-  rm "$LOG_PIPE"
+  log_message "Update completed."
 }
-
-
 
 # This function collects user settings and integrates all the collected information.
 build_container() {
