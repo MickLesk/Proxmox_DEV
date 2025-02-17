@@ -998,35 +998,40 @@ start() {
     install_script
   fi
 
-  # Funktion zum Setzen des Verbose-Modus
-  update_verbose() {
-    case "$1" in
-      1) VERBOSE="no"; STD="silent"; silent() { "$@" >/dev/null 2>&1; } ;;
-      2) VERBOSE="yes"; STD="" ;;
-      3) clear; exit_script; exit ;;
-    esac
-  }
-
-  if ! command -v pveversion >/dev/null 2>&1; then
-    CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
-      "Support/Update functions for ${APP} LXC. Choose an option:" 12 60 3 \
-      "1" "YES (Silent Mode)" \
-      "2" "YES (Verbose Mode)" \
-      "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
-
-    update_verbose "$CHOICE"
-    SPINNER_PID=""
-
-    if [ "$VERBOSE" = "yes" ]; then
-      update_script
-    else
-      silent update_script
-    fi
-  fi
+ update_verbose() {
+  case "$1" in
+    1)
+      VERBOSE="no"
+      STD=">/dev/null 2>&1"
+      ;;
+    2)
+      VERBOSE="yes"
+      STD=""
+      ;;
+    3)
+      clear
+      exit_script
+      exit
+      ;;
+  esac
 }
 
-# Startet die `start`-Funktion
-start
+if ! command -v pveversion >/dev/null 2>&1; then
+  CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
+    "Support/Update functions for ${APP} LXC. Choose an option:" \
+    12 60 3 \
+    "1" "YES (Silent Mode)" \
+    "2" "YES (Verbose Mode)" \
+    "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
+
+  if [ $? -ne 0 ]; then
+    echo -e "${CROSS}${RD} Menu canceled. Exiting.${CL}"
+    exit 0
+  fi
+
+  update_verbose "$CHOICE"
+  update_script  
+fi
 
 # This function collects user settings and integrates all the collected information.
 build_container() {
