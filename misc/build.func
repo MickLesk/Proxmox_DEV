@@ -1010,7 +1010,7 @@ start() {
 
   # Logging function
   log_message() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >>"$LOGFILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOGFILE"
   }
 
   # Select update mode
@@ -1042,11 +1042,12 @@ start() {
   log_message "Starting ${APP} update..."
 
   if [ "$VERBOSE" = "no" ]; then
-    # Silent Mode: Log everything, but only display `msg_*` in the terminal (avoiding grep error)
+    # Silent Mode: Log everything, but only display `msg_*` in the terminal
     update_script 2>&1 | tee -a "$LOGFILE" | while read -r line; do
-      if echo "$line" | grep -qE "msg_info|msg_ok|msg_error"; then
-        echo "$line"
-      fi
+      case "$line" in
+      *msg_info* | *msg_ok* | *msg_error*) echo "$line" ;;
+      *) echo "$line" >>"$LOGFILE" ;;
+      esac
     done
   else
     # Verbose Mode: Log everything and show in terminal
