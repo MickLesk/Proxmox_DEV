@@ -87,7 +87,7 @@ spinner() {
   local interval=0.1
   printf "\e[?25l" # Cursor verstecken
 
-  while kill -0 "$SPINNER_PID" 2>/dev/null; do
+  while [[ -n "${SPINNER_PID:-}" ]] && kill -0 "$SPINNER_PID" 2>/dev/null; do
     printf "\r ${YWB}%s${CL}" "${frames[spin_i]}"
     spin_i=$(((spin_i + 1) % ${#frames[@]}))
     sleep "$interval"
@@ -111,8 +111,10 @@ msg_info() {
 
 # This function displays a success message with logging support.
 msg_ok() {
-  if [ -n "$SPINNER_PID" ] && ps -p "$SPINNER_PID" >/dev/null; then kill "$SPINNER_PID" >/dev/null; fi
-  printf "\e[?25h"
+  if [[ -n "${SPINNER_PID:-}" ]] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
+    kill "$SPINNER_PID" >/dev/null 2>&1
+  fi
+  printf "\e[?25h" # Cursor wieder anzeigen
   local msg="$1"
   echo -e "${BFR}${CM}${GN}${msg}${CL}"
 
