@@ -1008,9 +1008,9 @@ start() {
   TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
   LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
 
-  # Logging function
+  # Logging function: NUR ins Log schreiben, NICHT in die Konsole
   log_message() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOGFILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >>"$LOGFILE"
   }
 
   # Select update mode
@@ -1042,10 +1042,16 @@ start() {
   log_message "Starting ${APP} update..."
 
   if [ "$VERBOSE" = "no" ]; then
-    # Silent Mode: Zeigt nur `msg_*` in der Konsole, aber speichert ALLES ins Log
+    # Silent Mode: Zeigt nur `msg_*` mit Spinner, aber speichert alles ins Log
     update_script 2>&1 | tee -a "$LOGFILE" | while IFS= read -r line; do
-      if [[ "$line" =~ "💡" || "$line" =~ "✔️" || "$line" =~ "✖️" ]]; then
-        echo -e "$line" # Nur msg_info, msg_ok, msg_error ausgeben
+      if [[ "$line" =~ "💡" ]]; then
+        echo -ne "$line"
+        spinner & # Spinner starten
+        SPINNER_PID=$!
+      elif [[ "$line" =~ "✔️" || "$line" =~ "✖️" ]]; then
+        if [[ -n "$SPINNER_PID" ]]; then kill "$SPINNER_PID" >/dev/null 2>&1; fi
+        printf "\e[?25h"
+        echo -e "$line"
       fi
     done
   else
