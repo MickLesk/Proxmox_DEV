@@ -304,7 +304,7 @@ ssh_check() {
 
 base_settings() {
   # Default Settings
-  CT_TYPE="1"
+  CT_TYPE="${CT_TYPE:-1}"
   DISK_SIZE="4"
   CORE_COUNT="1"
   RAM_SIZE="1024"
