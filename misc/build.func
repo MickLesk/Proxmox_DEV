@@ -96,28 +96,40 @@ spinner() {
   done
 }
 
-# This function displays an informational message with a yellow color.
+# This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
   echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
   spinner &
   SPINNER_PID=$!
+
+  if [ "$VERBOSE" = "no" ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - INFO: $msg" >> "$LOGFILE"
+  fi
 }
 
-# This function displays a success message with a green color.
+# This function displays a success message with logging support.
 msg_ok() {
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
   printf "\e[?25h"
   local msg="$1"
   echo -e "${BFR}${CM}${GN}${msg}${CL}"
+
+  if [ "$VERBOSE" = "no" ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - OK: $msg" >> "$LOGFILE"
+  fi
 }
 
-# This function displays a error message with a red color.
+# This function displays an error message with logging support.
 msg_error() {
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
   printf "\e[?25h"
   local msg="$1"
   echo -e "${BFR}${CROSS}${RD}${msg}${CL}"
+
+  if [ "$VERBOSE" = "no" ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: $msg" >> "$LOGFILE"
+  fi
 }
 
 # Check if the shell is using bash
@@ -996,7 +1008,7 @@ start() {
   TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
   LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
 
-  # Logging function (only logs `msg_*` messages in Silent Mode)
+  # Logging function
   log_message() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOGFILE"
   }
@@ -1030,10 +1042,14 @@ start() {
   log_message "Starting ${APP} update..."
 
   if [ "$VERBOSE" = "no" ]; then
-    # Silent Mode: Only log `msg_info` and `msg_ok`, ignore all command outputs
-    update_script | grep --line-buffered "msg_" | tee -a "$LOGFILE"
+    # Silent Mode: Only log `msg_info`, `msg_ok`, and `msg_error`
+    update_script | while IFS= read -r line; do
+      if [[ "$line" =~ msg_info || "$line" =~ msg_ok || "$line" =~ msg_error ]]; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - ${line}" >> "$LOGFILE"
+      fi
+    done
   else
-    # Verbose Mode: Log everything and show it to the user
+    # Verbose Mode: Log everything and show in terminal
     update_script 2>&1 | tee -a "$LOGFILE"
   fi
 
