@@ -991,13 +991,14 @@ start() {
   # Define silent mode function
   silent() { "$@" >/dev/null 2>&1; }
 
-  # Set log directory and file
+  # Set log directory and timestamped log file
   LOGDIR="/usr/local/community-scripts/logs"
-  LOGFILE="${LOGDIR}/${APP}_update.log"
+  TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
+  LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
   mkdir -p "$LOGDIR"
   touch "$LOGFILE"
 
-  # Logging function (only logs, does not print to console)
+  # Logging function (only writes to file)
   log_message() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOGFILE"
   }
@@ -1013,7 +1014,7 @@ start() {
       exit
     fi
     SPINNER_PID=""
-    install_script | tee -a "$LOGFILE"
+    install_script 2>&1 | tee -a "$LOGFILE"
     log_message "Installation of ${APP} LXC completed."
   fi
 
@@ -1055,13 +1056,13 @@ start() {
 
     SPINNER_PID=""
     log_message "Starting ${APP} update..."
-    
+
     if [ "$VERBOSE" = "no" ]; then
       update_script 2>&1 | tee -a "$LOGFILE" >/dev/null
     else
-      update_script | tee -a "$LOGFILE"
+      update_script 2>&1 | tee -a "$LOGFILE"
     fi
-    
+
     log_message "Update completed."
   fi
 }
