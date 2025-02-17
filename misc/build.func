@@ -997,9 +997,9 @@ start() {
   mkdir -p "$LOGDIR"
   touch "$LOGFILE"
 
-  # Logging function (only writes to file, does not print to console)
+  # Logging function (writes to file AND terminal in Verbose Mode)
   log_message() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOGFILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOGFILE"
   }
 
   # Check if PVE is installed (LXC creation)
@@ -1037,12 +1037,12 @@ start() {
     case "$CHOICE" in
       1)
         VERBOSE="no"
-        STD="silent"
+        STD="tee -a \"$LOGFILE\" >/dev/null 2>&1"
         log_message "Update started in Silent Mode"
         ;;
       2)
         VERBOSE="yes"
-        STD=""
+        STD="tee -a \"$LOGFILE\""
         log_message "Update started in Verbose Mode"
         ;;
       3)
@@ -1056,14 +1056,8 @@ start() {
     SPINNER_PID=""
     log_message "Starting ${APP} update..."
 
-    # Ensure apt-get is logged in Silent Mode while msg_info is still visible
-    if [ "$VERBOSE" = "no" ]; then
-      {
-        update_script
-      } > >(tee -a "$LOGFILE") 2> >(tee -a "$LOGFILE" >&2)
-    else
-      update_script 2>&1 | tee -a "$LOGFILE"
-    fi
+    # Execute update_script with correct STD handling
+    eval "update_script | $STD"
 
     log_message "Update completed."
   fi
