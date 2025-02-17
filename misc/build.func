@@ -99,13 +99,10 @@ spinner() {
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
+  echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}" | tee -a "$LOGFILE"
+
   spinner &
   SPINNER_PID=$!
-
-  if [ "$VERBOSE" = "no" ]; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - INFO: $msg" >>"$LOGFILE"
-  fi
 }
 
 # This function displays a success message with logging support.
@@ -304,7 +301,7 @@ ssh_check() {
 
 base_settings() {
   # Default Settings
-  CT_TYPE="1"
+  CT_TYPE="${CT_TYPE:-1}"
   DISK_SIZE="4"
   CORE_COUNT="1"
   RAM_SIZE="1024"
@@ -1000,20 +997,16 @@ check_container_storage() {
 }
 
 start() {
-  # Ensure log directory exists
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
 
-  # Set timestamped log file
   TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
   LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
 
-  # Logging function: NUR ins Log schreiben, NICHT in die Konsole
   log_message() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >>"$LOGFILE"
   }
 
-  # Select update mode
   CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
     "Choose an update mode:" \
     12 60 3 \
@@ -1038,26 +1031,27 @@ start() {
     ;;
   esac
 
-  SPINNER_PID=""
   log_message "Starting ${APP} update..."
 
+  # 🌀 Spinner direkt starten
+  spinner &
+  SPINNER_PID=$!
+
   if [ "$VERBOSE" = "no" ]; then
-    # Silent Mode: Zeigt nur `msg_*` mit Spinner, aber speichert alles ins Log
     update_script 2>&1 | tee -a "$LOGFILE" | while IFS= read -r line; do
-      if [[ "$line" =~ "💡" ]]; then
-        echo -ne "$line"
-        spinner & # Spinner starten
-        SPINNER_PID=$!
-      elif [[ "$line" =~ "✔️" || "$line" =~ "✖️" ]]; then
+      if [[ "$line" =~ "✔️" || "$line" =~ "✖️" ]]; then
         if [[ -n "$SPINNER_PID" ]]; then kill "$SPINNER_PID" >/dev/null 2>&1; fi
         printf "\e[?25h"
         echo -e "$line"
       fi
     done
   else
-    # Verbose Mode: Zeigt alles im Terminal und speichert ins Log
     update_script 2>&1 | tee -a "$LOGFILE"
   fi
+
+  # 🛑 Spinner sicher stoppen
+  if [[ -n "$SPINNER_PID" ]]; then kill "$SPINNER_PID" >/dev/null 2>&1; fi
+  printf "\e[?25h"
 
   log_message "Update completed."
 }
