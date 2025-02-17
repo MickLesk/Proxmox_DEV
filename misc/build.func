@@ -988,9 +988,6 @@ check_container_storage() {
 }
 
 start() {
-  # Define silent mode function
-  silent() { "$@" >/dev/null 2>&1; }
-
   # Ensure log directory exists
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
@@ -998,77 +995,49 @@ start() {
   # Set timestamped log file
   TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
   LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
-  touch "$LOGFILE"
 
-  # Logging function (writes to log and optionally to terminal)
-  log_message() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOGFILE"
-  }
+  # Create a named pipe for logging
+  LOG_PIPE="/tmp/logpipe.$$"
+  mkfifo "$LOG_PIPE"
+  tee -a "$LOGFILE" < "$LOG_PIPE" &
+  PIPE_PID=$!
 
-  # Check if PVE is installed (LXC creation)
-  if command -v pveversion >/dev/null 2>&1; then
-    log_message "Starting ${APP} LXC installation..."
-    
-    if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a new ${APP} LXC. Proceed?" 10 58); then
+  # Choose mode
+  CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
+    "Choose an update mode:" \
+    12 60 3 \
+    "1" "YES (Silent Mode)" \
+    "2" "YES (Verbose Mode)" \
+    "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
+
+  case "$CHOICE" in
+    1)
+      VERBOSE="no"
+      ;;
+    2)
+      VERBOSE="yes"
+      ;;
+    3)
       clear
-      log_message "Installation aborted by user."
+      echo "Update aborted." > "$LOG_PIPE"
+      rm "$LOG_PIPE"
       exit_script
       exit
-    fi
-    SPINNER_PID=""
-    install_script 2>&1 | tee -a "$LOGFILE"
-    log_message "Installation of ${APP} LXC completed."
+      ;;
+  esac
+
+  echo "Starting ${APP} update in mode: $VERBOSE" > "$LOG_PIPE"
+  if [ "$VERBOSE" = "yes" ]; then
+    update_script > "$LOG_PIPE" 2>&1
+  else
+    update_script > "$LOG_PIPE" 2>&1 &
   fi
 
-  # If PVE is not installed → show update options
-  if ! command -v pveversion >/dev/null 2>&1; then
-    CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
-      "Support/Update functions for ${APP} LXC. Choose an option:" \
-      12 60 3 \
-      "1" "YES (Silent Mode)" \
-      "2" "YES (Verbose Mode)" \
-      "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
-
-    if [ $? -ne 0 ]; then
-      clear
-      log_message "Update aborted by user."
-      exit_script
-      exit
-    fi
-
-    # Set verbose mode
-    case "$CHOICE" in
-      1)
-        VERBOSE="no"
-        STD="> /dev/null 2>&1"
-        log_message "Update started in Silent Mode"
-        ;;
-      2)
-        VERBOSE="yes"
-        STD=""
-        log_message "Update started in Verbose Mode"
-        ;;
-      3)
-        clear
-        log_message "Update aborted."
-        exit_script
-        exit
-        ;;
-    esac
-
-    SPINNER_PID=""
-    log_message "Starting ${APP} update..."
-
-    # Ensure update_script output is correctly logged
-    if [ "$VERBOSE" = "no" ]; then
-      update_script > "$LOGFILE" 2>&1
-    else
-      update_script 2>&1 | tee -a "$LOGFILE"
-    fi
-
-    log_message "Update completed."
-  fi
+  wait $!
+  echo "Update completed." > "$LOG_PIPE"
+  rm "$LOG_PIPE"
 }
+
 
 
 # This function collects user settings and integrates all the collected information.
