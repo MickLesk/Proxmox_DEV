@@ -996,7 +996,9 @@ start() {
     fi
     SPINNER_PID=""
     install_script
-  else
+  fi
+
+  if ! command -v pveversion >/dev/null 2>&1; then
     CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
       "Support/Update functions for ${APP} LXC. Choose an option:" \
       12 60 3 \
@@ -1005,11 +1007,12 @@ start() {
       "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
 
     if [ $? -ne 0 ]; then
-      echo -e "${CROSS}${RD} Menu canceled. Exiting.${CL}"
-      exit 0
+      clear
+      exit_script
+      exit
     fi
 
-    # Direkt eingebauter Case-Block ohne eigene Funktion
+    # Verbose-Modus setzen
     case "$CHOICE" in
       1)
         VERBOSE="no"
@@ -1026,7 +1029,8 @@ start() {
         ;;
     esac
 
-    update_script  
+    SPINNER_PID=""
+    update_script
   fi
 }
 
