@@ -986,7 +986,6 @@ check_container_storage() {
     fi
   fi
 }
-
 start() {
   # Define silent mode function
   silent() { "$@" >/dev/null 2>&1; }
@@ -1014,7 +1013,7 @@ start() {
       exit
     fi
     SPINNER_PID=""
-    install_script 2>&1 | tee -a "$LOGFILE"
+    install_script | tee -a "$LOGFILE"
     log_message "Installation of ${APP} LXC completed."
   fi
 
@@ -1057,9 +1056,11 @@ start() {
     SPINNER_PID=""
     log_message "Starting ${APP} update..."
 
-    # Ensure msg_info and msg_ok are displayed in Silent Mode while logging everything else
+    # Ensure apt-get is logged in Silent Mode while msg_info is still visible
     if [ "$VERBOSE" = "no" ]; then
-      update_script > >(tee -a "$LOGFILE") 2> >(tee -a "$LOGFILE" >&2)
+      {
+        update_script
+      } > >(tee -a "$LOGFILE") 2> >(tee -a "$LOGFILE" >&2)
     else
       update_script 2>&1 | tee -a "$LOGFILE"
     fi
@@ -1067,6 +1068,7 @@ start() {
     log_message "Update completed."
   fi
 }
+
 
 # This function collects user settings and integrates all the collected information.
 build_container() {
