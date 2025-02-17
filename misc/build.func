@@ -1057,7 +1057,7 @@ start() {
     log_message "Starting ${APP} update..."
     
     if [ "$VERBOSE" = "no" ]; then
-      update_script 2>&1 | tee -a "$LOGFILE" >/dev/null
+      update_script > /dev/null 2>>"$LOGFILE"
     else
       update_script | tee -a "$LOGFILE"
     fi
