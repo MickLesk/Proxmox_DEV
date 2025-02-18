@@ -85,15 +85,22 @@ spinner() {
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local spin_i=0
   local interval=0.1
-  printf "\e[?25l"
-
-  local color="${YWB}"
+  local delay=0.2
+  printf "\e[?25l" # Cursor ausblenden
+  trap 'printf "\e[?25h"; exit' SIGINT SIGTERM
 
   while true; do
-    printf "\r ${color}%s${CL}" "${frames[spin_i]}"
-    spin_i=$(((spin_i + 1) % ${#frames[@]}))
-    sleep "$interval"
+    # Prüfen, ob die letzte Zeile noch aktiv ist oder Ausgabe kommt
+    if ps -p "$APT_PID" >/dev/null 2>&1; then
+      printf "\r ${frames[spin_i]} "
+      spin_i=$(((spin_i + 1) % ${#frames[@]}))
+      sleep "$interval"
+    else
+      break # Beenden, wenn APT fertig ist
+    fi
   done
+
+  printf "\e[?25h" # Cursor wieder sichtbar machen
 }
 
 # This function displays an informational message with logging support.
