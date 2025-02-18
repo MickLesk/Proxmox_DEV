@@ -123,22 +123,16 @@ msg_error() {
 }
 
 log_message() {
-  local level="${1:-INFO}"                    # Standardlevel ist "INFO", falls kein Level übergeben wird.
-  local message="${2:-(no message provided)}" # Falls keine Nachricht übergeben wird.
+  local level="$1"
+  local message="$2"
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
-  # Sicherstellen, dass das Log-Verzeichnis existiert
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
+  LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
 
-  # Falls LOGFILE nicht existiert, setzen wir es einmalig mit einem globalen Timestamp
-  if [[ -z "${LOGFILE:-}" ]]; then
-    TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
-    LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
-  fi
-
-  # Log-Nachricht in Datei schreiben
-  echo "$timestamp [$level] $message" >>"$LOGFILE"
+  echo "$timestamp - $level: $message" >>"$LOGFILE"
+  [ -z "$STD" ] && echo "$timestamp - $level: $message" # In der Konsole nur, wenn nicht Silent Mode
 }
 
 # Check if the shell is using bash
@@ -1022,48 +1016,70 @@ check_container_storage() {
 }
 
 start() {
-  log_message "Update gestartet."
+  # Silent-Modus Funktion definieren
+  silent() { "$@" >/dev/null 2>&1; }
 
-  # Modus wählen
-  CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
-    "Choose an update mode:" \
-    12 60 3 \
-    "1" "YES (Silent Mode)" \
-    "2" "YES (Verbose Mode)" \
-    "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
-
-  case "$CHOICE" in
-  1)
-    VERBOSE="no"
-    log_message "Update gestartet im Silent Mode."
-    ;;
-  2)
-    VERBOSE="yes"
-    log_message "Update gestartet im Verbose Mode."
-    ;;
-  3)
-    clear
-    log_message "Update abgebrochen."
-    exit_script
-    exit
-    ;;
-  esac
-
-  log_message "Starte ${APP} Update..."
-
-  if [ "$VERBOSE" = "no" ]; then
-    # Silent Mode: Zeigt nur `msg_*` in der Konsole, aber speichert ALLES ins Log
-    update_script 2>&1 | tee -a "$LOGFILE" | while IFS= read -r line; do
-      if [[ "$line" =~ "💡" || "$line" =~ "✔️" || "$line" =~ "✖️" ]]; then
-        echo -e "$line" # Nur msg_info, msg_ok, msg_error ausgeben
-      fi
-    done
-  else
-    # Verbose Mode: Zeigt alles im Terminal und speichert ins Log
-    update_script 2>&1 | tee -a "$LOGFILE"
+  # Prüfe, ob PVE installiert ist (LXC-Erstellung)
+  if command -v pveversion >/dev/null 2>&1; then
+    if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a New ${APP} LXC. Proceed?" 10 58); then
+      clear
+      log_message "INFO" "LXC-Erstellung abgebrochen"
+      exit_script
+      exit
+    fi
+    SPINNER_PID=""
+    log_message "INFO" "Starte LXC-Installation für ${APP}"
+    install_script
   fi
 
-  log_message "Update abgeschlossen."
+  # Falls PVE nicht vorhanden ist -> Update-Option anzeigen
+  if ! command -v pveversion >/dev/null 2>&1; then
+    CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
+      "Support/Update functions for ${APP} LXC. Choose an option:" \
+      12 60 3 \
+      "1" "YES (Silent Mode)" \
+      "2" "YES (Verbose Mode)" \
+      "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
+
+    if [ $? -ne 0 ]; then
+      clear
+      log_message "INFO" "Update abgebrochen"
+      exit_script
+      exit
+    fi
+
+    # Verbose-Modus setzen
+    case "$CHOICE" in
+    1)
+      VERBOSE="no"
+      STD="silent"
+      log_message "INFO" "Update gestartet im Silent Mode"
+      ;;
+    2)
+      VERBOSE="yes"
+      STD=""
+      log_message "INFO" "Update gestartet im Verbose Mode"
+      ;;
+    3)
+      clear
+      log_message "INFO" "Update abgebrochen"
+      exit_script
+      exit
+      ;;
+    esac
+
+    SPINNER_PID=""
+    log_message "INFO" "Starte Update für ${APP}"
+
+    # STD-Handling für Update
+    if [ "$STD" = "silent" ]; then
+      update_script >>"$LOGFILE" 2>&1 # Nur ins Log schreiben
+    else
+      update_script 2>&1 | tee -a "$LOGFILE" # In Log und Konsole ausgeben
+    fi
+
+    log_message "INFO" "Update abgeschlossen."
+  fi
 }
 
 # This function collects user settings and integrates all the collected information.
