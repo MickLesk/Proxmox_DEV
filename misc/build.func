@@ -87,13 +87,15 @@ spinner() {
   local interval=0.1
 
   printf "\e[?25l"                             # Cursor ausblenden
-  trap 'printf "\e[?25h"; exit' SIGINT SIGTERM # Cursor bei Abbruch wieder einblenden
+  trap 'printf "\e[?25h"; exit' SIGINT SIGTERM # Cursor sichtbar machen bei Abbruch
 
-  while true; do
-    printf "\r${BFR}${YWB}%s ${CL}" "${frames[spin_i]}" # Bewegt sich nur links, überschreibt keine Texte
+  while kill -0 "$SPINNER_PID" 2>/dev/null; do
+    printf "\r ${frames[spin_i]} "
     spin_i=$(((spin_i + 1) % ${#frames[@]}))
     sleep "$interval"
   done
+
+  printf "\e[?25h" # Cursor wieder einblenden
 }
 
 # This function displays an informational message with logging support.
