@@ -114,8 +114,9 @@ msg_info() {
     wait "$SPINNER_PID" 2>/dev/null || true
   fi
 
-  # Spinner starten (separater Prozess)
+  # Spinner-Prozess starten
   {
+    trap 'exit 0' TERM
     while true; do
       printf "\r${color}${frames[spin_i]} ${YW}${msg}${CL}  "
       spin_i=$(((spin_i + 1) % ${#frames[@]}))
