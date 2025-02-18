@@ -33,6 +33,7 @@ msg_info "Installing Node.js"
 $STD apt-get update
 $STD apt-get install -y nodejs
 $STD npm install -g pnpm
+$STD pnpm add -g nx
 msg_ok "Installed Node.js"
 
 msg_info "Setting up PostgreSQL"
@@ -75,15 +76,15 @@ Description=Docmost Service
 After=network.target postgresql.service
 
 [Service]
-WorkingDirectory=/opt/documenso/apps/web
-ExecStart=/usr/bin/next start -p 3500
+WorkingDirectory=/opt/docmost
+ExecStart=/usr/bin/pnpm start
 Restart=always
-EnvironmentFile=/opt/documenso/.env
+EnvironmentFile=/opt/docmost/.env
 
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable -q --now documenso
+systemctl enable -q --now docmost
 msg_ok "Created Service"
 
 motd_ssh
