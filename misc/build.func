@@ -129,10 +129,14 @@ log_message() {
 
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
-  LOGFILE="${LOGDIR}/${APP}_update.log" # Kein TIMESTAMP hier, sonst jedes Mal neue Datei!
+  LOGFILE="${LOGDIR}/${APP}_update.log"
 
   echo "$timestamp - $level: $message" >>"$LOGFILE"
-  [ -z "$STD" ] && echo "$timestamp - $level: $message" # Nur in der Konsole anzeigen, wenn nicht silent
+
+  # Sichere Prüfung auf STD:
+  if [ -z "${STD:-}" ]; then
+    echo "$timestamp - $level: $message"
+  fi
 }
 
 # Check if the shell is using bash
