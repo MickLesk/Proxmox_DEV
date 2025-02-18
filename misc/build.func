@@ -104,11 +104,9 @@ msg_info() {
 
   # Prüfen, ob der Spinner bereits läuft
   if [ "${SPINNER_ACTIVE:-0}" -eq 1 ]; then
-    echo "[DEBUG] msg_info wurde bereits gestartet, überspringe..." >>/tmp/spinner_debug.log
     return
   fi
 
-  echo "[DEBUG] msg_info gestartet mit: $msg" >>/tmp/spinner_debug.log
   SPINNER_ACTIVE=1 # Markiere den Spinner als aktiv
   MSG_DISPLAYED=0  # Text wurde noch nicht ausgegeben
   start_spinner "$msg"
@@ -134,7 +132,6 @@ start_spinner() {
   } &
 
   SPINNER_PID=$!
-  echo "[DEBUG] Neuer Spinner gestartet mit PID $SPINNER_PID" >>/tmp/spinner_debug.log
 }
 
 msg_ok() {
@@ -1093,15 +1090,15 @@ start() {
     case "$CHOICE" in
     1)
       VERBOSE="no"
-      log_message "INFO" "Update gestartet im Silent Mode"
+      log_message "INFO" "Update started (Silent Mode)"
       ;;
     2)
       VERBOSE="yes"
-      log_message "INFO" "Update gestartet im Verbose Mode"
+      log_message "INFO" "Update started (Verbose Mode)"
       ;;
     3)
       clear
-      log_message "INFO" "Update abgebrochen."
+      log_message "INFO" "Update aborted."
       exit_script
       exit
       ;;
