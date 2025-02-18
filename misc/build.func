@@ -105,20 +105,23 @@ msg_info() {
   local spin_i=0
   local interval=0.1
   local color="${YWB}" # Gelber Spinner
-  printf "\n"          # Damit der Spinner eine eigene Zeile hat
 
-  # Falls bereits ein Spinner läuft, diesen beenden
+  printf "\n" # Sicherstellen, dass der Spinner eine eigene Zeile bekommt
+
+  # Falls ein vorheriger Spinner läuft, beende ihn
   if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
     kill "$SPINNER_PID" >/dev/null 2>&1
     wait "$SPINNER_PID" 2>/dev/null || true
   fi
 
-  # Spinner-Prozess starten
-  while true; do
-    printf "\r${color}${frames[spin_i]} ${YW}${msg}${CL}  "
-    spin_i=$(((spin_i + 1) % ${#frames[@]}))
-    sleep "$interval"
-  done &
+  # Spinner starten (separater Prozess)
+  {
+    while true; do
+      printf "\r${color}${frames[spin_i]} ${YW}${msg}${CL}  "
+      spin_i=$(((spin_i + 1) % ${#frames[@]}))
+      sleep "$interval"
+    done
+  } &
 
   SPINNER_PID=$!
 }
