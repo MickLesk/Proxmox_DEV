@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
 # Copyright (c) 2021-2024 tteck
-# Author: tteck
-# Co-Author: MickLesk (Canbiz)
-# License: MIT
-# https://github.com/tteck/Proxmox/raw/main/LICENSE
+# Author: MickLesk (Canbiz)
+# License: MIT | https://github.com/tteck/Proxmox/raw/main/LICENSE
 # Source: https://github.com/NodeBB/NodeBB
 
 source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
@@ -21,6 +19,8 @@ $STD apt-get install -y \
   curl \
   sudo \
   make \
+  redis-server \
+  expect \
   gnupg \
   ca-certificates \
   mc
@@ -29,11 +29,10 @@ msg_ok "Installed Dependencies"
 msg_info "Setting up Node.js & MongoDB Repository"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
-curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
-sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
-   --dearmor
-echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
+
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg --dearmor -o /etc/apt/keyrings/mongodb-server-8.0.gpg
+echo "deb [arch=amd64,arm64 signed-by=/etc/apt/keyrings/mongodb-server-8.0.gpg] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-8.0.list
 $STD apt-get update
 msg_ok "Set up Repositories"
 
@@ -42,9 +41,9 @@ $STD apt-get install -y nodejs
 msg_ok "Installed Node.js"
 
 msg_info "Installing MongoDB"
-$STD sudo apt-get install -y mongodb-org
-sudo systemctl start mongod
-sleep 5 # MongoDB needs some secounds to start, if not sleep it collide with following mongosh
+$STD apt-get install -y mongodb-org
+systemctl enable -q --now mongod
+sleep 10 # MongoDB needs some secounds to start, if not sleep it collide with following mongosh
 msg_ok "Installed MongoDB"   
 
 msg_info "Configure MongoDB"
@@ -52,6 +51,7 @@ MONGO_ADMIN_USER="admin"
 MONGO_ADMIN_PWD="$(openssl rand -base64 18 | cut -c1-13)"
 NODEBB_USER="nodebb"
 NODEBB_PWD="$(openssl rand -base64 18 | cut -c1-13)"
+MONGO_CONNECTION_STRING="mongodb://${NODEBB_USER}:${NODEBB_PWD}@localhost:27017/nodebb"
 NODEBB_SECRET=$(uuidgen)
 {
     echo "NodeBB-Credentials"
@@ -81,9 +81,10 @@ db.createUser({
 })
 quit()
 EOF
-sudo sed -i '/security:/d' /etc/mongod.conf
-sudo bash -c 'echo -e "\nsecurity:\n  authorization: enabled" >> /etc/mongod.conf'
-sudo systemctl restart mongod
+sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
+sed -i '/security:/d' /etc/mongod.conf
+bash -c 'echo -e "\nsecurity:\n  authorization: enabled" >> /etc/mongod.conf'
+systemctl restart mongod
 msg_ok "MongoDB successfully configurated" 
 
 msg_info "Install NodeBB" 
@@ -93,26 +94,41 @@ wget -q "https://github.com/NodeBB/NodeBB/archive/refs/tags/v${RELEASE}.zip"
 unzip -q v${RELEASE}.zip
 mv NodeBB-${RELEASE} /opt/nodebb
 cd /opt/nodebb
-NODEBB_USER=$(grep "NodeBB User" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
-NODEBB_PWD=$(grep "NodeBB Password" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
-NODEBB_SECRET=$(grep "NodeBB Secret" ~/nodebb.creds | awk -F: '{print $2}' | xargs)
-cat <<EOF >/opt/nodebb/config.json
-{
-    "url": "http://localhost:4567",
-    "secret": "$NODEBB_SECRET",
-    "database": "mongo",
-    "mongo": {
-        "host": "127.0.0.1",
-        "port": "27017",
-        "username": "$NODEBB_USER",
-        "password": "$NODEBB_PWD",
-        "database": "nodebb",
-        "uri": ""
-    },
-    "port": "4567"
+touch pidfile
+expect <<EOF > /dev/null 2>&1
+log_file /dev/null
+set timeout -1
+
+spawn ./nodebb setup
+expect "URL used to access this NodeBB" {
+    send "http://localhost:4567\r"
 }
+expect "Please enter a NodeBB secret" {
+    send "$NODEBB_SECRET\r"
+}
+expect "Would you like to submit anonymous plugin usage to nbbpm? (yes)" {
+    send "no\r"
+}
+expect "Which database to use (mongo)" {
+    send "mongo\r"
+}
+expect "Format: mongodb://*" {
+    send "$MONGO_CONNECTION_STRING\r"
+}
+expect "Administrator username" {
+    send "helper-scripts\r"
+}
+expect "Administrator email address" {
+    send "helper-scripts@local.com\r"
+}
+expect "Password" {
+    send "helper-scripts\r"
+}
+expect "Confirm Password" {
+    send "helper-scripts\r"
+}
+expect eof
 EOF
-#$STD ./nodebb setup
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed NodeBB"
 
@@ -127,9 +143,9 @@ After=system.slice multi-user.target mongod.service
 Type=forking
 User=root
 
-WorkingDirectory=/opt/nodebb/nodebb
+WorkingDirectory=/opt/nodebb
 PIDFile=/opt/nodebb/pidfile
-ExecStart=/usr/bin/env node loader.js --no-silent
+ExecStart=/usr/bin/node /opt/nodebb/loader.js
 Restart=always
 
 [Install]

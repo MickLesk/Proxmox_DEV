@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/misc/build.func)
-# Copyright (c) 2021-2024 tteck
+# Copyright (c) 2021-2025 community-scripts ORG
 # Author: MickLesk (Canbiz)
-# License: MIT
-# https://github.com/tteck/Proxmox/raw/main/LICENSE
+# License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 
 # App Default Values
 APP="NodeBB"
@@ -32,30 +31,24 @@ function update_script() {
     exit
   fi
 
-  RELEASE=$(curl -s https://api.github.com/repos/linkwarden/linkwarden/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
+  RELEASE=$(curl -s https://api.github.com/repos/NodeBB/NodeBB/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
   if [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]] || [[ ! -f /opt/${APP}_version.txt ]]; then
     msg_info "Stopping ${APP}"
     systemctl stop nodebb
     msg_ok "Stopped ${APP}"
 
-    msg_info "Updating ${APP} to ${RELEASE}"
+    msg_info "Updating ${APP} to v${RELEASE}"
     cd /opt/nodebb
-    git pull
-    yarn
-    npx playwright install-deps
-    yarn playwright install
-    yarn prisma generate
-    yarn build
-    yarn prisma migrate deploy
+    ./nodebb upgrade >/dev/null 2>&1
     echo "${RELEASE}" >/opt/${APP}_version.txt
-    msg_ok "Updated ${APP} to ${RELEASE}"
+    msg_ok "Updated ${APP} to v${RELEASE}"
 
     msg_info "Starting ${APP}"
-    systemctl start linkwarden
+    systemctl start nodebb
     msg_ok "Started ${APP}"
     msg_ok "Updated Successfully"
   else
-    msg_ok "No update required.  ${APP} is already at ${RELEASE}."
+    msg_ok "No update required.  ${APP} is already at v${RELEASE}."
   fi
   exit
 }
@@ -65,5 +58,6 @@ build_container
 description
 
 msg_ok "Completed Successfully!\n"
-echo -e "${APP}${CL} should be reachable by going to the following URL.
-         ${BL}http://${IP}:4567${CL} \n"
+echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
+echo -e "${INFO}${YW} Access it using the following URL:${CL}"
+echo -e "${TAB}${GATEWAY}${BGN}http://${IP}:4567${CL}"

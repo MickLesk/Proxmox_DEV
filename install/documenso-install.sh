@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2021-2024 tteck
-# Author: tteck
-# Co-Author: MickLesk (Canbiz)
-# License: MIT
-# https://github.com/tteck/Proxmox/raw/main/LICENSE
+# Copyright (c) 2021-2025 community-scripts ORG
+# Author: MickLesk (Canbiz)
+# License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 # Source: https://github.com/documenso/documenso
 
 source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
@@ -18,19 +16,22 @@ update_os
 msg_info "Installing Dependencies"
 $STD apt-get install -y \
   gpg \
+  libc6 \
   curl \
   sudo \
   make \
   cmake \
   mc \
   jq \
-  postgresql 
+  postgresql \
+  python3 \
+  python3-bcrypt
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Node.js Repository"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
 msg_ok "Set up Node.js Repository"
 
 msg_info "Installing Node.js"
@@ -72,15 +73,22 @@ sed -i "s|NEXT_PRIVATE_DATABASE_URL=.*|NEXT_PRIVATE_DATABASE_URL=\"postgres://$D
 sed -i "s|NEXT_PRIVATE_DIRECT_DATABASE_URL=.*|NEXT_PRIVATE_DIRECT_DATABASE_URL=\"postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME\"|" /opt/documenso/.env
 export TURBO_CACHE=1
 export NEXT_TELEMETRY_DISABLED=1
-
+export CYPRESS_INSTALL_BINARY=0
+export NODE_OPTIONS="--max-old-space-size=2048"
+# $STD npm ci --cache ~/.npm-cache --maxsockets=5
+# $STD npm run build
+# $STD npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
 $STD npm ci
-npm run build
-#npx prisma migrate deploy --schema ./packages/prisma/schema.prisma
-#turbo run build --filter=@documenso/web...
-
-#npm run prisma:migrate-deploy
+$STD npm run build:web
+$STD npm run prisma:migrate-deploy
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Documenso"
+
+msg_info "Create User"
+PASSWORD_HASH=$(python3 -c "import bcrypt; print(bcrypt.hashpw(b'helper-scripts', bcrypt.gensalt(rounds=12)).decode())")
+sudo -u postgres psql -d documenso_db -c "INSERT INTO \"User\" (name, email, \"emailVerified\", password, \"identityProvider\", roles, \"createdAt\", \"lastSignedIn\", \"updatedAt\", \"customerId\") VALUES ('helper-scripts', 'helper-scripts@local.com', '2025-01-20 17:14:45.058', '$PASSWORD_HASH', 'DOCUMENSO', ARRAY['USER', 'ADMIN']::\"Role\"[], '2025-01-20 16:04:05.543', '2025-01-20 16:14:55.249', '2025-01-20 16:14:55.25', NULL) RETURNING id;"
+$STD npm run prisma:migrate-deploy
+msg_ok "User created"
 
 msg_info "Creating Service"
 cat <<EOF >/etc/systemd/system/documenso.service
@@ -89,15 +97,15 @@ Description=Documenso Service
 After=network.target postgresql.service
 
 [Service]
-WorkingDirectory=/opt/documenso
-ExecStart=/usr/bin/npm start
+WorkingDirectory=/opt/documenso/apps/web
+ExecStart=/usr/bin/next start -p 3500
 Restart=always
 EnvironmentFile=/opt/documenso/.env
 
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable -q --now documenso.service
+systemctl enable -q --now documenso
 msg_ok "Created Service"
 
 motd_ssh
