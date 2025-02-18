@@ -101,16 +101,20 @@ spinner() {
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  local frames=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏") # Spinner Frames
+  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏') # Spinner Frames
   local spin_i=0
   local interval=0.1
-  local color="${YWB}" # Gelber Spinner
+
+  # Falls ein alter Spinner läuft, beenden
+  if [ -n "$SPINNER_PID" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
+    kill "$SPINNER_PID" >/dev/null 2>&1
+  fi
 
   printf "\e[?25l" # Cursor ausblenden
 
-  # Spinner in Endlosschleife starten (Hintergrundprozess)
+  # Spinner als Hintergrundprozess starten
   while true; do
-    printf "\r ${color}${frames[spin_i]} ${YW}${msg}${CL}  " # Bewegt sich auf EINER Zeile
+    printf "\r ${YW}${frames[spin_i]} ${msg}${CL}  "
     spin_i=$(((spin_i + 1) % ${#frames[@]}))
     sleep "$interval"
   done &
@@ -119,8 +123,8 @@ msg_info() {
 }
 
 msg_ok() {
-  if [ -n "$SPINNER_PID" ] && ps -p "$SPINNER_PID" >/dev/null; then
-    kill "$SPINNER_PID" >/dev/null
+  if [ -n "$SPINNER_PID" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
+    kill "$SPINNER_PID" >/dev/null 2>&1
   fi
   printf "\e[?25h"
   local msg="$1"
