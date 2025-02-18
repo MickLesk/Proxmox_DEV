@@ -85,20 +85,39 @@ spinner() {
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local spin_i=0
   local interval=0.1
-  local padding="       " # Platzhalter für den Spinner, falls Text kürzer ist
-  printf "\e[?25l"        # Cursor ausblenden
+  local last_output=""
+
+  printf "\e[?25l" # Cursor ausblenden
 
   while true; do
-    printf "\r%s%s" "${frames[spin_i]}" "$padding"
-    spin_i=$(((spin_i + 1) % ${#frames[@]}))
-    sleep "$interval"
+    # Prüfen, ob neue Ausgabe vorhanden ist
+    if [[ "$last_output" != "$(
+      tput sc
+      tput cuu1
+      tput ed
+      tput rc
+    )" ]]; then
+      last_output="$(
+        tput sc
+        tput cuu1
+        tput ed
+        tput rc
+      )"
+      printf "\r %s" "${frames[spin_i]}" # Spinner an den Anfang setzen
+      spin_i=$(((spin_i + 1) % ${#frames[@]}))
+      sleep "$interval"
+    else
+      break # Beenden, wenn Text kommt
+    fi
   done
+
+  printf "\e[?25h" # Cursor wieder sichtbar machen
 }
 
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  echo -ne "\r${TAB}${YW}${HOLD}${msg}${HOLD}"
+  echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
   spinner & # Startet den Spinner IMMER
   SPINNER_PID=$!
   log_message "INFO" "$msg"
