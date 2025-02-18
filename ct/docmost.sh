@@ -5,8 +5,6 @@ source <(curl -s https://raw.githubusercontent.com/MickLesk/Proxmox_DEV/main/mis
 # License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 # Source: https://ubuntu.com/
 
-# App Default Values
-echo -e "Loading..."
 APP="Docmost"
 var_tags="documents"
 var_cpu="2"

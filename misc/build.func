@@ -99,6 +99,26 @@ error_handler() {
 # }
 
 # This function displays an informational message with logging support.
+
+start_spinner() {
+  local msg="$1"
+  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local spin_i=0
+  local interval=0.1
+  local term_width=$(tput cols)
+
+  {
+    while [ "${SPINNER_ACTIVE:-1}" -eq 1 ]; do
+      local output="${frames[spin_i]} ${YW}${msg}${CL}"
+      printf "\r%-${term_width}s" "$output" >&2  # ANSI wird richtig interpretiert
+      spin_i=$(((spin_i + 1) % ${#frames[@]}))
+      sleep "$interval"
+    done
+  } &
+
+  SPINNER_PID=$!
+}
+
 msg_info() {
   local msg="$1"
 
@@ -108,29 +128,9 @@ msg_info() {
   fi
 
   SPINNER_ACTIVE=1 # Markiere den Spinner als aktiv
-  MSG_DISPLAYED=0  # Text wurde noch nicht ausgegeben
   start_spinner "$msg"
 }
 
-start_spinner() {
-  local msg="$1"
-  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-  local spin_i=0
-  local interval=0.1
-  local term_width=$(tput cols) # Terminalbreite holen
-
-  {
-    while [ "${SPINNER_ACTIVE:-1}" -eq 1 ]; do
-      local output="${frames[spin_i]} ${YW}${msg}${CL}"
-      local padding=$((term_width - ${#output}))    # Abstand berechnen
-      printf "\r%s%*s" "$output" "$padding" " " >&2 # Ausgabe mit Padding
-      spin_i=$(((spin_i + 1) % ${#frames[@]}))
-      sleep "$interval"
-    done
-  } &
-
-  SPINNER_PID=$!
-}
 
 msg_ok() {
   if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
@@ -139,7 +139,7 @@ msg_ok() {
   fi
 
   local msg="$1"
-  printf "\e[?25h\r${CM}${GN}${msg}${CL}\n" >&2
+  printf "\e[?25h\r${CM}${GN}%s${CL}\n" "$msg" >&2  # Jetzt ANSI-konform
   unset SPINNER_PID
   SPINNER_ACTIVE=0 # Spinner als inaktiv setzen
 
