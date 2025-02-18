@@ -22,7 +22,7 @@ $STD apt install -y \
 msg_ok "Installed Dependencies"
 
 msg_info "Setup SQL Server 2022"
-curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
 curl -fsSL https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list | tee /etc/apt/sources.list.d/mssql-server-2022.list &>/dev/null
 $STD apt-get update -y
 $STD apt-get install -y mssql-server
