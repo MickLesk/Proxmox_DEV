@@ -104,21 +104,18 @@ msg_info() {
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local spin_i=0
   local interval=0.1
-  local color="${YWB}" # Gelber Spinner
+
+  # Falls bereits ein Spinner läuft, nicht erneut starten!
+  if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
+    echo "[DEBUG] msg_info bereits aktiv mit PID $SPINNER_PID" >>/tmp/spinner_debug.log
+    return
+  fi
 
   echo "[DEBUG] msg_info gestartet mit: $msg" >>/tmp/spinner_debug.log
 
-  # Falls ein vorheriger Spinner läuft, beende ihn
-  if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
-    kill "$SPINNER_PID" >/dev/null 2>&1
-    wait "$SPINNER_PID" 2>/dev/null || true
-    echo "[DEBUG] Alter Spinner (PID $SPINNER_PID) gestoppt" >>/tmp/spinner_debug.log
-  fi
-
-  # Spinner starten (separater Prozess)
   {
     while true; do
-      printf "\r${color}${frames[spin_i]} ${YW}${msg}${CL}  "
+      printf "\r${frames[spin_i]} ${YW}${msg}${CL}  "
       spin_i=$(((spin_i + 1) % ${#frames[@]}))
       sleep "$interval"
     done
