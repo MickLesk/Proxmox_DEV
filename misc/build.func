@@ -85,33 +85,15 @@ spinner() {
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local spin_i=0
   local interval=0.1
-  local last_output=""
 
-  printf "\e[?25l" # Cursor ausblenden
+  printf "\e[?25l"                             # Cursor ausblenden
+  trap 'printf "\e[?25h"; exit' SIGINT SIGTERM # Cursor bei Abbruch wieder einblenden
 
   while true; do
-    # Prüfen, ob neue Ausgabe vorhanden ist
-    if [[ "$last_output" != "$(
-      tput sc
-      tput cuu1
-      tput ed
-      tput rc
-    )" ]]; then
-      last_output="$(
-        tput sc
-        tput cuu1
-        tput ed
-        tput rc
-      )"
-      printf "\r %s" "${frames[spin_i]}" # Spinner an den Anfang setzen
-      spin_i=$(((spin_i + 1) % ${#frames[@]}))
-      sleep "$interval"
-    else
-      break # Beenden, wenn Text kommt
-    fi
+    printf "\r\e[K%s " "${frames[spin_i]}" # Spinner + Leerzeichen
+    spin_i=$(((spin_i + 1) % ${#frames[@]}))
+    sleep "$interval"
   done
-
-  printf "\e[?25h" # Cursor wieder sichtbar machen
 }
 
 # This function displays an informational message with logging support.
