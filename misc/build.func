@@ -123,8 +123,8 @@ msg_error() {
 }
 
 log_message() {
-  local level="${1:-INFO}"         # Standardlevel ist "INFO", falls kein Level übergeben wird.
-  local message="${2:-(no message provided)}"  # Falls keine Nachricht übergeben wird.
+  local level="${1:-INFO}"                    # Standardlevel ist "INFO", falls kein Level übergeben wird.
+  local message="${2:-(no message provided)}" # Falls keine Nachricht übergeben wird.
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
   # Sicherstellen, dass das Log-Verzeichnis existiert
@@ -140,7 +140,6 @@ log_message() {
   # Log-Nachricht in Datei schreiben
   echo "$timestamp [$level] $message" >>"$LOGFILE"
 }
-
 
 # Check if the shell is using bash
 shell_check() {
