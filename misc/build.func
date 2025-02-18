@@ -112,19 +112,22 @@ msg_info() {
 
   printf "\e[?25l" # Cursor ausblenden
 
-  # Spinner als Hintergrundprozess starten
-  while true; do
-    printf "\r ${YW}${frames[spin_i]} ${msg}${CL}  "
-    spin_i=$(((spin_i + 1) % ${#frames[@]}))
-    sleep "$interval"
-  done &
+  # Spinner in separatem Prozess starten
+  (
+    while true; do
+      printf "\r ${YW}${frames[spin_i]} ${msg}${CL}  "
+      spin_i=$(((spin_i + 1) % ${#frames[@]}))
+      sleep "$interval"
+    done
+  ) &
 
   SPINNER_PID=$! # Speichert die PID des Spinners
 }
 
 msg_ok() {
-  if [ -n "$SPINNER_PID" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
+  if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
     kill "$SPINNER_PID" >/dev/null 2>&1
+    wait "$SPINNER_PID" 2>/dev/null
   fi
   printf "\e[?25h"
   local msg="$1"
@@ -136,6 +139,7 @@ msg_ok() {
 msg_error() {
   if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
     kill "$SPINNER_PID" >/dev/null 2>&1
+    wait "$SPINNER_PID" 2>/dev/null
   fi
   printf "\e[?25h"
   local msg="$1"
