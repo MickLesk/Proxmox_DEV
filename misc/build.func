@@ -107,14 +107,14 @@ msg_info() {
 
   printf "\e[?25l" # Cursor ausblenden
 
-  while ps -p "$SPINNER_PID" >/dev/null 2>&1; do
+  # Startet den Spinner als Hintergrundprozess
+  while true; do
     printf "\r ${frames[spin_i]} ${YW}${msg}${CL}" # Spinner + Nachricht
     spin_i=$(((spin_i + 1) % ${#frames[@]}))
     sleep "$interval"
-  done
+  done &
 
-  printf "\r ${INFO}${msg}${CL}\n" # Abschließen mit fester Nachricht
-  printf "\e[?25h"                 # Cursor wieder einblenden
+  SPINNER_PID=$! # Speichert die PID des Spinners
 }
 
 msg_ok() {
