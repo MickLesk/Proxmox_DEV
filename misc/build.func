@@ -101,10 +101,18 @@ spinner() {
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}${CL}" # Nachricht + Farbreset
-  spinner &                                       # Spinner starten
-  SPINNER_PID=$!                                  # PID speichern
-  log_message "INFO" "$msg"
+  local frames=('⏳' '⌛' '⏳' '⌛')  # Sanduhr-Symbole
+  local spin_i=0
+  local interval=0.2
+  
+  printf "\e[?25l"  # Cursor ausblenden
+  while ps -p "$SPINNER_PID" > /dev/null 2>&1; do
+    printf "\r ${frames[spin_i]} ${YW}${msg}${CL}"  # Spinner + Nachricht
+    spin_i=$(((spin_i + 1) % ${#frames[@]}))
+    sleep "$interval"
+  done
+  printf "\r ${INFO}${msg}${CL}"  # Abschluss mit fester Nachricht
+  printf "\e[?25h"  # Cursor wieder einblenden
 }
 
 msg_ok() {
