@@ -97,46 +97,45 @@ spinner() {
 }
 
 # This function displays an informational message with logging support.
-# Ausgabe-Funktionen mit Logging
 msg_info() {
   local msg="$1"
+  log_message "INFO" "$msg"
   echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
   spinner &
   SPINNER_PID=$!
-  log_message "INFO: $msg"
 }
 
 msg_ok() {
-  [[ -n "${SPINNER_PID:-}" ]] && kill "$SPINNER_PID" >/dev/null 2>&1
+  [ -n "${SPINNER_PID:-}" ] && kill "$SPINNER_PID" >/dev/null 2>&1
   printf "\e[?25h"
   local msg="$1"
+  log_message "OK" "$msg"
   echo -e "${BFR}${CM}${GN}${msg}${CL}"
-  log_message "OK: $msg"
 }
 
 msg_error() {
-  [[ -n "${SPINNER_PID:-}" ]] && kill "$SPINNER_PID" >/dev/null 2>&1
+  [ -n "${SPINNER_PID:-}" ] && kill "$SPINNER_PID" >/dev/null 2>&1
   printf "\e[?25h"
   local msg="$1"
+  log_message "ERROR" "$msg"
   echo -e "${BFR}${CROSS}${RD}${msg}${CL}"
-  log_message "ERROR: $msg"
 }
 
 log_message() {
-  local level="${1:-INFO}"              # Standardwert INFO, falls kein Level angegeben wird
-  local message="${2:-MISSING_MESSAGE}" # Fallback für fehlende Messages
+  local level="$1"
+  shift
+  local message="$*"
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
   LOGFILE="${LOGDIR}/${APP}_update.log"
 
+  # Log schreiben
   echo "$timestamp - $level: $message" >>"$LOGFILE"
 
-  # Sichere Prüfung auf STD:
-  if [ -z "${STD:-}" ]; then
-    echo "$timestamp - $level: $message"
-  fi
+  # In der Konsole nur anzeigen, wenn nicht Silent Mode
+  [ "$VERBOSE" = "yes" ] && echo "$timestamp - $level: $message"
 }
 
 # Check if the shell is using bash
@@ -1020,24 +1019,25 @@ check_container_storage() {
 }
 
 start() {
-  # Silent-Modus Funktion
+  # Sicherstellen, dass das Log-Verzeichnis existiert
+  LOGDIR="/usr/local/community-scripts/logs"
+  mkdir -p "$LOGDIR"
+
+  # Silent-Funktion für Umleitung definieren
   silent() { "$@" >/dev/null 2>&1; }
 
-  # SPINNER Variablen absichern
-  SPINNER_PID=""
-
+  # Prüfen, ob PVE installiert ist (Installation oder Update)
   if command -v pveversion >/dev/null 2>&1; then
     if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a New ${APP} LXC. Proceed?" 10 58); then
       clear
-      log_message "INFO" "LXC-Erstellung abgebrochen"
       exit_script
       exit
     fi
-    log_message "INFO" "Starte LXC-Installation für ${APP}"
+    SPINNER_PID=""
     install_script
   fi
 
-  # Falls kein PVE, dann Update
+  # Falls kein PVE -> Update-Modus
   if ! command -v pveversion >/dev/null 2>&1; then
     CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
       "Support/Update functions for ${APP} LXC. Choose an option:" \
@@ -1045,13 +1045,6 @@ start() {
       "1" "YES (Silent Mode)" \
       "2" "YES (Verbose Mode)" \
       "3" "NO (Cancel Update)" --nocancel --default-item "1" 3>&1 1>&2 2>&3)
-
-    if [ $? -ne 0 ]; then
-      clear
-      log_message "INFO" "Update abgebrochen"
-      exit_script
-      exit
-    fi
 
     case "$CHOICE" in
     1)
@@ -1066,21 +1059,14 @@ start() {
       ;;
     3)
       clear
-      log_message "INFO" "Update abgebrochen"
+      log_message "INFO" "Update abgebrochen."
       exit_script
       exit
       ;;
     esac
 
-    log_message "INFO" "Starte Update für ${APP}"
-
-    if [ "$STD" = "silent" ]; then
-      update_script >>"$LOGFILE" 2>&1
-    else
-      update_script 2>&1 | tee -a "$LOGFILE"
-    fi
-
-    log_message "INFO" "Update abgeschlossen."
+    SPINNER_PID=""
+    update_script
   fi
 }
 
