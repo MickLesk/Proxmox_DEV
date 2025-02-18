@@ -222,6 +222,19 @@ arch_check() {
   fi
 }
 
+set_lxc_features() {
+  local FEATURES="keyctl=1,fuse=1,cpu=1,apparmor=1,seccomp=1"  # Default
+
+  [[ "$var_docker" == "yes" ]] && FEATURES+=",nesting=1"
+  [[ "$var_nfs" == "yes" ]] && FEATURES+=",nfs=1"
+  [[ "$var_cifs" == "yes" ]] && FEATURES+=",cifs=1"
+  [[ "$var_passthrough" == "yes" ]] && FEATURES+=",mknod=1,mount=1"
+  [[ "$var_custom_mounts" == "yes" ]] && FEATURES+=",mount=1"
+
+  echo -e "🔹 LXC Features for Container $CT_ID: \n➡️  $FEATURES"
+  pct set "$CTID" -features "$FEATURES"
+}
+
 # Function to get the current IP address based on the distribution
 get_current_ip() {
   if [ -f /etc/os-release ]; then
