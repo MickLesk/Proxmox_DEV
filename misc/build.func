@@ -1023,8 +1023,14 @@ start() {
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
 
-  # Silent-Funktion für Umleitung definieren
-  silent() { "$@" >/dev/null 2>&1; }
+  # Funktion für Silent Mode definieren
+  silent() {
+    if [ "$VERBOSE" = "no" ]; then
+      "$@" >>"$LOGFILE" 2>&1
+    else
+      "$@"
+    fi
+  }
 
   # Prüfen, ob PVE installiert ist (Installation oder Update)
   if command -v pveversion >/dev/null 2>&1; then
@@ -1049,12 +1055,10 @@ start() {
     case "$CHOICE" in
     1)
       VERBOSE="no"
-      STD="silent"
       log_message "INFO" "Update gestartet im Silent Mode"
       ;;
     2)
       VERBOSE="yes"
-      STD=""
       log_message "INFO" "Update gestartet im Verbose Mode"
       ;;
     3)
