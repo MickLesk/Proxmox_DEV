@@ -85,28 +85,20 @@ spinner() {
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local spin_i=0
   local interval=0.1
-  local delay=0.2
-  printf "\e[?25l" # Cursor ausblenden
-  trap 'printf "\e[?25h"; exit' SIGINT SIGTERM
+  local padding="       " # Platzhalter für den Spinner, falls Text kürzer ist
+  printf "\e[?25l"        # Cursor ausblenden
 
   while true; do
-    # Prüfen, ob die letzte Zeile noch aktiv ist oder Ausgabe kommt
-    if ps -p "$APT_PID" >/dev/null 2>&1; then
-      printf "\r ${frames[spin_i]} "
-      spin_i=$(((spin_i + 1) % ${#frames[@]}))
-      sleep "$interval"
-    else
-      break # Beenden, wenn APT fertig ist
-    fi
+    printf "\r%s%s" "${frames[spin_i]}" "$padding"
+    spin_i=$(((spin_i + 1) % ${#frames[@]}))
+    sleep "$interval"
   done
-
-  printf "\e[?25h" # Cursor wieder sichtbar machen
 }
 
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
+  echo -ne "\r${TAB}${YW}${HOLD}${msg}${HOLD}"
   spinner & # Startet den Spinner IMMER
   SPINNER_PID=$!
   log_message "INFO" "$msg"
@@ -1035,7 +1027,7 @@ start() {
     if [ "$VERBOSE" = "no" ]; then
       "$@" >>"$LOGFILE" 2>&1
     else
-      "$@"
+      "$@" 2>&1 | tee -a "$LOGFILE"
     fi
   }
 
