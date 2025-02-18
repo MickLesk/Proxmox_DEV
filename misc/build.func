@@ -100,25 +100,35 @@ spinner() {
 msg_info() {
   local msg="$1"
   log_message "INFO" "$msg"
+
+  # Silent Mode: Kein Spinner, aber Log schreiben
+  if [ "$VERBOSE" = "no" ]; then
+    return
+  fi
+
   echo -ne "${TAB}${YW}${HOLD}${msg}${HOLD}"
   spinner &
   SPINNER_PID=$!
 }
 
 msg_ok() {
-  [ -n "${SPINNER_PID:-}" ] && kill "$SPINNER_PID" >/dev/null 2>&1
+  if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
+    kill "$SPINNER_PID" >/dev/null 2>&1
+  fi
   printf "\e[?25h"
   local msg="$1"
   log_message "OK" "$msg"
-  echo -e "${BFR}${CM}${GN}${msg}${CL}"
+  [ "$VERBOSE" = "yes" ] && echo -e "${BFR}${CM}${GN}${msg}${CL}"
 }
 
 msg_error() {
-  [ -n "${SPINNER_PID:-}" ] && kill "$SPINNER_PID" >/dev/null 2>&1
+  if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
+    kill "$SPINNER_PID" >/dev/null 2>&1
+  fi
   printf "\e[?25h"
   local msg="$1"
   log_message "ERROR" "$msg"
-  echo -e "${BFR}${CROSS}${RD}${msg}${CL}"
+  [ "$VERBOSE" = "yes" ] && echo -e "${BFR}${CROSS}${RD}${msg}${CL}"
 }
 
 log_message() {
@@ -134,7 +144,7 @@ log_message() {
   # Log schreiben
   echo "$timestamp - $level: $message" >>"$LOGFILE"
 
-  # In der Konsole nur anzeigen, wenn nicht Silent Mode
+  # Nur anzeigen, wenn nicht Silent Mode
   [ "$VERBOSE" = "yes" ] && echo "$timestamp - $level: $message"
 }
 
