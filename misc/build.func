@@ -90,7 +90,7 @@ spinner() {
   trap 'printf "\e[?25h"; exit' SIGINT SIGTERM # Cursor bei Abbruch wieder einblenden
 
   while true; do
-    printf "\r\e[1G%s " "${frames[spin_i]}" # Cursor auf Spalte 1 setzen (lässt msg_info stehen)
+    printf "\r${BFR}${YWB}%s ${CL}" "${frames[spin_i]}" # Bewegt sich nur links, überschreibt keine Texte
     spin_i=$(((spin_i + 1) % ${#frames[@]}))
     sleep "$interval"
   done
@@ -99,8 +99,8 @@ spinner() {
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  printf "\n\e[33m💡 %s\e[0m\n" "$msg" # Gelbe Info-Nachricht (steht fest)
-  spinner & SPINNER_PID=$!
+  echo -ne "\n${TAB}${YW}${HOLD}${msg}${HOLD}" # Setzt Nachricht mit fixem Abstand
+  spinner SPINNER_PID=$!
   log_message "INFO" "$msg"
 }
 
@@ -110,7 +110,7 @@ msg_ok() {
   fi
   printf "\e[?25h"
   local msg="$1"
-  printf "\r\e[1G✔️ %s\n" "$1" # Erfolgsnachricht, überschreibt Spinner sauber
+  printf "\r\e[K${CM}${GN}$1${CL}\n" # Erfolgsnachricht und Spinner entfernen
 
   log_message "OK" "$msg"
 }
