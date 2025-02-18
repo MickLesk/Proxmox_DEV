@@ -101,12 +101,15 @@ error_handler() {
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
-    echo "[DEBUG] msg_info wurde bereits gestartet und läuft mit PID $SPINNER_PID" >> /tmp/spinner_debug.log
-    return  # Falls der Spinner bereits läuft, nicht erneut starten
+
+  # Prüfen, ob der Spinner bereits läuft
+  if [ "${SPINNER_ACTIVE:-0}" -eq 1 ]; then
+    echo "[DEBUG] msg_info wurde bereits gestartet, überspringe..." >>/tmp/spinner_debug.log
+    return
   fi
 
-  echo "[DEBUG] msg_info gestartet mit: $msg" >> /tmp/spinner_debug.log
+  echo "[DEBUG] msg_info gestartet mit: $msg" >>/tmp/spinner_debug.log
+  SPINNER_ACTIVE=1 # Markiere Spinner als aktiv
   start_spinner "$msg"
 }
 
@@ -116,9 +119,8 @@ start_spinner() {
   local spin_i=0
   local interval=0.1
 
-  # Spinner starten, wenn er noch nicht läuft
   {
-    while true; do
+    while [ "${SPINNER_ACTIVE:-1}" -eq 1 ]; do
       printf "\r${frames[spin_i]} ${YW}${msg}${CL}  " >&2
       spin_i=$(((spin_i + 1) % ${#frames[@]}))
       sleep "$interval"
@@ -126,20 +128,19 @@ start_spinner() {
   } &
 
   SPINNER_PID=$!
-  echo "[DEBUG] Neuer Spinner gestartet mit PID $SPINNER_PID" >> /tmp/spinner_debug.log
+  echo "[DEBUG] Neuer Spinner gestartet mit PID $SPINNER_PID" >>/tmp/spinner_debug.log
 }
 
-
 msg_ok() {
-  # Falls ein Spinner läuft, beenden
   if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
     kill "$SPINNER_PID" >/dev/null 2>&1
     wait "$SPINNER_PID" 2>/dev/null || true
   fi
 
   local msg="$1"
-  printf "\e[?25h\r${CM}${GN}${msg}${CL}\n"
-  unset SPINNER_PID # PID Variable zurücksetzen
+  printf "\e[?25h\r${CM}${GN}${msg}${CL}\n" >&2
+  unset SPINNER_PID
+  SPINNER_ACTIVE=0 # Spinner als inaktiv setzen
 
   log_message "OK" "$msg"
 }
@@ -149,9 +150,9 @@ msg_error() {
     kill "$SPINNER_PID" >/dev/null 2>&1
     wait "$SPINNER_PID" 2>/dev/null || true
   fi
-  printf "\e[?25h"
+
   local msg="$1"
-  printf "\e[?25h\r${CROSS}${RD}${msg}${CL}\n"
+  printf "\e[?25h\r${CROSS}${RD}${msg}${CL}\n" >&2
   unset SPINNER_PID
   log_message "ERROR" "$msg"
 }
