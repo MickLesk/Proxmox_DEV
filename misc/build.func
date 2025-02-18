@@ -80,55 +80,54 @@ error_handler() {
   echo -e "\n$error_message\n"
 }
 
-# This function displays a spinner.
-spinner() {
-  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-  local spin_i=0
-  local interval=0.1
+# # This function displays a spinner.
+# spinner() {
+#   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+#   local spin_i=0
+#   local interval=0.1
 
-  printf "\e[?25l"                             # Cursor ausblenden
-  trap 'printf "\e[?25h"; exit' SIGINT SIGTERM # Cursor sichtbar machen bei Abbruch
+#   printf "\e[?25l"                             # Cursor ausblenden
+#   trap 'printf "\e[?25h"; exit' SIGINT SIGTERM # Cursor sichtbar machen bei Abbruch
 
-  while kill -0 "$SPINNER_PID" 2>/dev/null; do
-    printf "\r ${frames[spin_i]} "
-    spin_i=$(((spin_i + 1) % ${#frames[@]}))
-    sleep "$interval"
-  done
+#   while kill -0 "$SPINNER_PID" 2>/dev/null; do
+#     printf "\r ${frames[spin_i]} "
+#     spin_i=$(((spin_i + 1) % ${#frames[@]}))
+#     sleep "$interval"
+#   done
 
-  printf "\e[?25h" # Cursor wieder einblenden
-}
+#   printf "\e[?25h" # Cursor wieder einblenden
+# }
 
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏') # Spinner Frames
+  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local spin_i=0
   local interval=0.1
+  local color="${YWB}" # Gelber Spinner
+  printf "\n"          # Damit der Spinner eine eigene Zeile hat
 
   # Falls bereits ein Spinner läuft, diesen beenden
   if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
     kill "$SPINNER_PID" >/dev/null 2>&1
+    wait "$SPINNER_PID" 2>/dev/null || true
   fi
 
-  printf "\e[?25l" # Cursor ausblenden
+  # Spinner-Prozess starten
+  while true; do
+    printf "\r${color}${frames[spin_i]} ${YW}${msg}${CL}  "
+    spin_i=$(((spin_i + 1) % ${#frames[@]}))
+    sleep "$interval"
+  done &
 
-  # Spinner in separatem Prozess starten
-  (
-    while true; do
-      printf "\r ${YW}${frames[spin_i]} ${msg}${CL}  "
-      spin_i=$(((spin_i + 1) % ${#frames[@]}))
-      sleep "$interval"
-    done
-  ) &
-
-  SPINNER_PID=$! # Speichert die PID des Spinners
+  SPINNER_PID=$!
 }
 
 msg_ok() {
   # Falls ein Spinner läuft, beenden
   if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
     kill "$SPINNER_PID" >/dev/null 2>&1
-    wait "$SPINNER_PID" 2>/dev/null || true # wait nur ausführen, wenn Prozess existiert
+    wait "$SPINNER_PID" 2>/dev/null || true
   fi
 
   local msg="$1"
@@ -141,7 +140,7 @@ msg_ok() {
 msg_error() {
   if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
     kill "$SPINNER_PID" >/dev/null 2>&1
-    wait "$SPINNER_PID" 2>/dev/null || true # wait nur ausführen, wenn Prozess existiert
+    wait "$SPINNER_PID" 2>/dev/null || true
   fi
   printf "\e[?25h"
   local msg="$1"
