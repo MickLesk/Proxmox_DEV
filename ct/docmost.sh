@@ -22,41 +22,38 @@ catch_errors
 
 function update_script() {
   header_info
+  check_container_storage
+  check_container_resources
   if [[ ! -d /opt/docmost ]]; then
     msg_error "No ${APP} Installation Found!"
     exit
   fi
-  if (($(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80)); then
-    read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
-    [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
-  fi
-  RELEASE=$(curl -s https://api.github.com/repos/documenso/documenso/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+  RELEASE=$(curl -s https://api.github.com/repos/docmost/docmost/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
   if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
-    whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "SET RESOURCES" "Please set the resources in your ${APP} LXC to ${var_cpu}vCPU and ${var_ram}RAM for the build process before continuing" 10 75
     msg_info "Stopping ${APP}"
-    systemctl stop documenso
+    systemctl stop docmost
     msg_ok "${APP} Stopped"
 
-    msg_info "Updating ${APP} to ${RELEASE}"
-    cp /opt/documenso/.env /opt/
-    rm -R /opt/documenso
-    wget -q "https://github.com/documenso/documenso/archive/refs/tags/v${RELEASE}.zip"
-    unzip -q v${RELEASE}.zip
-    mv documenso-${RELEASE} /opt/documenso
-    cd /opt/documenso
-    mv /opt/.env /opt/documenso/.env
-    npm install &>/dev/null
-    npm run build:web &>/dev/null
-    npm run prisma:migrate-deploy &>/dev/null
+    msg_info "Updating ${APP} to v${RELEASE}"
+    cp /opt/docmost/.env /opt/
+    rm -rf /opt/docmost
+    temp_file=$(mktemp)
+    wget -q "https://github.com/docmost/docmost/archive/refs/tags/v${RELEASE}.tar.gz" -O "$temp_file"
+    tar -xzf "$temp_file"
+    mv docmost-${RELEASE} /opt/docmost
+    cd /opt/docmost
+    mv /opt/.env /opt/docmost/.env
+    pnpm install --force &>/dev/null
+    pnpm build &>/dev/null
     echo "${RELEASE}" >/opt/${APP}_version.txt
     msg_ok "Updated ${APP}"
 
     msg_info "Starting ${APP}"
-    systemctl start documenso
+    systemctl start docmost
     msg_ok "Started ${APP}"
 
     msg_info "Cleaning Up"
-    rm -rf v${RELEASE}.zip
+    rm -f ${temp_file}
     msg_ok "Cleaned"
     msg_ok "Updated Successfully"
   else

@@ -54,17 +54,17 @@ $STD sudo -u postgres psql -c "ALTER ROLE $DB_USER SET timezone TO 'UTC'"
 msg_ok "Set up PostgreSQL"
 
 msg_info "Installing Docmost (Patience)"
-cd /opt
+temp_file=$(mktemp)
 RELEASE=$(curl -s https://api.github.com/repos/docmost/docmost/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
-wget -q "https://github.com/docmost/docmost/archive/refs/tags/v${RELEASE}.zip"
-unzip -q v${RELEASE}.zip
+wget -q "https://github.com/docmost/docmost/archive/refs/tags/v${RELEASE}.tar.gz" -O "$temp_file"
+tar -xzf "$temp_file"
 mv docmost-${RELEASE} /opt/docmost
 cd /opt/docmost
 mv .env.example .env
 sed -i "s|APP_SECRET=.*|APP_SECRET=$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | cut -c1-32)|" /opt/docmost/.env
 sed -i "s|DATABASE_URL=.*|DATABASE_URL=postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME|" /opt/docmost/.env
 export NODE_OPTIONS="--max-old-space-size=2048"
-$STD pnpm install --frozen-lockfile
+$STD pnpm install --force
 $STD pnpm build
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Docmost"
@@ -91,6 +91,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
+rm -f "$temp_file"
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
