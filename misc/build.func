@@ -105,8 +105,8 @@ msg_info() {
   local spin_i=0
   local interval=0.1
 
-  # Falls ein alter Spinner läuft, beenden
-  if [ -n "$SPINNER_PID" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
+  # Falls bereits ein Spinner läuft, diesen beenden
+  if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
     kill "$SPINNER_PID" >/dev/null 2>&1
   fi
 
