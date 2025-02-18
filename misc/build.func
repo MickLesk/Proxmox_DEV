@@ -101,16 +101,16 @@ spinner() {
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏') # Originaler Spinner
+  local frames=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏") # Spinner Frames
   local spin_i=0
   local interval=0.1
-  local color="${YWB}" # Gelbe Schriftfarbe für den Spinner
+  local color="${YWB}" # Gelber Spinner
 
   printf "\e[?25l" # Cursor ausblenden
 
-  # Startet den Spinner als Hintergrundprozess
+  # Spinner in Endlosschleife starten (Hintergrundprozess)
   while true; do
-    printf "\r ${color}${frames[spin_i]} ${YW}${msg}${CL}" # Spinner + Gelber Text
+    printf "\r ${color}${frames[spin_i]} ${YW}${msg}${CL}  " # Bewegt sich auf EINER Zeile
     spin_i=$(((spin_i + 1) % ${#frames[@]}))
     sleep "$interval"
   done &
