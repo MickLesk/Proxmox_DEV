@@ -117,15 +117,13 @@ start_spinner() {
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local spin_i=0
   local interval=0.1
+  local term_width=$(tput cols) # Terminalbreite holen
 
   {
     while [ "${SPINNER_ACTIVE:-1}" -eq 1 ]; do
-      if [ "${MSG_DISPLAYED:-0}" -eq 0 ]; then
-        printf "\r${frames[spin_i]} ${YW}${msg}${CL}  " >&2 # Zeigt Spinner + Text einmal
-        MSG_DISPLAYED=1                                     # Markiere, dass der Text ausgegeben wurde
-      else
-        printf "\r${frames[spin_i]}   " >&2 # Danach nur noch Spinner ohne Text
-      fi
+      local output="${frames[spin_i]} ${YW}${msg}${CL}"
+      local padding=$((term_width - ${#output}))    # Abstand berechnen
+      printf "\r%s%*s" "$output" "$padding" " " >&2 # Ausgabe mit Padding
       spin_i=$(((spin_i + 1) % ${#frames[@]}))
       sleep "$interval"
     done

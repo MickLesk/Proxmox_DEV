@@ -11,7 +11,7 @@ APP="Docmost"
 var_tags="documents"
 var_cpu="2"
 var_ram="2048"
-var_disk="5"
+var_disk="7"
 var_os="debian"
 var_version="12"
 
