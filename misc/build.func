@@ -123,16 +123,16 @@ msg_error() {
 }
 
 log_message() {
-  local level="$1"
-  local message="$2"
+  local level="${1:-INFO}"              # Standardwert INFO, falls kein Level angegeben wird
+  local message="${2:-MISSING_MESSAGE}" # Fallback für fehlende Messages
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
-  LOGFILE="${LOGDIR}/${APP}_update_${timestamp}.log"
+  LOGFILE="${LOGDIR}/${APP}_update.log" # Kein TIMESTAMP hier, sonst jedes Mal neue Datei!
 
   echo "$timestamp - $level: $message" >>"$LOGFILE"
-  [ -z "$STD" ] && echo "$timestamp - $level: $message" # In der Konsole nur, wenn nicht Silent Mode
+  [ -z "$STD" ] && echo "$timestamp - $level: $message" # Nur in der Konsole anzeigen, wenn nicht silent
 }
 
 # Check if the shell is using bash
@@ -1016,10 +1016,12 @@ check_container_storage() {
 }
 
 start() {
-  # Silent-Modus Funktion definieren
+  # Silent-Modus Funktion
   silent() { "$@" >/dev/null 2>&1; }
 
-  # Prüfe, ob PVE installiert ist (LXC-Erstellung)
+  # SPINNER Variablen absichern
+  SPINNER_PID=""
+
   if command -v pveversion >/dev/null 2>&1; then
     if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a New ${APP} LXC. Proceed?" 10 58); then
       clear
@@ -1027,12 +1029,11 @@ start() {
       exit_script
       exit
     fi
-    SPINNER_PID=""
     log_message "INFO" "Starte LXC-Installation für ${APP}"
     install_script
   fi
 
-  # Falls PVE nicht vorhanden ist -> Update-Option anzeigen
+  # Falls kein PVE, dann Update
   if ! command -v pveversion >/dev/null 2>&1; then
     CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
       "Support/Update functions for ${APP} LXC. Choose an option:" \
@@ -1048,7 +1049,6 @@ start() {
       exit
     fi
 
-    # Verbose-Modus setzen
     case "$CHOICE" in
     1)
       VERBOSE="no"
@@ -1068,14 +1068,12 @@ start() {
       ;;
     esac
 
-    SPINNER_PID=""
     log_message "INFO" "Starte Update für ${APP}"
 
-    # STD-Handling für Update
     if [ "$STD" = "silent" ]; then
-      update_script >>"$LOGFILE" 2>&1 # Nur ins Log schreiben
+      update_script >>"$LOGFILE" 2>&1
     else
-      update_script 2>&1 | tee -a "$LOGFILE" # In Log und Konsole ausgeben
+      update_script 2>&1 | tee -a "$LOGFILE"
     fi
 
     log_message "INFO" "Update abgeschlossen."
