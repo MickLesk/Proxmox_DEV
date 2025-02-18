@@ -101,18 +101,22 @@ spinner() {
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
-  local frames=('⏳' '⌛' '⏳' '⌛')  # Sanduhr-Symbole
+  local frames=('⏳' '⌛' '⏳' '⌛') # Sanduhr-Symbole
   local spin_i=0
-  local interval=0.2
-  
-  printf "\e[?25l"  # Cursor ausblenden
-  while ps -p "$SPINNER_PID" > /dev/null 2>&1; do
-    printf "\r ${frames[spin_i]} ${YW}${msg}${CL}"  # Spinner + Nachricht
+  local interval=0.2 # Geschwindigkeit des Wechsels
+  local duration=2   # Mindestdauer für den Spinner
+
+  printf "\e[?25l" # Cursor ausblenden
+
+  end_time=$((SECONDS + duration))
+  while [ $SECONDS -lt $end_time ]; do
+    printf "\r ${frames[spin_i]} ${YW}${msg}${CL}" # Spinner + Text
     spin_i=$(((spin_i + 1) % ${#frames[@]}))
     sleep "$interval"
   done
-  printf "\r ${INFO}${msg}${CL}"  # Abschluss mit fester Nachricht
-  printf "\e[?25h"  # Cursor wieder einblenden
+
+  printf "\r ${INFO}${msg}${CL}\n" # Abschließen mit fester Nachricht
+  printf "\e[?25h"                 # Cursor wieder einblenden
 }
 
 msg_ok() {
