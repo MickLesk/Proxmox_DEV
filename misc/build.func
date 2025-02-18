@@ -109,7 +109,8 @@ msg_info() {
   fi
 
   echo "[DEBUG] msg_info gestartet mit: $msg" >>/tmp/spinner_debug.log
-  SPINNER_ACTIVE=1 # Markiere Spinner als aktiv
+  SPINNER_ACTIVE=1 # Markiere den Spinner als aktiv
+  MSG_DISPLAYED=0  # Text wurde noch nicht ausgegeben
   start_spinner "$msg"
 }
 
@@ -121,7 +122,12 @@ start_spinner() {
 
   {
     while [ "${SPINNER_ACTIVE:-1}" -eq 1 ]; do
-      printf "\r${frames[spin_i]} ${YW}${msg}${CL}  " >&2
+      if [ "${MSG_DISPLAYED:-0}" -eq 0 ]; then
+        printf "\r${frames[spin_i]} ${YW}${msg}${CL}  " >&2 # Zeigt Spinner + Text einmal
+        MSG_DISPLAYED=1                                     # Markiere, dass der Text ausgegeben wurde
+      else
+        printf "\r${frames[spin_i]}   " >&2 # Danach nur noch Spinner ohne Text
+      fi
       spin_i=$(((spin_i + 1) % ${#frames[@]}))
       sleep "$interval"
     done

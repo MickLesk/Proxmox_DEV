@@ -33,7 +33,7 @@ msg_info "Installing Node.js"
 $STD apt-get update
 $STD apt-get install -y nodejs
 $STD npm install -g pnpm
-$STD pnpm add -g nx
+#$STD pnpm add -g nx
 msg_ok "Installed Node.js"
 
 msg_info "Setting up PostgreSQL"
@@ -64,7 +64,7 @@ mv .env.example .env
 sed -i "s|APP_SECRET=.*|APP_SECRET=$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | cut -c1-32)|" /opt/docmost/.env
 sed -i "s|DATABASE_URL=.*|DATABASE_URL=postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME|" /opt/docmost/.env
 export NODE_OPTIONS="--max-old-space-size=2048"
-$STD pnpm install --frozen-lockfile --prod
+$STD pnpm install --frozen-lockfile
 $STD pnpm build
 echo "${RELEASE}" >"/opt/${APPLICATION}_version.txt"
 msg_ok "Installed Docmost"
