@@ -129,7 +129,7 @@ log_message() {
 
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
-  LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
+  LOGFILE="${LOGDIR}/${APP}_update_${timestamp}.log"
 
   echo "$timestamp - $level: $message" >>"$LOGFILE"
   [ -z "$STD" ] && echo "$timestamp - $level: $message" # In der Konsole nur, wenn nicht Silent Mode
