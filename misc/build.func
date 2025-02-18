@@ -123,18 +123,24 @@ msg_error() {
 }
 
 log_message() {
-  local level="$1"
-  local message="$2"
-  local timestamp
+  local level="${1:-INFO}"         # Standardlevel ist "INFO", falls kein Level übergeben wird.
+  local message="${2:-(no message provided)}"  # Falls keine Nachricht übergeben wird.
+  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
+  # Sicherstellen, dass das Log-Verzeichnis existiert
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
 
-  timestamp=$(date '+%Y-%m-%d_%H-%M-%S')
-  LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
-  # Log schreiben
-  echo "$timestamp - $level: $message" >>"$LOGFILE"
+  # Falls LOGFILE nicht existiert, setzen wir es einmalig mit einem globalen Timestamp
+  if [[ -z "${LOGFILE:-}" ]]; then
+    TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
+    LOGFILE="${LOGDIR}/${APP}_update_${TIMESTAMP}.log"
+  fi
+
+  # Log-Nachricht in Datei schreiben
+  echo "$timestamp [$level] $message" >>"$LOGFILE"
 }
+
 
 # Check if the shell is using bash
 shell_check() {
