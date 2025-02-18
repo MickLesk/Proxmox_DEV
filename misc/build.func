@@ -101,20 +101,22 @@ error_handler() {
 # This function displays an informational message with logging support.
 msg_info() {
   local msg="$1"
+
+  # DEBUG: Prüfe, ob msg_info mehrfach aufgerufen wird
+  echo "[DEBUG] msg_info aufgerufen mit: $msg" >>/tmp/spinner_debug.log
+
+  # Prüfen, ob ein Spinner läuft, bevor ein neuer gestartet wird
+  if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
+    echo "[DEBUG] Spinner läuft bereits mit PID $SPINNER_PID" >>/tmp/spinner_debug.log
+    return
+  fi
+
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local spin_i=0
   local interval=0.1
-  local color="${YWB}" # Gelber Spinner
+  local color="${YWB}"
 
-  printf "\n" # Sicherstellen, dass der Spinner eine eigene Zeile bekommt
-
-  # Falls ein vorheriger Spinner läuft, beende ihn
-  if [ -n "${SPINNER_PID:-}" ] && ps -p "$SPINNER_PID" >/dev/null 2>&1; then
-    kill "$SPINNER_PID" >/dev/null 2>&1
-    wait "$SPINNER_PID" 2>/dev/null || true
-  fi
-
-  # Spinner-Prozess starten
+  # Spinner starten
   {
     trap 'exit 0' TERM
     while true; do
@@ -125,6 +127,7 @@ msg_info() {
   } &
 
   SPINNER_PID=$!
+  echo "[DEBUG] Neuer Spinner gestartet mit PID $SPINNER_PID" >>/tmp/spinner_debug.log
 }
 
 msg_ok() {
