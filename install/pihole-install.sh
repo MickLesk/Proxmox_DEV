@@ -22,8 +22,6 @@ $STD apt-get install -y \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Pi-hole"
-# View script https://install.pi-hole.net
-$STD bash <(curl -fsSL https://install.pi-hole.net) --unattended
 mkdir -p /etc/pihole/
 cat <<EOF >/etc/pihole/setupVars.conf
 PIHOLE_INTERFACE=eth0
@@ -40,6 +38,10 @@ DNSMASQ_LISTENING=local
 WEBPASSWORD=$(openssl rand -base64 48)
 BLOCKING_ENABLED=true
 EOF
+# View script https://install.pi-hole.net
+$STD bash <(curl -fsSL https://install.pi-hole.net) --unattended
+
+
 pihole-FTL --config ntp.sync.interval 0
 msg_ok "Installed Pi-hole"
 
