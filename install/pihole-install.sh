@@ -119,7 +119,7 @@ forward-zone:
 EOF
   fi
 
-  sed -i -e 's/PIHOLE_DNS_1=8.8.8.8/PIHOLE_DNS_1=127.0.0.1#5335/' -e '/PIHOLE_DNS_2=8.8.4.4/d' /etc/pihole/setupVars.conf
+  sed -i -E "s|^(upstreams =).*|\1 [\"127.0.0.1#5335\", \"8.8.4.4\"]|" /etc/pihole/pihole.toml
   sed -i -e 's/server=8.8.8.8/server=127.0.0.1#5335/' -e '/server=8.8.4.4/d' /etc/dnsmasq.d/01-pihole.conf
   systemctl enable -q --now unbound
   systemctl restart pihole-FTL.service
