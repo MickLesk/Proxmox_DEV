@@ -44,6 +44,7 @@ sed -i -e '
 
 /^\s*\[ntp.sync.rtc\]/ {N; s|set = true|set = false|}
 ' /etc/pihole/pihole.toml
+$STD pihole-FTL --config ntp.sync.interval 0
 systemctl restart pihole-FTL.service
 {
     echo "Application-Credentials"
