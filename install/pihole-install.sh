@@ -26,19 +26,24 @@ mkdir -p /etc/pihole
 touch /etc/pihole/pihole.toml
 $STD bash <(curl -fsSL https://install.pi-hole.net) --unattended
 WEBPASSWORD_HASH=$(echo -n "$(openssl rand -base64 48)" | sha256sum | awk '{print $1}')
-sed -i -E "s|^(upstreams =).*|\1 [\"8.8.8.8\", \"8.8.4.4\"]|" /etc/pihole/pihole.toml
-sed -i -E "s|^(domainNeeded =).*|\1 true|" /etc/pihole/pihole.toml
-sed -i -E "s|^(bogusPriv =).*|\1 true|" /etc/pihole/pihole.toml
-sed -i -E "s|^(interface =).*|\1 \"eth0\"|" /etc/pihole/pihole.toml
-sed -i -E "s|^(queryLogging =).*|\1 true|" /etc/pihole/pihole.toml
-sed -i -E "s|^(size =).*|\1 10000|" /etc/pihole/pihole.toml
-sed -i -E "s|^(active =).*|\1 true|" /etc/pihole/pihole.toml
-sed -i -E "s|^(listenMode =).*|\1 \"LOCAL\"|" /etc/pihole/pihole.toml
-sed -i -E "s|^(port =).*|\1 \"80o,443os,[::]:80o,[::]:443os\"|" /etc/pihole/pihole.toml
-sed -i -E "s|^(pwhash =).*|\1 \"$WEBPASSWORD_HASH\"|" /etc/pihole/pihole.toml
-sed -i -E "s|^(active =).*|\1 false|" /etc/pihole/pihole.toml
-sed -i -E "s|^(interval =).*|\1 0|" /etc/pihole/pihole.toml
-sed -i -E "s|^(set =).*|\1 false|" /etc/pihole/pihole.toml
+sed -i -e '
+/^\s*upstreams =/ s|=.*|= ["127.0.0.1#5335", "8.8.8.8"]|
+/^\s*interface =/ s|=.*|= "eth0"|
+/^\s*queryLogging =/ s|=.*|= true|
+/^\s*size =/ s|=.*|= 10000|
+/^\s*active =/ s|=.*|= true|
+/^\s*listeningMode =/ s|=.*|= "LOCAL"|
+/^\s*port =/ s|=.*|= "80o,443os,[::]:80o,[::]:443os"|
+/^\s*pwhash =/ s|=.*|= "'"$WEBPASSWORD_HASH"'"|
+
+# disable NTP
+/^\s*\[ntp.ipv4\]/ {N; s|active = true|active = false|}
+/^\s*\[ntp.ipv6\]/ {N; s|active = true|active = false|}
+/^\s*\[ntp.sync\]/ {N; s|active = true|active = false|}
+/^\s*\[ntp.sync\]/ {N; s|interval = [0-9]\+|interval = 0|}
+
+/^\s*\[ntp.sync.rtc\]/ {N; s|set = true|set = false|}
+' /etc/pihole/pihole.toml
 systemctl restart pihole-FTL.service
 {
     echo "Application-Credentials"
