@@ -39,6 +39,10 @@ sed -i -E "s|^(active =).*|\1 false|" /etc/pihole/pihole.toml
 sed -i -E "s|^(interval =).*|\1 0|" /etc/pihole/pihole.toml
 sed -i -E "s|^(set =).*|\1 false|" /etc/pihole/pihole.toml
 systemctl restart pihole-FTL.service
+{
+    echo "Application-Credentials"
+    echo "Login-Password: $WEBPASSWORD_HASH"
+} >> ~/pihole.creds
 msg_ok "Installed Pi-hole"
 
 read -r -p "Would you like to add Unbound? <y/N> " prompt
