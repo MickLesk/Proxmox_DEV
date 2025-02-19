@@ -23,7 +23,7 @@ msg_ok "Installed Dependencies"
 
 msg_info "Installing Pi-hole"
 # View script https://install.pi-hole.net
-$STD bash <(curl -fsSL https://install.pi-hole.net)
+$STD bash <(curl -fsSL https://install.pi-hole.net) --unattended
 mkdir -p /etc/pihole/
 cat <<EOF >/etc/pihole/setupVars.conf
 PIHOLE_INTERFACE=eth0
