@@ -138,9 +138,9 @@ msg_ok() {
   fi
 
   local msg="$1"
-  printf "\e[?25h\r${CM}${GN}%s${CL}\n" "$msg" >&2 # Jetzt ANSI-konform
+  printf "\e[?25h\r${CM}${GN}%b${CL}\n" "$msg" >&2
   unset SPINNER_PID
-  SPINNER_ACTIVE=0 # Spinner als inaktiv setzen
+  SPINNER_ACTIVE=0
 
   log_message "OK" "$msg"
 }
@@ -152,8 +152,9 @@ msg_error() {
   fi
 
   local msg="$1"
-  printf "\e[?25h\r${CROSS}${RD}${msg}${CL}\n" >&2
+  printf "\e[?25h\r${CROSS}${RD}%b${CL}\n" "$msg" >&2
   unset SPINNER_PID
+  SPINNER_ACTIVE=0
   log_message "ERROR" "$msg"
 }
 
