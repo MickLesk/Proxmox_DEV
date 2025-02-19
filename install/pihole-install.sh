@@ -27,7 +27,7 @@ touch /etc/pihole/pihole.toml
 $STD bash <(curl -fsSL https://install.pi-hole.net) --unattended
 WEBPASSWORD_HASH=$(echo -n "$(openssl rand -base64 48)" | sha256sum | awk '{print $1}')
 sed -i -e '
-/^\s*upstreams =/ s|=.*|= ["127.0.0.1#5335", "8.8.8.8"]|
+/^\s*upstreams =/ s|=.*|= ["8.8.8.8", "8.8.4.4"]|
 /^\s*interface =/ s|=.*|= "eth0"|
 /^\s*queryLogging =/ s|=.*|= true|
 /^\s*size =/ s|=.*|= 10000|
