@@ -35,17 +35,14 @@ sed -i -e '
 /^\s*port =/ s|=.*|= "80o,443os,[::]:80o,[::]:443os"|
 /^\s*pwhash =/ s|=.*|= ""|
 
-# DHCP deaktivieren
-/^\s*\[dhcp\]/ {N; s|active = true|active = false|}
-
-# NTP vollständig deaktivieren
+# NTP Disable
 /^\s*\[ntp.ipv4\]/ {N; s|active = true|active = false|}
 /^\s*\[ntp.ipv6\]/ {N; s|active = true|active = false|}
 /^\s*\[ntp.sync\]/ {N; s|active = true|active = false|}
 /^\s*\[ntp.sync\]/ {N; s|interval = [0-9]\+|interval = 0|}
 /^\s*\[ntp.sync.rtc\]/ {N; s|set = true|set = false|}
 
-# domainNeeded und expandHosts setzen
+# set domainNeeded und expandHosts
 /^\s*domainNeeded =/ s|=.*|= true|
 /^\s*expandHosts =/ s|=.*|= true|
 ' /etc/pihole/pihole.toml
