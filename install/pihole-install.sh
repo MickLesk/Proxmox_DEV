@@ -22,7 +22,8 @@ $STD apt-get install -y \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Pi-hole"
-# View script https://install.pi-hole.net
+mkdir -p /etc/pihole
+touch /etc/pihole/pihole.toml
 $STD bash <(curl -fsSL https://install.pi-hole.net) --unattended
 WEBPASSWORD_HASH=$(echo -n "$(openssl rand -base64 48)" | sha256sum | awk '{print $1}')
 sed -i -E "s|^(upstreams =).*|\1 [\"8.8.8.8\", \"8.8.4.4\"]|" /etc/pihole/pihole.toml
