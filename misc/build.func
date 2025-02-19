@@ -1056,7 +1056,7 @@ start() {
 
   silent() {
     if [ "$VERBOSE" = "no" ]; then
-      "$@" 2>&1 | tee -a "$LOGFILE" | grep -v -E "⠋|⠙|⠹|⠸|⠼|⠴|⠦|⠧|⠇|⠏"
+      "$@" 2>&1 | tee -a "$LOGFILE" | grep -v -E "⠋|⠙|⠹|⠸|⠼|⠴|⠦|⠧|⠇|⠏" || true
     else
       "$@" 2>&1 | tee -a "$LOGFILE"
     fi
