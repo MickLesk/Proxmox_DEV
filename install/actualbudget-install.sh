@@ -53,10 +53,20 @@ ACTUAL_SERVER_FILES_DIR=/opt/actualbudget-data/server-files
 ACTUAL_USER_FILES=/opt/actualbudget-data/user-files
 PORT=9006
 ACTUAL_TRUSTED_PROXIES="10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/32,::1/128,fc00::/7"
+ACTUAL_HTTPS_KEY=/opt/actualbudget/selfhost.key
+ACTUAL_HTTPS_CERT=/opt/actualbudget/selfhost.crt
 EOF
-
 cd /opt/actualbudget
 $STD yarn install
+$STD openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout selfhost.key -out selfhost.crt <<EOF
+US
+California
+San Francisco
+My Organization
+My Unit
+localhost
+myemail@example.com
+EOF
 echo "${RELEASE}" >"/opt/actualbudget_version.txt"
 msg_ok "Installed Actual Budget"
 
