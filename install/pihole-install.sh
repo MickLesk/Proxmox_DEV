@@ -22,25 +22,23 @@ $STD apt-get install -y \
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Pi-hole"
-mkdir -p /etc/pihole/
-cat <<EOF >/etc/pihole/setupVars.conf
-PIHOLE_INTERFACE=eth0
-PIHOLE_DNS_1=8.8.8.8
-PIHOLE_DNS_2=8.8.4.4
-QUERY_LOGGING=true
-INSTALL_WEB_SERVER=true
-INSTALL_WEB_INTERFACE=true
-LIGHTTPD_ENABLED=false
-CACHE_SIZE=10000
-DNS_FQDN_REQUIRED=true
-DNS_BOGUS_PRIV=true
-DNSMASQ_LISTENING=local
-WEBPASSWORD=$(openssl rand -base64 48)
-BLOCKING_ENABLED=true
-EOF
 # View script https://install.pi-hole.net
 $STD bash <(curl -fsSL https://install.pi-hole.net) --unattended
-$STD pihole-FTL --config ntp.sync.interval 0
+WEBPASSWORD_HASH=$(echo -n "$(openssl rand -base64 48)" | sha256sum | awk '{print $1}')
+sed -i -E "s|^(upstreams =).*|\1 [\"8.8.8.8\", \"8.8.4.4\"]|" /etc/pihole/pihole.toml
+sed -i -E "s|^(domainNeeded =).*|\1 true|" /etc/pihole/pihole.toml
+sed -i -E "s|^(bogusPriv =).*|\1 true|" /etc/pihole/pihole.toml
+sed -i -E "s|^(interface =).*|\1 \"eth0\"|" /etc/pihole/pihole.toml
+sed -i -E "s|^(queryLogging =).*|\1 true|" /etc/pihole/pihole.toml
+sed -i -E "s|^(size =).*|\1 10000|" /etc/pihole/pihole.toml
+sed -i -E "s|^(active =).*|\1 true|" /etc/pihole/pihole.toml
+sed -i -E "s|^(listenMode =).*|\1 \"LOCAL\"|" /etc/pihole/pihole.toml
+sed -i -E "s|^(port =).*|\1 \"80o,443os,[::]:80o,[::]:443os\"|" /etc/pihole/pihole.toml
+sed -i -E "s|^(pwhash =).*|\1 \"$WEBPASSWORD_HASH\"|" /etc/pihole/pihole.toml
+sed -i -E "s|^(active =).*|\1 false|" /etc/pihole/pihole.toml
+sed -i -E "s|^(interval =).*|\1 0|" /etc/pihole/pihole.toml
+sed -i -E "s|^(set =).*|\1 false|" /etc/pihole/pihole.toml
+systemctl restart pihole-FTL.service
 msg_ok "Installed Pi-hole"
 
 read -r -p "Would you like to add Unbound? <y/N> " prompt
