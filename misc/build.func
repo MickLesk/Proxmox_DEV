@@ -1051,20 +1051,17 @@ check_container_storage() {
 }
 
 start() {
-  # Sicherstellen, dass das Log-Verzeichnis existiert
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
 
-  # Funktion für Silent Mode definieren
   silent() {
     if [ "$VERBOSE" = "no" ]; then
-      "$@" >>"$LOGFILE" 2>&1
+      "$@" 2>&1 | tee -a "$LOGFILE" | grep -v -E "⠋|⠙|⠹|⠸|⠼|⠴|⠦|⠧|⠇|⠏"
     else
       "$@" 2>&1 | tee -a "$LOGFILE"
     fi
   }
 
-  # Prüfen, ob PVE installiert ist (Installation oder Update)
   if command -v pveversion >/dev/null 2>&1; then
     if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a New ${APP} LXC. Proceed?" 10 58); then
       clear
@@ -1074,8 +1071,7 @@ start() {
     SPINNER_PID=""
     install_script
   fi
-
-  # Falls kein PVE -> Update-Modus
+  
   if ! command -v pveversion >/dev/null 2>&1; then
     CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC UPDATE" --menu \
       "Support/Update functions for ${APP} LXC. Choose an option:" \
