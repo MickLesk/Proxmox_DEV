@@ -51,7 +51,6 @@ function update_script() {
                 mv /opt/actualbudget_bak/$dir/* /opt/actualbudget-data/$dir/ 2>/dev/null || true
             fi
         done
-
         if [[ -f /opt/actualbudget_bak/.env ]]; then
             mv /opt/actualbudget_bak/.env /opt/actualbudget-data/.env
         else
