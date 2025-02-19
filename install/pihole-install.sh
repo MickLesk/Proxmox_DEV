@@ -129,6 +129,11 @@ forward-zone:
   #forward-addr: 2620:fe::9@853#dns.quad9.net
 EOF
   fi
+cat <<EOF > /etc/dnsmasq.d/01-pihole.conf
+server=127.0.0.1#5335
+server=8.8.8.8
+server=8.8.4.4
+EOF
 
   sed -i -E "s|^(upstreams =).*|\1 [\"127.0.0.1#5335\", \"8.8.4.4\"]|" /etc/pihole/pihole.toml
   systemctl enable -q --now unbound
