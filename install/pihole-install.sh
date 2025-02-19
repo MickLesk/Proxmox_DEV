@@ -25,7 +25,7 @@ msg_info "Installing Pi-hole"
 mkdir -p /etc/pihole
 touch /etc/pihole/pihole.toml
 $STD bash <(curl -fsSL https://install.pi-hole.net) --unattended
-sed -i -e '
+sed -i -E '
 /^\s*upstreams =/ s|=.*|= ["8.8.8.8", "8.8.4.4"]|
 /^\s*interface =/ s|=.*|= "eth0"|
 /^\s*queryLogging =/ s|=.*|= true|
@@ -35,12 +35,15 @@ sed -i -e '
 /^\s*port =/ s|=.*|= "80o,443os,[::]:80o,[::]:443os"|
 /^\s*pwhash =/ s|=.*|= ""|
 
+# DHCP Disable
+/^\s*\[dhcp\]/,/^\s*\[/{s/^\s*active = true/  active = false/}
+
 # NTP Disable
-/^\s*\[ntp.ipv4\]/ {N; s|active = true|active = false|}
-/^\s*\[ntp.ipv6\]/ {N; s|active = true|active = false|}
-/^\s*\[ntp.sync\]/ {N; s|active = true|active = false|}
-/^\s*\[ntp.sync\]/ {N; s|interval = [0-9]\+|interval = 0|}
-/^\s*\[ntp.sync.rtc\]/ {N; s|set = true|set = false|}
+/^\s*\[ntp.ipv4\]/,/^\s*\[/{s/^\s*active = true/  active = false/}
+/^\s*\[ntp.ipv6\]/,/^\s*\[/{s/^\s*active = true/  active = false/}
+/^\s*\[ntp.sync\]/,/^\s*\[/{s/^\s*active = true/  active = false/}
+/^\s*\[ntp.sync\]/,/^\s*\[/{s/^\s*interval = [0-9]+/  interval = 0/}
+/^\s*\[ntp.sync.rtc\]/,/^\s*\[/{s/^\s*set = true/  set = false/}
 
 # set domainNeeded und expandHosts
 /^\s*domainNeeded =/ s|=.*|= true|
