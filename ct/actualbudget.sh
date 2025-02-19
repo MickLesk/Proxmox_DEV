@@ -42,7 +42,7 @@ function update_script() {
         wget -q "https://github.com/actualbudget/actual-server/archive/refs/tags/v${RELEASE}.tar.gz"
 
         mv /opt/actualbudget /opt/actualbudget_bak
-        tar -xzf "v${RELEASE}.tar.gz" >/dev/null 2>&1
+        silent tar -xzf "v${RELEASE}.tar.gz"
         mv *ctual-server-* /opt/actualbudget
 
         mkdir -p /opt/actualbudget-data/{server-files,upload,migrate,user-files,migrations,config}
@@ -64,7 +64,7 @@ ACTUAL_TRUSTED_PROXIES="10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/32,::1
 EOF
         fi
         cd /opt/actualbudget
-        yarn install &>/dev/null
+        silent yarn install
         echo "${RELEASE}" > /opt/actualbudget_version.txt
         msg_ok "Updated ${APP}"
 
