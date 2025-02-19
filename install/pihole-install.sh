@@ -56,10 +56,6 @@ server=8.8.4.4
 EOF
 $STD pihole-FTL --config ntp.sync.interval 0
 systemctl restart pihole-FTL.service
-{
-    echo "Application-Credentials"
-    echo "Login-Password: $WEBPASSWORD_HASH"
-} >> ~/pihole.creds
 msg_ok "Installed Pi-hole"
 
 read -r -p "Would you like to add Unbound? <y/N> " prompt
