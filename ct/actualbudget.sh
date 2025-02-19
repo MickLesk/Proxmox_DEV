@@ -64,17 +64,6 @@ ACTUAL_CONFIG_PATH=/opt/actualbudget-data/config/config.json
 ACTUAL_TRUSTED_PROXIES="10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7, ::1/128"
 EOF
         fi
-
-        if [[ -f /opt/actualbudget_bak/.env ]]; then
-            mv /opt/actualbudget_bak/.env /opt/actualbudget-data/.env
-        fi
-
-        if [[ -d /opt/actualbudget_bak/server-files ]] && [[ -n $(ls -A /opt/actualbudget_bak/server-files 2>/dev/null) ]]; then
-            mv /opt/actualbudget_bak/server-files/* /opt/actualbudget-data/server-files/
-        fi
-        if [[ -d /opt/actualbudget_bak/.migrate ]]; then
-            mv /opt/actualbudget_bak/.migrate/* /opt/actualbudget-data/migrate/
-        fi
         cd /opt/actualbudget
         yarn install &>/dev/null
         echo "${RELEASE}" > /opt/actualbudget_version.txt
