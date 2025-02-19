@@ -60,7 +60,7 @@ ACTUAL_DATA_DIR=/opt/actualbudget-data
 ACTUAL_SERVER_FILES_DIR=/opt/actualbudget-data/server-files
 ACTUAL_USER_FILES=/opt/actualbudget-data/user-files
 PORT=9006
-ACTUAL_TRUSTED_PROXIES="10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7, ::1/128"
+ACTUAL_TRUSTED_PROXIES="10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/32,::1/128,fc00::/7"
 EOF
         fi
         cd /opt/actualbudget
