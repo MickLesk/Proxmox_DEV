@@ -51,7 +51,7 @@ ACTUAL_UPLOAD_DIR=/opt/actualbudget-data/upload
 ACTUAL_DATA_DIR=/opt/actualbudget-data
 ACTUAL_SERVER_FILES_DIR=/opt/actualbudget-data/server-files
 ACTUAL_USER_FILES=/opt/actualbudget-data/user-files
-PORT=5006
+PORT=9006
 ACTUAL_CONFIG_PATH=/opt/actualbudget-data/config/config.json
 ACTUAL_TRUSTED_PROXIES="10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7, ::1/128"
 EOF
