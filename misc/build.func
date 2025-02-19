@@ -109,8 +109,7 @@ start_spinner() {
 
   {
     while [ "${SPINNER_ACTIVE:-1}" -eq 1 ]; do
-      local output="${frames[spin_i]} ${YW}${msg}${CL}"
-      printf "\r%-${term_width}s" "$output" >&2 # ANSI wird richtig interpretiert
+      printf "\r\e[2K${frames[spin_i]} ${YW}%b${CL}" "$msg" >&2
       spin_i=$(((spin_i + 1) % ${#frames[@]}))
       sleep "$interval"
     done
@@ -138,7 +137,7 @@ msg_ok() {
   fi
 
   local msg="$1"
-  printf "\e[?25h\r${CM}${GN}%b${CL}\n" "$msg" >&2
+  printf "\r\e[2K${CM}${GN}%b${CL}\n" "$msg" >&2
   unset SPINNER_PID
   SPINNER_ACTIVE=0
 
@@ -152,7 +151,7 @@ msg_error() {
   fi
 
   local msg="$1"
-  printf "\e[?25h\r${CROSS}${RD}%b${CL}\n" "$msg" >&2
+  printf "\r\e[2K${CROSS}${RD}%b${CL}\n" "$msg" >&2
   unset SPINNER_PID
   SPINNER_ACTIVE=0
   log_message "ERROR" "$msg"
