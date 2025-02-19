@@ -25,7 +25,6 @@ msg_info "Installing Pi-hole"
 mkdir -p /etc/pihole
 touch /etc/pihole/pihole.toml
 $STD bash <(curl -fsSL https://install.pi-hole.net) --unattended
-WEBPASSWORD_HASH=$(echo -n "$(openssl rand -base64 48)" | sha256sum | awk '{print $1}')
 sed -i -e '
 /^\s*upstreams =/ s|=.*|= ["8.8.8.8", "8.8.4.4"]|
 /^\s*interface =/ s|=.*|= "eth0"|
@@ -34,16 +33,27 @@ sed -i -e '
 /^\s*active =/ s|=.*|= true|
 /^\s*listeningMode =/ s|=.*|= "LOCAL"|
 /^\s*port =/ s|=.*|= "80o,443os,[::]:80o,[::]:443os"|
-/^\s*pwhash =/ s|=.*|= "'"$WEBPASSWORD_HASH"'"|
+/^\s*pwhash =/ s|=.*|= ""|
 
-# disable NTP
+# DHCP deaktivieren
+/^\s*\[dhcp\]/ {N; s|active = true|active = false|}
+
+# NTP vollständig deaktivieren
 /^\s*\[ntp.ipv4\]/ {N; s|active = true|active = false|}
 /^\s*\[ntp.ipv6\]/ {N; s|active = true|active = false|}
 /^\s*\[ntp.sync\]/ {N; s|active = true|active = false|}
 /^\s*\[ntp.sync\]/ {N; s|interval = [0-9]\+|interval = 0|}
-
 /^\s*\[ntp.sync.rtc\]/ {N; s|set = true|set = false|}
+
+# domainNeeded und expandHosts setzen
+/^\s*domainNeeded =/ s|=.*|= true|
+/^\s*expandHosts =/ s|=.*|= true|
 ' /etc/pihole/pihole.toml
+
+cat <<EOF > /etc/dnsmasq.d/01-pihole.conf
+server=8.8.8.8
+server=8.8.4.4
+EOF
 $STD pihole-FTL --config ntp.sync.interval 0
 systemctl restart pihole-FTL.service
 {
