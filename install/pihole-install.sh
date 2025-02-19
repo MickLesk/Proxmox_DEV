@@ -40,9 +40,7 @@ BLOCKING_ENABLED=true
 EOF
 # View script https://install.pi-hole.net
 $STD bash <(curl -fsSL https://install.pi-hole.net) --unattended
-
-
-pihole-FTL --config ntp.sync.interval 0
+$STD pihole-FTL --config ntp.sync.interval 0
 msg_ok "Installed Pi-hole"
 
 read -r -p "Would you like to add Unbound? <y/N> " prompt
