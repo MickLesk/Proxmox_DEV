@@ -35,12 +35,24 @@ color() {
   DEFAULT="${TAB}⚙️${TAB}${CL}"
 }
 
-# This function enables IPv6 if it's not disabled and sets verbose mode if the global variable is set to "yes"
-verb_ip6() {
+# Function to set STD mode based on verbosity
+set_std_mode() {
   if [ "$VERBOSE" = "yes" ]; then
     STD=""
-  else STD="silent"; fi
-  silent() { "$@" >/dev/null 2>&1; }
+  else
+    STD="silent"
+  fi
+}
+
+# Silent execution function
+silent() {
+  "$@" >/dev/null 2>&1
+}
+
+# This function enables IPv6 if it's not disabled and sets verbose mode
+verb_ip6() {
+  set_std_mode  # Set STD mode based on VERBOSE
+
   if [ "$DISABLEIPV6" == "yes" ]; then
     echo "net.ipv6.conf.all.disable_ipv6 = 1" >>/etc/sysctl.conf
     $STD sysctl -p
