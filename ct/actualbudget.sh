@@ -51,6 +51,14 @@ function update_script() {
                 mv /opt/actualbudget_bak/$dir/* /opt/actualbudget-data/$dir/ 2>/dev/null || true
             fi
         done
+        if [[ -f /opt/actualbudget-data/migrate/.migrations ]]; then
+            sed -i 's/null/1732656575219/g' /opt/actualbudget-data/migrate/.migrations
+            sed -i 's/null/1732656575220/g' /opt/actualbudget-data/migrate/.migrations
+        fi
+        if [[ -f /opt/actualbudget/server-files/account.sqlite ]] && [[ ! -f /opt/actualbudget-data/server-files/account.sqlite ]]; then
+            mv /opt/actualbudget/server-files/account.sqlite /opt/actualbudget-data/server-files/account.sqlite
+        fi
+
         if [[ -f /opt/actualbudget_bak/.env ]]; then
             mv /opt/actualbudget_bak/.env /opt/actualbudget-data/.env
         else
