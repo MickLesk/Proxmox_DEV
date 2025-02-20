@@ -80,26 +80,8 @@ error_handler() {
   echo -e "\n$error_message\n"
 }
 
-# # This function displays a spinner.
-# spinner() {
-#   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-#   local spin_i=0
-#   local interval=0.1
-
-#   printf "\e[?25l"                             # Cursor ausblenden
-#   trap 'printf "\e[?25h"; exit' SIGINT SIGTERM # Cursor sichtbar machen bei Abbruch
-
-#   while kill -0 "$SPINNER_PID" 2>/dev/null; do
-#     printf "\r ${frames[spin_i]} "
-#     spin_i=$(((spin_i + 1) % ${#frames[@]}))
-#     sleep "$interval"
-#   done
-
-#   printf "\e[?25h" # Cursor wieder einblenden
-# }
 
 # This function displays an informational message with logging support.
-
 start_spinner() {
   local msg="$1"
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
@@ -120,8 +102,6 @@ start_spinner() {
 
 msg_info() {
   local msg="$1"
-
-  # Prüfen, ob bereits ein Spinner läuft
   if [ "${SPINNER_ACTIVE:-0}" -eq 1 ]; then
     return
   fi
@@ -166,7 +146,7 @@ log_message() {
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
 
-  LOGFILE="${LOGDIR}/${APP}_update.log"
+  LOGFILE="${LOGDIR}/${APP}.log"
   echo "$timestamp - $level: $message" >>"$LOGFILE"
 }
 
@@ -1054,7 +1034,7 @@ start() {
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
 
-STD() {
+verbose() {
   if [ "$VERBOSE" = "no" ]; then
     "$@" 2>&1 | while read -r line; do
       if [[ ! "$line" =~ ⠋|⠙|⠹|⠸|⠼|⠴|⠦|⠧|⠇|⠏ ]]; then
