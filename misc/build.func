@@ -146,7 +146,7 @@ log_message() {
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
 
-  LOGFILE="${LOGDIR}/${APP}.log"
+  LOGFILE="${LOGDIR}/$timestamp_${NSAPP}.log"
   echo "$timestamp - $level: $message" >>"$LOGFILE"
 }
 
