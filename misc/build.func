@@ -80,7 +80,6 @@ error_handler() {
   echo -e "\n$error_message\n"
 }
 
-
 # This function displays an informational message with logging support.
 start_spinner() {
   local msg="$1"
@@ -1032,23 +1031,6 @@ check_container_storage() {
   fi
 }
 
-set_std_mode() {
-  if [ "$VERB" = "yes" ]; then
-    STD=""
-  else
-    STD="silent"
-  fi
-}
-
-# Silent execution function
-silent() {
-  if [ "$VERB" = "no" ]; then
-    "$@" >>"$LOGFILE" 2>&1
-  else
-    "$@" 2>&1 | tee -a "$LOGFILE"
-  fi
-}
-
 start() {
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
@@ -1063,7 +1045,7 @@ start() {
     SPINNER_PID=""
     install_script
   fi
-  
+
   if ! command -v pveversion >/dev/null 2>&1; then
     CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC Update/Setting" --menu \
       "Support/Update functions for ${APP} LXC. Choose an option:" \
@@ -1255,6 +1237,23 @@ EOF
   fi
 
   post_update_to_api "done" "none"
+}
+
+set_std_mode() {
+  if [ "$VERB" = "yes" ]; then
+    STD=""
+  else
+    STD="silent"
+  fi
+}
+
+# Silent execution function
+silent() {
+  if [ "$VERB" = "no" ]; then
+    "$@" >>"$LOGFILE" 2>&1
+  else
+    "$@" 2>&1 | tee -a "$LOGFILE"
+  fi
 }
 
 exit_script() {
