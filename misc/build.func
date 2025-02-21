@@ -1034,7 +1034,6 @@ check_container_storage() {
 start() {
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
-  set_std_mode
 
   if command -v pveversion >/dev/null 2>&1; then
     if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a New ${APP} LXC. Proceed?" 10 58); then
@@ -1057,10 +1056,12 @@ start() {
     case "$CHOICE" in
     1)
       VERB="no"
+      set_std_mode
       log_message "INFO" "Update started (Silent Mode)"
       ;;
     2)
       VERB="yes"
+      set_std_mode
       log_message "INFO" "Update started (Verbose Mode)"
       ;;
     3)
