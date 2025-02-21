@@ -1033,23 +1033,6 @@ check_container_storage() {
   fi
 }
 
-set_std_mode() {
-  if [ "$VERB" = "yes" ]; then
-    STD=""
-  else
-    STD="silent"
-  fi
-}
-
-# Silent execution function
-silent() {
-  if [ "$VERB" = "no" ]; then
-    "$@" >>"$LOGFILE" 2>&1
-  else
-    "$@" 2>&1 | tee -a "$LOGFILE"
-  fi
-}
-
 start() {
   LOGDIR="/usr/local/community-scripts/logs"
   mkdir -p "$LOGDIR"
@@ -1089,6 +1072,22 @@ start() {
       ;;
     esac
 
+    set_std_mode() {
+      if [ "$VERB" = "yes" ]; then
+        STD=""
+      else
+        STD="silent"
+      fi
+    }
+
+    # Silent execution function
+    silent() {
+      if [ "$VERB" = "no" ]; then
+        "$@" >>"$LOGFILE" 2>&1
+      else
+        "$@" 2>&1 | tee -a "$LOGFILE"
+      fi
+    }
     SPINNER_PID=""
     update_script
     set_std_mode
