@@ -1034,7 +1034,7 @@ check_container_storage() {
 }
 
 set_std_mode() {
-  if [ "$VERBOSE" = "yes" ]; then
+  if [ "$VERB" = "yes" ]; then
     STD=""
   else
     STD="silent"
@@ -1043,7 +1043,7 @@ set_std_mode() {
 
 # Silent execution function
 silent() {
-  if [ "$VERBOSE" = "no" ]; then
+  if [ "$VERB" = "no" ]; then
     "$@" >>"$LOGFILE" 2>&1
   else
     "$@" 2>&1 | tee -a "$LOGFILE"
@@ -1074,11 +1074,11 @@ start() {
 
     case "$CHOICE" in
     1)
-      VERBOSE="no"
+      VERB="no"
       log_message "INFO" "Update started (Silent Mode)"
       ;;
     2)
-      VERBOSE="yes"
+      VERB="yes"
       log_message "INFO" "Update started (Verbose Mode)"
       ;;
     3)
