@@ -1031,22 +1031,27 @@ check_container_storage() {
   fi
 }
 
-start() {
-  LOGDIR="/usr/local/community-scripts/logs"
-  mkdir -p "$LOGDIR"
-
 set_std_mode() {
+  if [ "$VERBOSE" = "yes" ]; then
+    STD=""
+  else
+    STD="silent"
+  fi
+}
+
+# Silent execution function
+silent() {
   if [ "$VERBOSE" = "no" ]; then
-    "$@" 2>&1 | while read -r line; do
-      if [[ ! "$line" =~ ⠋|⠙|⠹|⠸|⠼|⠴|⠦|⠧|⠇|⠏ ]]; then
-        echo "$line" >>"$LOGFILE"
-      fi
-    done
+    "$@" >>"$LOGFILE" 2>&1
   else
     "$@" 2>&1 | tee -a "$LOGFILE"
   fi
 }
 
+start() {
+  LOGDIR="/usr/local/community-scripts/logs"
+  mkdir -p "$LOGDIR"
+  set_std_mode
 
   if command -v pveversion >/dev/null 2>&1; then
     if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "${APP} LXC" --yesno "This will create a New ${APP} LXC. Proceed?" 10 58); then

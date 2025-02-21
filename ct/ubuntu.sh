@@ -29,8 +29,8 @@ function update_script() {
         exit
     fi
     msg_info "Updating ${APP} LXC"
-    apt-get update
-    apt-get -y upgrade
+    $STD apt-get update
+    $STD apt-get -y upgrade
     msg_ok "Updated ${APP} LXC"
     exit
 }
